@@ -225,8 +225,8 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .dot{position:absolute;top:6px;right:50%;margin-right:-22px;width:6px;height:6px;border-radius:99px;background:var(--ember)}
 
 /* ===== オーバーレイ共通 ===== */
-.ov{position:fixed;inset:0;z-index:60;background:linear-gradient(180deg,#0B0E16,#0A0C12);display:flex;flex-direction:column;animation:fade .2s ease}
-.ov-in{flex:1;overflow-y:auto;max-width:560px;width:100%;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px);display:flex;flex-direction:column;gap:14px}
+.ov{position:fixed;inset:0;z-index:60;background:linear-gradient(180deg,#0B0E16,#0A0C12);display:flex;flex-direction:column;overflow:hidden}
+.ov-in{animation:fade .2s ease;flex:1;overflow-y:auto;max-width:560px;width:100%;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px);display:flex;flex-direction:column;gap:14px}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 
 /* 戦闘 */
@@ -246,13 +246,12 @@ textarea.ta{height:112px;resize:none;font-size:16px}
   18%{opacity:1;transform:translate(-50%,-6px) scale(1.15)}
   100%{opacity:0;transform:translate(-50%,-62px) scale(1)}
 }
-/* 被弾したときの画面の揺れ */
-.ov.hurt-flash{animation:hurtFlash .32s ease}
-@keyframes hurtFlash{
-  0%{background:linear-gradient(180deg,#0B0E16,#0A0C12)}
-  25%{background:linear-gradient(180deg,#241014,#1A0C10)}
-  100%{background:linear-gradient(180deg,#0B0E16,#0A0C12)}
-}
+/* 被弾の合図。背景そのものは動かさず、上に赤い膜を重ねて透明度だけ動かす
+   （背景のグラデーションを動かすと iOS で一瞬下が透ける） */
+.hurt-veil{position:absolute;inset:0;pointer-events:none;z-index:5;
+  background:rgba(232,87,76,.22);opacity:0;will-change:opacity}
+.hurt-veil.on{animation:veil .34s ease}
+@keyframes veil{0%{opacity:0}22%{opacity:1}100%{opacity:0}}
 /* HPバーが削れるときの残像 */
 .bar{position:relative}
 .bar>u{position:absolute;left:0;top:0;height:100%;background:rgba(232,87,76,.45);border-radius:99px;
@@ -1075,7 +1074,8 @@ function battle(e){
         '<button class="btn btn-q" data-a="timer">⏱ タイマー</button>' +
         '<button class="btn btn-q" data-a="close">にげる</button>' +
       '</div>' +
-    '</div>';
+    '</div>' +
+    '<div class="hurt-veil"></div>';
   ov.querySelector(".bt-sig").textContent = e.s;
   ov.querySelector(".bt-name").textContent = e.n;
   document.body.appendChild(ov);
@@ -1129,9 +1129,11 @@ function battle(e){
     sig.appendChild(d);
     setTimeout(function(){ d.remove(); }, 900);
   }
+  var veil = ov.querySelector(".hurt-veil");
   function hurtFlash(){
-    ov.classList.add("hurt-flash");
-    setTimeout(function(){ ov.classList.remove("hurt-flash"); }, 340);
+    veil.classList.remove("on");
+    void veil.offsetWidth;          // アニメーションを確実に再生させる
+    veil.classList.add("on");
   }
   function rnd(){ return 0.85 + Math.random()*0.30; }
 
