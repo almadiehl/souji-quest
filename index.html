@@ -980,9 +980,10 @@ function levelUp(lv, before){
 /* ============ タイマー ============ */
 var timer = null;
 function runTimer(task){
+  if(document.querySelector(".ov-main")) return;
   var total = task.sec, left = total, paused = false;
   var ov = document.createElement("div");
-  ov.className = "ov tm";
+  ov.className = "ov tm ov-main";
   ov.innerHTML =
     '<div class="ov-in tm-in">' +
       '<div class="tm-title"></div>' +
@@ -1048,12 +1049,13 @@ var CMDS = [
 ];
 
 function battle(e){
+  if(document.querySelector(".ov-main")) return;   // 画面の二重起動を防ぐ
   var P = stats();
   var php = P.hp, ehp = e.hp, ki = KI.START, charged = false, turn = 0;
   var over = false, auto = false, autoLoop = null, picks = 0, busy = false;
 
   var ov = document.createElement("div");
-  ov.className = "ov";
+  ov.className = "ov ov-main";
   ov.innerHTML =
     '<div class="ov-in">' +
       '<div class="bt-head">' +
@@ -1821,8 +1823,9 @@ $("next-card").addEventListener("click", function(){
   if(b) b.click();
 });
 function openBackup(){
+  if(document.querySelector(".ov-main")) return;
   var ov = document.createElement("div");
-  ov.className = "ov";
+  ov.className = "ov ov-main";
   ov.innerHTML =
     '<div class="ov-in">' +
       '<div class="bk-h">BACKUP</div>' +
