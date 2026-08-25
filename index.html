@@ -201,6 +201,27 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .badge{font-family:var(--f-hud);font-size:10px;color:var(--gold);border:1px solid var(--gold-dim);border-radius:4px;padding:0 5px;margin-left:6px}
 
 /* ===== そうび ===== */
+.tnow{background:var(--panel);border:1px solid var(--gold-dim);border-radius:var(--r);padding:12px 14px;text-align:center}
+.tnow em{display:block;font-style:normal;font-family:var(--f-hud);font-size:10px;letter-spacing:.2em;color:var(--dim)}
+.tnow b{display:block;font-size:17px;margin-top:4px}
+.titles{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.tt{display:flex;align-items:baseline;gap:9px;padding:8px 12px;font-size:13px}
+.tt + .tt{border-top:1px solid var(--line-2)}
+.tt .m{flex:none;font-family:var(--f-hud);font-size:12px;color:var(--dim);width:12px}
+.tt.got .m{color:var(--mint)}
+.tt b{flex:1;min-width:0;font-weight:500;color:var(--dim)}
+.tt.got b{color:var(--text)}
+.tt em{flex:none;font-style:normal;font-size:10.5px;color:var(--dim)}
+.recs{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.rec{display:flex;align-items:baseline;justify-content:space-between;padding:9px 13px;font-size:13px;color:var(--muted)}
+.rec + .rec{border-top:1px solid var(--line-2)}
+.rec b{font-family:var(--f-hud);font-size:15px;color:var(--text);font-weight:400;font-variant-numeric:tabular-nums}
+.chart{display:flex;align-items:flex-end;gap:2px;height:96px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:10px 8px}
+.cb{flex:1;height:100%;display:flex;align-items:flex-end}
+.cb i{display:block;width:100%;background:#232B3D;border-radius:2px}
+.cb.on i{background:var(--mint)}
+.cb.now i{background:var(--gold)}
 .statline{display:flex;justify-content:space-around;align-items:baseline;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--r);padding:11px 6px}
 .statline span{display:flex;align-items:baseline;gap:5px}
@@ -525,6 +546,23 @@ textarea.ta{height:112px;resize:none;font-size:16px}
       <div class="gear hide" id="g-shop"></div>
     </section>
   </div>
+  <!-- ================= きろく ================= -->
+  <div class="view hide" id="v-rec">
+    <section class="sec">
+      <div class="sec-h">称号</div>
+      <div class="tnow" id="tnow"></div>
+      <div class="titles" id="titles"></div>
+    </section>
+    <section class="sec">
+      <div class="sec-h">これまで</div>
+      <div class="recs" id="recs"></div>
+    </section>
+    <section class="sec">
+      <div class="sec-h">この30日</div>
+      <div class="chart" id="chart"></div>
+      <div class="note" id="chart-note"></div>
+    </section>
+  </div>
 </main>
 
 <div class="dock">
@@ -535,6 +573,7 @@ textarea.ta{height:112px;resize:none;font-size:16px}
       <button data-v="clean" class="on"><span class="ic">掃</span>そうじ</button>
       <button data-v="dungeon"><span class="ic">戦</span>ダンジョン<span class="dot hide" id="nav-dot"></span></button>
       <button data-v="gear"><span class="ic">装</span>そうび</button>
+      <button data-v="rec"><span class="ic">録</span>きろく</button>
     </nav>
   </div>
 </div>
@@ -906,6 +945,48 @@ function takeItem(it){
   return { full:true, gold:g2 };
 }
 
+// ===== 称号 =====
+var TITLES = [
+  { id:"t10",   n:"はじめの一歩",              d:"1つ動かした",           f:function(){ return S.total >= 1; } },
+  { id:"t100",  n:"塵を払う者",                d:"累計100回",             f:function(){ return S.total >= 100; } },
+  { id:"t500",  n:"五百の塵を払いし者",        d:"累計500回",             f:function(){ return S.total >= 500; } },
+  { id:"t1000", n:"千の塵を払いし者",          d:"累計1000回",            f:function(){ return S.total >= 1000; } },
+  { id:"s3",    n:"三日坊主を超えた者",        d:"3日続けた",             f:function(){ return (S.maxStreak||0) >= 3; } },
+  { id:"s7",    n:"一週間、途切れさせなかった者", d:"7日続けた",           f:function(){ return (S.maxStreak||0) >= 7; } },
+  { id:"s30",   n:"三十日、途切れさせなかった者", d:"30日続けた",          f:function(){ return (S.maxStreak||0) >= 30; } },
+  { id:"k20",   n:"魔物狩り",                  d:"20体倒した",            f:function(){ return (S.kills||0) >= 20; } },
+  { id:"k100",  n:"百戦の掃除人",              d:"100体倒した",           f:function(){ return (S.kills||0) >= 100; } },
+  { id:"clear", n:"塵界を踏破せし者",          d:"すべての魔物を倒した",   f:function(){ return allCleared(); } },
+  { id:"d10",   n:"深層に降りた者",            d:"B10Fに到達",            f:function(){ return (S.maxDepth||0) >= 10; } },
+  { id:"d30",   n:"底を目指す者",              d:"B30Fに到達",            f:function(){ return (S.maxDepth||0) >= 30; } },
+  { id:"tm60",  n:"一時間、手を動かした者",    d:"タイマー累計60分",      f:function(){ return (S.timerSec||0) >= 3600; } },
+  { id:"tm600", n:"十時間、手を動かした者",    d:"タイマー累計10時間",    f:function(){ return (S.timerSec||0) >= 36000; } },
+  { id:"rare",  n:"銘品を手にした者",          d:"銘品以上を手に入れた",  f:function(){ return S.items.some(function(i){ return i.r >= 3; }); } },
+  { id:"day30", n:"日々の魔物を狩る者",        d:"今日の魔物を30体",      f:function(){ return (S.dailyCount||0) >= 30; } }
+];
+function checkTitles(){
+  if(!S.titles) S.titles = {};
+  var got = [];
+  TITLES.forEach(function(t){
+    if(S.titles[t.id]) return;
+    var ok = false;
+    try { ok = t.f(); } catch(e){ ok = false; }
+    if(ok){ S.titles[t.id] = 1; got.push(t); }
+  });
+  if(got.length){
+    save();
+    toast("称号を得た：" + got[got.length-1].n);
+    buzz([20,50,20]);
+  }
+  return got;
+}
+function currentTitle(){
+  if(!S.titles) return null;
+  var last = null;
+  TITLES.forEach(function(t){ if(S.titles[t.id]) last = t; });
+  return last;
+}
+
 var INTRO = "気づいたときには、部屋は塵界（じんかい）に飲まれていた。\nものが積もり、床が消え、時間だけが進む。\n——だが、この世界の魔物は、ゴミを1個すてるたびに弱っていく。";
 
 /* ============ 保存 ============ */
@@ -932,7 +1013,8 @@ function fresh(){
   return { v:4, lv:1, xp:0, gold:0, day:today(), dayCount:0, total:0,
     streak:0, lastDay:"", claimed:"", tasks:DEFAULT_TASKS.map(function(t){ return {id:t.id,n:t.n,v:t.v,sec:t.sec}; }),
     items:[], equip:newEquip(), cleared:{}, log:[], last:null, seen:false,
-    depth:1, maxDepth:0, train:{ atk:0, def:0, hp:0 }, dailyDone:"", dailyCount:0 };
+    depth:1, maxDepth:0, train:{ atk:0, def:0, hp:0 }, dailyDone:"", dailyCount:0,
+    maxStreak:0, kills:0, timerSec:0, titles:{} };
 }
 var S = load() || fresh();
 // v3: タスクを2つに整理する（以前の10個は削除）
@@ -976,6 +1058,10 @@ function migrate(st){
   if(typeof st.total !== "number") st.total = 0;
   if(typeof st.dayCount !== "number") st.dayCount = 0;
   if(typeof st.streak !== "number") st.streak = 0;
+  if(typeof st.maxStreak !== "number") st.maxStreak = st.streak || 0;
+  if(typeof st.kills !== "number") st.kills = 0;
+  if(typeof st.timerSec !== "number") st.timerSec = 0;
+  if(!st.titles) st.titles = {};
   return changed;
 }
 var migrated = migrate(S);
@@ -1030,6 +1116,7 @@ function touchStreak(){
   var t = today();
   if(S.lastDay === t) return;
   S.streak = (S.lastDay === yesterday()) ? S.streak + 1 : 1;
+  S.maxStreak = Math.max(S.maxStreak || 0, S.streak);
   S.lastDay = t;
   if(S.streak > 1) toast("🔥 " + S.streak + "日連続。途切れさせなかった。");
 }
@@ -1222,6 +1309,7 @@ function startTimer(task){
 
   function finish(done){
     clearInterval(timer); timer = null;
+    S.timerSec = (S.timerSec || 0) + (total - left); save();
     var ratio = (total - left) / total;
     var amt = done ? task.v : Math.max(0, Math.round(task.v * ratio));
     ov.remove();
@@ -1504,6 +1592,7 @@ function battle(e){
     paintT();
     function finish(done){
       clearInterval(tid); tv.remove();
+      S.timerSec = (S.timerSec || 0) + (total - left); save();
       var ratio = (total - left) / total;
       var cut = Math.round(e.hp * 0.25 * ratio);
       var amt = done ? task.v : Math.max(0, Math.round(task.v * ratio));
@@ -1579,6 +1668,8 @@ function battle(e){
         }
         save();
       }
+      S.kills = (S.kills || 0) + 1;
+      save();
       buzz([20,60,20]);
     } else buzz(200);
 
@@ -1783,6 +1874,7 @@ function render(){
 
   renderDungeon();
   renderGear(st);
+  renderRecord();
   fitDock();
 
   // 今日の魔物
@@ -1909,6 +2001,79 @@ function renderDungeon(){
     d.querySelector(".enemies").appendChild(btn);
     wrap.appendChild(d);
   }
+}
+
+function fmtDur(sec){
+  var h = Math.floor(sec/3600), m = Math.round((sec%3600)/60);
+  if(h) return h + "時間" + (m ? m + "分" : "");
+  return m + "分";
+}
+function renderRecord(){
+  checkTitles();
+  var cur = currentTitle();
+  var tn = $("tnow");
+  tn.innerHTML = '<em>いまの称号</em><b></b>';
+  tn.querySelector("b").textContent = cur ? cur.n : "まだありません";
+  if(!cur) tn.querySelector("b").style.color = "var(--dim)";
+  else tn.querySelector("b").style.color = "var(--gold)";
+
+  var tb = $("titles"); tb.innerHTML = "";
+  TITLES.forEach(function(t){
+    var got = S.titles && S.titles[t.id];
+    var row = document.createElement("div");
+    row.className = "tt" + (got ? " got" : "");
+    row.innerHTML = '<span class="m"></span><b></b><em></em>';
+    row.querySelector(".m").textContent = got ? "✓" : "・";
+    row.querySelector("b").textContent = got ? t.n : "？？？";
+    row.querySelector("em").textContent = t.d;
+    tb.appendChild(row);
+  });
+
+  var cleared = 0;
+  for(var k in S.cleared) if(S.cleared[k]) cleared++;
+  var rows = [
+    ["累計の行動",   (S.total || 0) + " 回"],
+    ["掃除した時間", fmtDur(S.timerSec || 0)],
+    ["倒した魔物",   (S.kills || 0) + " 体"],
+    ["撃破した魔物", cleared + " / 19 種"],
+    ["最長の連続",   (S.maxStreak || 0) + " 日"],
+    ["いまの連続",   (S.streak || 0) + " 日"],
+    ["深層の到達",   (S.maxDepth || 0) ? "B" + S.maxDepth + "F" : "まだ"],
+    ["今日の魔物",   (S.dailyCount || 0) + " 体"],
+    ["持っている装備", S.items.length + " 点"]
+  ];
+  var rb = $("recs"); rb.innerHTML = "";
+  rows.forEach(function(r){
+    var d = document.createElement("div");
+    d.className = "rec";
+    d.innerHTML = '<span></span><b></b>';
+    d.querySelector("span").textContent = r[0];
+    d.querySelector("b").textContent = r[1];
+    rb.appendChild(d);
+  });
+
+  // 直近30日
+  var ch = $("chart"); ch.innerHTML = "";
+  var vals = [], max = 1;
+  for(var i = 29; i >= 0; i--){
+    var dt = new Date(); dt.setDate(dt.getDate() - i);
+    var key = dstr(dt);
+    var n = (i === 0) ? S.dayCount : ((S.hist && S.hist[key]) || 0);
+    vals.push({ key:key, n:n, d:dt });
+    if(n > max) max = n;
+  }
+  vals.forEach(function(v, idx){
+    var b = document.createElement("div");
+    b.className = "cb" + (v.n > 0 ? " on" : "") + (idx === 29 ? " now" : "");
+    var i2 = document.createElement("i");
+    i2.style.height = Math.max(v.n ? 8 : 2, Math.round(v.n / max * 100)) + "%";
+    b.appendChild(i2);
+    b.title = (v.d.getMonth()+1) + "/" + v.d.getDate() + " " + v.n + "回";
+    ch.appendChild(b);
+  });
+  var sum = vals.reduce(function(a, v){ return a + v.n; }, 0);
+  var days = vals.filter(function(v){ return v.n > 0; }).length;
+  $("chart-note").textContent = "30日で " + sum + " 回、動いた日は " + days + " 日。いちばん多い日は " + max + " 回。";
 }
 
 var gearOpen = { weapon:false, armor:false, glove:false, boots:false, acc:false };
@@ -2253,7 +2418,7 @@ document.querySelectorAll(".nav button").forEach(function(b){
   b.addEventListener("click", function(){
     view = b.getAttribute("data-v");
     document.querySelectorAll(".nav button").forEach(function(o){ o.classList.toggle("on", o === b); });
-    ["clean","dungeon","gear"].forEach(function(v){ $("v-" + v).classList.toggle("hide", v !== view); });
+    ["clean","dungeon","gear","rec"].forEach(function(v){ $("v-" + v).classList.toggle("hide", v !== view); });
     window.scrollTo(0,0);
     render();
   });
