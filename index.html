@@ -1,0 +1,1412 @@
+<meta charset="utf-8">
+<title>塵界のそうじクエスト</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1118">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="そうじクエスト">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+
+<style>
+:root{
+  --ink:#0E1118; --panel:#171C28; --panel-2:#1E2434; --line:#2C3446; --line-2:#212838;
+  --text:#E6E9F2; --muted:#8E97AE; --dim:#5F6883;
+  --gold:#F0C14B; --gold-dim:#8A6E24; --gold-bg:#20180A;
+  --mint:#57D6A6; --mint-dim:#1F5745;
+  --blood:#E8574C; --blood-dim:#5A2320;
+  --ember:#FF7A59; --violet:#8C7BFF;
+  --f-hud:"DotGothic16","Courier New",monospace;
+  --f-body:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;
+  --r:10px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ink);color:var(--text);
+  font-family:var(--f-body);font-size:15px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input{font:inherit}
+:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.hide{display:none !important}
+
+/* ===== HUD ===== */
+.hud{
+  position:fixed;top:0;left:0;right:0;z-index:30;
+  background:linear-gradient(180deg,#141926,#111624);border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 9px) 14px 9px;
+}
+.hud-row{display:flex;align-items:center;gap:11px;max-width:560px;margin:0 auto}
+.lv{font-family:var(--f-hud);display:flex;align-items:baseline;gap:4px;padding:2px 9px 3px;
+  border:1px solid var(--gold-dim);border-radius:6px;background:var(--gold-bg);color:var(--gold);flex:none}
+.lv small{font-size:10px;letter-spacing:.1em;opacity:.8}
+.lv b{font-size:21px;font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+.xp-wrap{flex:1;min-width:0}
+.xp-meta{display:flex;justify-content:space-between;font-family:var(--f-hud);font-size:11px;color:var(--muted);letter-spacing:.05em}
+.bar{height:8px;margin-top:4px;background:#0B0E16;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.xp-fill{background:linear-gradient(90deg,var(--mint-dim),var(--mint))}
+.gold{font-family:var(--f-hud);flex:none;text-align:right;color:var(--gold);font-size:19px;line-height:1.1;font-variant-numeric:tabular-nums}
+.gold small{display:block;font-size:10px;color:var(--muted);letter-spacing:.13em}
+
+/* ===== layout ===== */
+main{max-width:560px;margin:0 auto;padding:calc(72px + env(safe-area-inset-top)) 14px 0;}
+.view{display:flex;flex-direction:column;gap:20px;padding-bottom:calc(196px + env(safe-area-inset-bottom))}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec-h{display:flex;align-items:center;gap:9px;font-family:var(--f-hud);font-size:12px;letter-spacing:.17em;color:var(--muted)}
+.sec-h::after{content:"";flex:1;height:1px;background:var(--line)}
+.note{font-size:11.5px;color:var(--dim);line-height:1.6}
+
+/* ===== 今日 ===== */
+.today{display:grid;grid-template-columns:repeat(3,1fr);background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.today div{padding:11px 6px;text-align:center}
+.today div + div{border-left:1px solid var(--line)}
+.today .n{font-family:var(--f-hud);font-size:24px;line-height:1;font-variant-numeric:tabular-nums}
+.today .k{font-size:10.5px;color:var(--muted);margin-top:5px}
+.c-streak{color:var(--ember)} .c-day{color:var(--text)} .c-total{color:var(--violet)}
+
+/* ===== クエスト ===== */
+.quest{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--r);padding:11px 13px}
+.quest.done{border-left-color:var(--mint)}
+.quest-t{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.quest-t b{font-weight:700;font-size:13.5px}
+.quest-t span{font-family:var(--f-hud);font-size:13px;color:var(--gold);font-variant-numeric:tabular-nums;flex:none}
+.quest.done .quest-t span{color:var(--mint)}
+.q-fill{background:var(--gold)} .quest.done .q-fill{background:var(--mint)}
+.q-note{font-size:11.5px;color:var(--muted);margin-top:6px}
+
+/* ===== タスク ===== */
+.tasks{display:flex;flex-direction:column;gap:7px}
+.task{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 12px;
+  transition:transform .12s ease,border-color .12s ease,background .12s ease;
+}
+.task:active{transform:scale(.985);background:var(--panel-2);border-color:var(--mint-dim)}
+.task .tn{flex:1;min-width:0;font-size:14px;line-height:1.45}
+.task .tn i{font-style:normal;font-family:var(--f-hud);font-size:11px;color:var(--dim);display:block;letter-spacing:.05em}
+.task .tv{flex:none;font-family:var(--f-hud);font-size:12.5px;color:var(--mint);font-variant-numeric:tabular-nums}
+.task .tv b{font-weight:400;color:var(--gold)}
+.task-x{flex:none;color:var(--dim);font-size:17px;line-height:1;padding:3px 2px 3px 6px}
+.easy{border-left:3px solid var(--mint)}
+
+/* ===== フォーム ===== */
+.form{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px;display:flex;flex-direction:column;gap:11px}
+.form label{font-size:11.5px;color:var(--muted);font-family:var(--f-hud);letter-spacing:.1em}
+.form input[type=text]{background:#0E121C;border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px 11px;font-size:14px;width:100%}
+.form input[type=text]:focus{outline:none;border-color:var(--mint-dim)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:#0E121C;color:var(--muted);border-radius:99px;padding:6px 12px;font-size:12.5px;transition:all .12s ease}
+.chip.on{border-color:var(--mint);color:var(--mint);background:var(--mint-dim)}
+.form-foot{display:flex;align-items:center;gap:10px;justify-content:space-between;border-top:1px solid var(--line-2);padding-top:11px}
+.preview{font-family:var(--f-hud);font-size:14px;color:var(--mint)}
+.preview b{color:var(--gold);font-weight:400}
+.preview em{font-style:normal;color:var(--dim);font-size:11px;display:block}
+.btn{border:1px solid var(--gold-dim);background:var(--gold-bg);color:var(--gold);border-radius:8px;padding:9px 16px;font-family:var(--f-hud);font-size:13px}
+.btn:active{transform:scale(.96)}
+.btn[disabled]{opacity:.35;border-color:var(--line);background:transparent;color:var(--muted)}
+.btn-q{border-color:var(--line);background:var(--panel);color:var(--muted)}
+.guide{font-size:11.5px;color:var(--dim);line-height:1.75}
+.guide b{color:var(--muted);font-weight:500}
+.ta{width:100%;min-height:104px;background:#0E121C;border:1px solid var(--line);border-radius:8px;color:var(--text);
+  padding:10px 11px;font-family:var(--f-hud);font-size:11px;line-height:1.6;resize:none;height:104px;word-break:break-all}
+.ta:focus{outline:none;border-color:var(--mint-dim)}
+.bk-h{font-family:var(--f-hud);font-size:12px;letter-spacing:.15em;color:var(--muted)}
+
+/* ===== ログ ===== */
+.log{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.log-row{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:13px}
+.log-row + .log-row{border-top:1px solid var(--line-2)}
+.log-row time{font-family:var(--f-hud);font-size:11px;color:var(--dim);flex:none;width:36px;font-variant-numeric:tabular-nums}
+.log-row .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-row .g{font-family:var(--f-hud);font-size:12px;flex:none;color:var(--mint);font-variant-numeric:tabular-nums}
+.log-row.spend .g{color:var(--ember)}
+.empty{padding:15px 12px;color:var(--dim);font-size:13px;text-align:center}
+.foot{display:flex;gap:8px}
+.foot + .foot{margin-top:-2px}
+.foot button{flex:1;padding:10px;border:1px solid var(--line);border-radius:var(--r);color:var(--muted);font-size:12.5px;background:var(--panel)}
+
+/* ===== ダンジョン ===== */
+.area{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--panel)}
+.area-h{padding:11px 13px;background:linear-gradient(180deg,#1C2233,#171C28);border-bottom:1px solid var(--line)}
+.area-h .t{display:flex;align-items:baseline;gap:8px}
+.area-h b{font-size:15px;font-weight:700}
+.area-h span{font-family:var(--f-hud);font-size:11px;color:var(--dim);letter-spacing:.08em}
+.area-h p{margin:4px 0 0;font-size:11.5px;color:var(--muted);line-height:1.6}
+.area.locked{opacity:.5}
+.enemies{display:flex;flex-direction:column}
+.en{display:flex;align-items:center;gap:11px;padding:10px 13px;width:100%;text-align:left;transition:background .12s ease}
+.en + .en{border-top:1px solid var(--line-2)}
+.en:active{background:var(--panel-2)}
+.sig{
+  flex:none;width:38px;height:38px;display:grid;place-items:center;
+  border:1px solid var(--line);border-radius:8px;background:#0E121C;
+  font-family:var(--f-hud);font-size:19px;color:var(--muted);
+}
+.en.boss .sig{border-color:var(--gold-dim);color:var(--gold);background:var(--gold-bg)}
+.en.cleared .sig{border-color:var(--mint-dim);color:var(--mint)}
+.en .info{flex:1;min-width:0}
+.en .info b{display:block;font-size:14px;font-weight:500}
+.en .info .meta{display:block;font-family:var(--f-hud);font-size:10.5px;color:var(--dim);letter-spacing:.05em}
+.en .st{flex:none;font-family:var(--f-hud);font-size:11px;color:var(--dim)}
+.en.cleared .st{color:var(--mint)}
+.badge{font-family:var(--f-hud);font-size:10px;color:var(--gold);border:1px solid var(--gold-dim);border-radius:4px;padding:0 5px;margin-left:6px}
+
+/* ===== そうび ===== */
+.stat{display:grid;grid-template-columns:repeat(3,1fr);background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stat div{padding:12px 6px;text-align:center}
+.stat div + div{border-left:1px solid var(--line)}
+.stat .n{font-family:var(--f-hud);font-size:25px;line-height:1;font-variant-numeric:tabular-nums}
+.stat .k{font-size:10.5px;color:var(--muted);margin-top:4px}
+.stat .b{font-family:var(--f-hud);font-size:10px;color:var(--mint);margin-top:2px}
+.c-hp{color:var(--blood)} .c-atk{color:var(--gold)} .c-def{color:var(--violet)}
+.gear{display:flex;flex-direction:column;gap:7px}
+.gi{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.gi.equipped{border-color:var(--mint-dim);background:#141F1B}
+.gi .gn{flex:1;min-width:0}
+.gi .gn b{display:block;font-size:14px;font-weight:500}
+.gi .gn span{font-family:var(--f-hud);font-size:11px;color:var(--mint);letter-spacing:.04em}
+.gi .act{flex:none}
+.tag{font-family:var(--f-hud);font-size:11px;color:var(--mint);padding:7px 10px}
+
+/* ===== ナビ ===== */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:31;background:linear-gradient(180deg,rgba(14,17,24,0),#0E1118 26%);padding-top:12px}
+.dock-in{max-width:560px;margin:0 auto;padding:0 14px}
+.tap{
+  width:100%;position:relative;background:linear-gradient(180deg,#F5CE63,#D9A62F);color:#1A1305;
+  border-radius:13px;padding:14px 12px 12px;box-shadow:0 5px 0 #8A6E24,0 12px 24px rgba(0,0,0,.45);
+  transition:transform .09s ease,box-shadow .09s ease;text-align:center;
+}
+.tap:active{transform:translateY(4px);box-shadow:0 1px 0 #8A6E24,0 4px 10px rgba(0,0,0,.4)}
+.tap b{display:block;font-size:17px;font-weight:900}
+.tap span{display:block;font-family:var(--f-hud);font-size:11px;margin-top:2px;color:#4A3708;letter-spacing:.06em}
+.tap2{margin-top:7px;padding:10px 12px 9px;background:linear-gradient(180deg,#212838,#191F2C);color:var(--text);
+  border:1px solid var(--mint-dim);box-shadow:0 4px 0 #0D1017,0 8px 18px rgba(0,0,0,.4)}
+.tap2:active{transform:translateY(3px);box-shadow:0 1px 0 #0D1017,0 3px 8px rgba(0,0,0,.4)}
+.tap2 b{font-size:15px}
+.tap2 span{color:var(--mint)}
+.nav{display:flex;gap:0;margin-top:8px;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);background:var(--ink)}
+.nav button{flex:1;padding:9px 0 8px;color:var(--dim);font-family:var(--f-hud);font-size:11.5px;letter-spacing:.1em;position:relative}
+.nav button .ic{display:block;font-family:var(--f-hud);font-size:16px;line-height:1.25;margin-bottom:2px}
+.nav button.on{color:var(--gold)}
+.nav button.on::before{content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:32px;height:2px;background:var(--gold)}
+.dot{position:absolute;top:6px;right:50%;margin-right:-22px;width:6px;height:6px;border-radius:99px;background:var(--ember)}
+
+/* ===== オーバーレイ共通 ===== */
+.ov{position:fixed;inset:0;z-index:60;background:linear-gradient(180deg,#0B0E16,#0A0C12);display:flex;flex-direction:column;animation:fade .2s ease}
+.ov-in{flex:1;overflow-y:auto;max-width:560px;width:100%;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px);display:flex;flex-direction:column;gap:14px}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* 戦闘 */
+.bt-head{text-align:center}
+.bt-head .lbl{font-family:var(--f-hud);font-size:11px;letter-spacing:.3em;color:var(--dim)}
+.bt-sig{width:92px;height:92px;margin:10px auto 8px;display:grid;place-items:center;border:1px solid var(--line);border-radius:14px;background:#0E121C;font-family:var(--f-hud);font-size:46px;color:var(--muted)}
+.bt-sig.boss{border-color:var(--gold-dim);color:var(--gold);background:var(--gold-bg)}
+.bt-sig.hit{animation:shake .28s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+.bt-name{font-size:18px;font-weight:700}
+.hpline{display:flex;align-items:center;gap:9px}
+.hpline .who{font-family:var(--f-hud);font-size:11px;color:var(--muted);width:52px;flex:none}
+.hpline .num{font-family:var(--f-hud);font-size:11px;color:var(--dim);width:70px;text-align:right;flex:none;font-variant-numeric:tabular-nums}
+.hp-e{background:linear-gradient(90deg,#7A2620,var(--blood))}
+.hp-p{background:linear-gradient(90deg,var(--mint-dim),var(--mint))}
+.bt-log{flex:0 1 auto;min-height:132px;max-height:34vh;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;display:flex;flex-direction:column;gap:5px;font-size:13.5px;overflow-y:auto}
+.bt-log div{animation:slide .2s ease}
+.bt-log .dmg{color:var(--gold)} .bt-log .hurt{color:var(--blood)} .bt-log .crit{color:var(--ember);font-weight:700}
+.bt-log .sys{color:var(--dim);font-size:12px}
+@keyframes slide{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.story{background:#12182A;border:1px solid var(--line);border-left:3px solid var(--violet);border-radius:var(--r);padding:12px 13px;font-size:13.5px;line-height:1.8;color:#C9CFE4}
+.result{text-align:center;font-family:var(--f-hud)}
+.result .big{font-size:30px;letter-spacing:.1em}
+.result.win .big{color:var(--gold)} .result.lose .big{color:var(--blood)}
+.result .sub{font-size:13px;color:var(--muted);font-family:var(--f-body);margin-top:4px}
+.ov-btns{display:flex;gap:8px}
+.ov-btns .btn{flex:1;text-align:center;padding:13px}
+
+/* タイマー */
+.tm{align-items:center;justify-content:center;text-align:center}
+.tm-in{padding:20px;display:flex;flex-direction:column;align-items:center;gap:18px;max-width:340px;margin:auto}
+.ring{position:relative;width:212px;height:212px}
+.ring svg{transform:rotate(-90deg);width:100%;height:100%}
+.ring circle{fill:none;stroke-width:4;stroke-linecap:round}
+.ring .track{stroke:#1B2131}
+.ring .prog{stroke:var(--mint);transition:stroke-dashoffset 1s linear}
+.ring .cx{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .t{font-family:var(--f-hud);font-size:48px;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.ring .s{font-size:12px;color:var(--muted);margin-top:6px}
+.tm-title{font-size:17px;font-weight:700}
+.tm-note{font-size:12.5px;color:var(--dim);line-height:1.7}
+
+/* 演出 */
+.pop{position:fixed;z-index:70;pointer-events:none;font-family:var(--f-hud);font-size:19px;color:var(--mint);text-shadow:0 2px 8px rgba(0,0,0,.8);animation:rise .95s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,0) scale(.8)}15%{opacity:1;transform:translate(-50%,-14px) scale(1.08)}100%{opacity:0;transform:translate(-50%,-92px) scale(1)}}
+.toast{position:fixed;z-index:80;left:50%;transform:translateX(-50%);bottom:calc(196px + env(safe-area-inset-bottom));background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:10px 14px;font-size:13px;max-width:90vw;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:toast 2.6s ease forwards}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,10px)}8%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-6px)}}
+.lvup{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;background:rgba(8,10,16,.9);animation:fade .22s ease}
+.lvup .t{font-family:var(--f-hud);font-size:15px;letter-spacing:.4em;color:var(--gold);padding-left:.4em}
+.lvup .n{font-family:var(--f-hud);font-size:72px;line-height:1;color:var(--gold);text-shadow:0 0 40px rgba(240,193,75,.45)}
+.lvup .s{font-size:12.5px;color:var(--muted);margin-top:6px;text-align:center;line-height:1.8}
+.lvup .s b{color:var(--mint);font-family:var(--f-hud);font-weight:400}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+
+<header class="hud">
+  <div class="hud-row">
+    <div class="lv"><small>Lv</small><b id="lv">1</b></div>
+    <div class="xp-wrap">
+      <div class="xp-meta"><span>EXP</span><span id="xptxt">0 / 8</span></div>
+      <div class="bar"><i class="xp-fill" id="xpfill"></i></div>
+    </div>
+    <div class="gold"><small>GOLD</small><span id="gold">0</span></div>
+  </div>
+</header>
+
+<main>
+  <!-- ================= そうじ ================= -->
+  <div class="view" id="v-clean">
+    <section class="sec">
+      <button class="quest" id="bk-warn" style="display:none;width:100%;text-align:left;border-left-color:var(--ember)">
+        <div class="quest-t"><b>バックアップを取っておきましょう</b><span style="color:var(--ember)">保存</span></div>
+        <div class="q-note" id="bk-warn-note"></div>
+      </button>
+      <button class="quest" id="next-card" style="display:block;width:100%;text-align:left;border-left-color:var(--violet)">
+        <div class="quest-t"><b id="nx-n">つぎの敵</b><span id="nx-s"></span></div>
+        <div class="q-note" id="nx-note"></div>
+      </button>
+      <button class="quest" id="daily-card" style="display:block;width:100%;text-align:left;border-left-color:var(--blood)">
+        <div class="quest-t"><b id="dm-n">今日の魔物</b><span id="dm-s"></span></div>
+        <div class="q-note" id="dm-note"></div>
+      </button>
+    </section>
+    <section class="sec">
+      <div class="today">
+        <div><div class="n c-day" id="t-day">0</div><div class="k">今日の行動</div></div>
+        <div><div class="n c-streak" id="t-streak">0</div><div class="k">連続日数</div></div>
+        <div><div class="n c-total" id="t-total">0</div><div class="k">累計の行動</div></div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h">DAILY QUEST</div>
+      <div class="quest" id="quest">
+        <div class="quest-t"><b>今日、なんでもいいので3回動く</b><span id="q-count">0 / 3</span></div>
+        <div class="bar"><i class="q-fill" id="q-fill"></i></div>
+        <div class="q-note" id="q-note"></div>
+      </div>
+    </section>
+
+    <section class="sec" id="sec-task" style="display:none">
+      <div class="sec-h">TASK</div>
+      <div class="tasks" id="tasks"></div>
+    </section>
+
+    <section class="sec">
+      <button class="task" id="form-toggle" style="justify-content:center;color:var(--muted);font-size:13px">＋ 自分のタスクを作る</button>
+      <div class="form hide" id="form-box">
+        <div>
+          <label>なにをする？</label>
+          <input type="text" id="f-name" placeholder="例：洗面台の鏡をふく" maxlength="26" style="margin-top:6px">
+        </div>
+        <div>
+          <label>だいたいの所要時間</label>
+          <div class="chips" id="f-min" style="margin-top:6px"></div>
+        </div>
+        <div>
+          <label>気の重さ</label>
+          <div class="chips" id="f-weight" style="margin-top:6px"></div>
+        </div>
+        <div class="chips"><button class="chip" id="f-timer">⏱ アプリ内タイマーを使う</button></div>
+        <div class="form-foot">
+          <div class="preview"><span id="f-prev">+2 EXP / <b>+2 G</b></span><em id="f-prev-note">目安からの自動計算</em></div>
+          <button class="btn" id="f-add">追加する</button>
+        </div>
+      </div>
+      <div class="guide hide" id="guide-box">
+        <b>報酬の目安（自動計算のルール）</b><br>
+        30秒=1 ／ 1分=2 ／ 3分=5 ／ 5分=8 ／ 10分=15 ／ 15分以上=22。<br>
+        気が重いものは ×1.2〜1.5 で上乗せされます。数字は後から気にしなくて大丈夫です。<b>大事なのは「1」を毎日拾うこと</b>。
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h">LOG</div>
+      <div class="log" id="log"></div>
+      <div class="foot"><button id="backup">バックアップ / 復元</button></div>
+      <div class="foot">
+        <button id="undo" disabled>直前を取り消す</button>
+        <button id="reset">最初から</button>
+      </div>
+      <div class="note">記録はこの端末のブラウザの中だけに保存されます。iPhone と Mac は別々のセーブになります。機種変更や念のための保存には「バックアップ / 復元」を使ってください。</div>
+    </section>
+  </div>
+
+  <!-- ================= ダンジョン ================= -->
+  <div class="view hide" id="v-dungeon">
+    <section class="sec">
+      <div class="sec-h">塵界（じんかい）</div>
+      <div class="story" id="intro"></div>
+      <div class="note">戦闘に負けても失うものはありません。勝てないときは、部屋をすこし片づけて強くなってから戻ってきてください。</div>
+    </section>
+    <div id="areas" style="display:flex;flex-direction:column;gap:14px"></div>
+  </div>
+
+  <!-- ================= そうび ================= -->
+  <div class="view hide" id="v-gear">
+    <section class="sec">
+      <div class="sec-h">STATUS</div>
+      <div class="stat">
+        <div><div class="n c-hp" id="s-hp">24</div><div class="k">HP</div><div class="b" id="s-hp-b"></div></div>
+        <div><div class="n c-atk" id="s-atk">4</div><div class="k">こうげき</div><div class="b" id="s-atk-b"></div></div>
+        <div><div class="n c-def" id="s-def">2</div><div class="k">まもり</div><div class="b" id="s-def-b"></div></div>
+      </div>
+      <div class="note">レベルが1上がるごとに HP+6 / こうげき+2 / まもり+1.5。装備の分がここに上乗せされます。</div>
+    </section>
+    <section class="sec" id="sec-train" style="display:none">
+      <div class="sec-h">鍛錬 ／ ENDLESS</div>
+      <div class="gear" id="train"></div>
+      <div class="note">塵界を踏破した者だけが使える、終わりのない鍛え方。深く潜るほど魔物は強くなるので、ゴールドはここに注ぎ込みます。鍛えるたびに次の費用が上がります。</div>
+    </section>
+    <section class="sec"><div class="sec-h">ぶき</div><div class="gear" id="g-weapon"></div></section>
+    <section class="sec"><div class="sec-h">よろい</div><div class="gear" id="g-armor"></div></section>
+    <section class="sec"><div class="sec-h">おまもり</div><div class="gear" id="g-acc"></div></section>
+  </div>
+</main>
+
+<div class="dock">
+  <div class="dock-in">
+    <button class="tap" id="tap"><b id="tap-n">ゴミを1個すてる</b><span id="tap-v">+1 EXP / +1 G</span></button>
+    <button class="tap tap2" id="tap2"><b id="tap2-n">タイマー5分</b><span id="tap2-v">+8 EXP / +8 G</span></button>
+    <nav class="nav">
+      <button data-v="clean" class="on"><span class="ic">掃</span>そうじ</button>
+      <button data-v="dungeon"><span class="ic">戦</span>ダンジョン<span class="dot hide" id="nav-dot"></span></button>
+      <button data-v="gear"><span class="ic">装</span>そうび</button>
+    </nav>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ データ ============ */
+var KEY = "souji-quest-v2";
+var GOAL = 3;
+
+// 画面を短く保つため、常設は2つだけ。増やしたいものは下の作成フォームから追加する。
+var DEFAULT_TASKS = [
+  { id:"t1", n:"ゴミを1個すてる", v:1 },
+  { id:"t7", n:"タイマー5分",     v:8, sec:300 }
+];
+
+var MINS = [
+  { k:"30秒", sec:30,  b:1  },
+  { k:"1分",  sec:60,  b:2  },
+  { k:"3分",  sec:180, b:5  },
+  { k:"5分",  sec:300, b:8  },
+  { k:"10分", sec:600, b:15 },
+  { k:"15分+",sec:900, b:22 }
+];
+var WEIGHTS = [ { k:"軽い", m:1 }, { k:"ふつう", m:1.2 }, { k:"重い", m:1.5 } ];
+
+var AREAS = [
+  { id:"a1", n:"玄関の霧", sub:"AREA 1", d:"扉のそばに、ぬるい霧がたまっている。ここが塵界の入口。",
+    e:[
+      { id:"e1", n:"ほこりの精",     s:"塵", lv:1, hp:20,  atk:6, def:0, g:6,
+        st:"ほこりの精は、光の粒になって消えた。玄関の空気が、すこしだけ動いた気がする。" },
+      { id:"e2", n:"空き缶スライム", s:"缶", lv:2, hp:26,  atk:7, def:1, g:12,
+        st:"つぶれた缶が転がっていく。「捨てる」という行為に、こんなに力があるとは思わなかった。" },
+      { id:"e3", n:"靴箱のヌシ",     s:"靴", lv:3, hp:49,  atk:10, def:3, g:35, boss:true,
+        st:"ヌシは去り、玄関に道ができた。ここは、部屋のいちばん外側。外に出られるということは、帰ってこられるということだ。" }
+    ] },
+  { id:"a2", n:"机上遺跡", sub:"AREA 2", d:"かつて何かをしていた場所。書類と充電ケーブルの地層が積もっている。",
+    e:[
+      { id:"e4", n:"積読ゴーレム",   s:"積", lv:4, hp:57,  atk:11, def:5, g:22,
+        st:"崩れた本の山から、読みかけの一冊が出てきた。積むことは罪ではない。埋もれさせることが、そうだっただけ。" },
+      { id:"e5", n:"書類のミミック", s:"紙", lv:5, hp:78,  atk:15, def:5, g:26,
+        st:"大事な紙が1枚、ただの紙の山にまぎれていた。分けられた瞬間、それは価値を取り戻した。" },
+      { id:"e6", n:"絡まりコードの蛇", s:"線", lv:6, hp:85,  atk:17, def:7, g:30,
+        st:"ほどけたケーブルは、ただのケーブルだった。絡まっていたのは、線ではなく順番だった。" },
+      { id:"e7", n:"万年筆騎士",     s:"筆", lv:7, hp:130,  atk:19, def:9, g:80, boss:true,
+        st:"騎士は膝をつき、机の天板があらわれた。ここでまた、何かを始めていい。机とはそういう場所だ。" }
+    ] },
+  { id:"a3", n:"洗濯迷宮", sub:"AREA 3", d:"乾いたものと乾いていないものが、区別なく積まれた回廊。",
+    e:[
+      { id:"e8",  n:"靴下の亡霊",     s:"足", lv:8,  hp:116,  atk:23, def:10, g:42,
+        st:"片方だけの靴下が、ようやく相方を見つけた。揃うと、ただの布に戻った。" },
+      { id:"e9",  n:"洗濯物ヒュドラ", s:"洗", lv:9,  hp:141,  atk:24, def:11, g:50,
+        st:"畳むそばから増えるように見えていたのは、終わりを決めていなかったからだ。今日はここまで、と決めた瞬間に首は落ちた。" },
+      { id:"e10", n:"生乾きのゴースト", s:"湿", lv:10, hp:160,  atk:28, def:12, g:58,
+        st:"におい、という亡霊。実体がないから戦えないと思っていたが、風を通すだけでよかった。" },
+      { id:"e11", n:"乾燥機の番人",   s:"乾", lv:12, hp:230,  atk:31, def:14, g:170, boss:true,
+        st:"番人が扉を開ける。あたたかい布の山。ここまで来ると、部屋の中の「循環」が動きはじめたのがわかる。" }
+    ] },
+  { id:"a4", n:"台所の深淵", sub:"AREA 4", d:"いちばん見たくない場所。だからこそ、いちばん効く場所。",
+    e:[
+      { id:"e12", n:"皿の塔",       s:"皿", lv:13, hp:223,  atk:32, def:16, g:90,
+        st:"塔が崩れ、シンクの底が見えた。底があると分かっているものは、もう深淵ではない。" },
+      { id:"e13", n:"排水口のヌメリ", s:"水", lv:14, hp:232,  atk:35, def:16, g:100,
+        st:"手袋ごしの、ひとつまみの勇気。ぬめりは流れ、水は音を立てて落ちていった。" },
+      { id:"e14", n:"期限切れリッチ", s:"腐", lv:15, hp:268,  atk:38, def:19, g:115,
+        st:"日付だけが残った箱たち。捨てるとは、過去の自分を責めることではなく、許すことだった。" },
+      { id:"e15", n:"冷蔵庫竜",     s:"冷", lv:17, hp:362,  atk:44, def:23, g:320, boss:true,
+        st:"竜は静かになり、庫内の灯りが白く戻った。あなたはもう、自分の部屋で食べるものを選べる。" }
+    ] },
+  { id:"a5", n:"床下の混沌", sub:"FINAL", d:"部屋の底。ここを抜ければ、床は床に戻る。",
+    e:[
+      { id:"e16", n:"綿ぼこりの群れ", s:"綿", lv:18, hp:342,  atk:52, def:26, g:170,
+        st:"群れは吸い込まれ、床板の木目があらわれた。この部屋には、ちゃんと模様があった。" },
+      { id:"e17", n:"ケーブル大蛇",   s:"電", lv:19, hp:357,  atk:52, def:28, g:185,
+        st:"床を這っていた大蛇は、壁ぎわに沿って眠りについた。通り道ができた。" },
+      { id:"e18", n:"忘却の段ボール", s:"箱", lv:20, hp:383,  atk:55, def:28, g:200,
+        st:"開けてみれば、要るものは3つだけだった。忘れていたということは、要らなかったということでもある。" },
+      { id:"e19", n:"混沌王カオス",   s:"混", lv:22, hp:580,  atk:62, def:30, g:700, boss:true,
+        st:"混沌王は最後にこう言った。「私は、あなたが立ち止まった日の集まりだ」。——そして床が、床に戻った。\n部屋は、また散らかる。けれどあなたはもう、ゴミを1個すてるところから始められることを知っている。" }
+    ] }
+];
+
+var SHOP = {
+  weapon: [
+    { id:"w1", n:"ほうきの柄",      atk:2,  cost:30   },
+    { id:"w2", n:"掃除機の管",      atk:5,  cost:90   },
+    { id:"w3", n:"ふきんの剣",      atk:9,  cost:200  },
+    { id:"w4", n:"コロコロ・ランス", atk:14, cost:400  },
+    { id:"w5", n:"高圧洗浄の槍",    atk:22, cost:800  },
+    { id:"w6", n:"断捨離の斧",      atk:34, cost:1500 }
+  ],
+  armor: [
+    { id:"a1", n:"ゴム手袋",   def:2,  cost:25  },
+    { id:"a2", n:"エプロン",   def:4, hp:5,  cost:80  },
+    { id:"a3", n:"作業着",     def:7, hp:12, cost:180 },
+    { id:"a4", n:"防塵スーツ", def:12,hp:25, cost:380 },
+    { id:"a5", n:"除菌の鎧",   def:18,hp:45, cost:760 }
+  ],
+  acc: [
+    { id:"c1", n:"消臭タグ",         hp:8, cost:40   },
+    { id:"c2", n:"軍手のおまもり",    atk:2, def:2, cost:120 },
+    { id:"c3", n:"タイマーの懐中時計", atk:4, cost:260 },
+    { id:"c4", n:"洗剤の指輪",       atk:6, def:4, cost:520 },
+    { id:"c5", n:"換気の羽根",       atk:8, def:8, hp:30, cost:1000 }
+  ]
+};
+
+// ===== 踏破後：塵界の深層（無限） =====
+var DEEP_PRE  = ["澱んだ","乾いた","名もなき","朽ちた","飢えた","静かな","歪んだ","古い","冷えた","果ての"];
+var DEEP_CORE = ["塵の主","綿ぼこりの獣","段ボールの巨人","埃の王","忘却の影","積年の澱","泥のかたまり","灰の従者","抜け殻の群れ","くすんだ鏡像"];
+var DEEP_SIG  = ["塵","埃","灰","澱","影","滓","綿","泥","霧","闇"];
+var DEEP_WORD = [
+  "底はまだ見えない。だが、降りた分だけ足もとは硬くなっている。",
+  "ここまで来ると、散らかることが怖くなくなる。戻し方を知っているからだ。",
+  "深層の空気は静かだ。積もる音がしないというのは、こういうことか。",
+  "何度でも湧く。それでいい。こちらも何度でも捨てられる。",
+  "遠くで、あなたの部屋の床が光っている。"
+];
+
+function deepEnemy(f){
+  var lord = (f % 5 === 0);
+  return {
+    id: "d" + f,
+    deep: f,
+    boss: lord,
+    n: (lord ? "層主・" : DEEP_PRE[(f*3) % DEEP_PRE.length]) + DEEP_CORE[(f*7) % DEEP_CORE.length],
+    s: DEEP_SIG[(f*11) % DEEP_SIG.length],
+    lv: 22 + f,
+    hp:  Math.round(560 * Math.pow(1.045, f-1) * (lord ? 1.25 : 1)),
+    atk: Math.round(58  * Math.pow(1.028, f-1) * (lord ? 1.10 : 1)),
+    def: Math.round(28  * Math.pow(1.020, f-1)),
+    g:   Math.round(100 * Math.pow(1.050, f-1) * (lord ? 2.5 : 1)),
+    st:  DEEP_WORD[(f-1) % DEEP_WORD.length]
+  };
+}
+
+// 踏破後だけ開く無限強化
+var TRAIN = [
+  { k:"atk", n:"こうげきを鍛える", d:"こうげき +2" },
+  { k:"def", n:"まもりを鍛える",   d:"まもり +2"   },
+  { k:"hp",  n:"体を鍛える",       d:"HP +10"      }
+];
+function trainCost(){
+  var t = S.train || { atk:0, def:0, hp:0 };
+  return Math.round(100 * Math.pow(1.06, t.atk + t.def + t.hp));
+}
+
+// ===== 今日の魔物（デイリーボス） =====
+var DAILY_PRE  = ["きのうの","積み残しの","見て見ぬふりの","後まわしの","小さな","居座る","うっすらした","ため息まじりの"];
+var DAILY_CORE = ["埃だまり","洗い残し","置きっぱなし","出しっぱなし","たたみ忘れ","開けっぱなし","積み上がり","散らかり"];
+var DAILY_SIG  = ["日","朝","昼","夜","週","習","続","積"];
+
+// その日の強さは「いまの自分」から逆算する（いつ挑んでも歯ごたえが同じになる）
+function dailyBoss(){
+  var t = today(), n = parseInt(t.replace(/-/g, ""), 10);
+  var p = stats();
+  var edef = Math.max(0, Math.round(p.atk * 0.25));
+  return {
+    id: "day" + t,
+    daily: true,
+    boss: true,
+    n: DAILY_PRE[n % DAILY_PRE.length] + DAILY_CORE[(n*3) % DAILY_CORE.length],
+    s: DAILY_SIG[(n*7) % DAILY_SIG.length],
+    lv: S.lv,
+    hp:  Math.max(12, Math.round(p.atk * 7.1)),
+    atk: Math.max(2,  Math.round(p.hp / 9 + p.def * 0.6)),
+    def: edef,
+    g:   Math.max(3,  Math.round(p.atk * 1.5)),
+    st:  "今日の魔物は消えた。明日にはまた別の顔で現れる。——それでも、今日のぶんは確かに片づいた。"
+  };
+}
+
+var INTRO = "気づいたときには、部屋は塵界（じんかい）に飲まれていた。\nものが積もり、床が消え、時間だけが進む。\n——だが、この世界の魔物は、ゴミを1個すてるたびに弱っていく。";
+
+/* ============ 保存 ============ */
+var mem = null, canStore = true;
+try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); } catch(e){ canStore = false; }
+function load(){ if(!canStore) return mem; try { var r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch(e){ return null; } }
+function save(){
+  S.savedAt = Date.now();
+  mem = S;
+  if(!canStore) return;
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ canStore = false; }
+}
+function savedLabel(){
+  if(!S.savedAt) return "まだ保存されていません";
+  var d = new Date(S.savedAt);
+  return (d.getMonth()+1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0") + " に保存";
+}
+
+function dstr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function today(){ return dstr(new Date()); }
+function yesterday(){ var d = new Date(); d.setDate(d.getDate()-1); return dstr(d); }
+
+function fresh(){
+  return { v:3, lv:1, xp:0, gold:0, day:today(), dayCount:0, total:0,
+    streak:0, lastDay:"", claimed:"", tasks:DEFAULT_TASKS.map(function(t){ return {id:t.id,n:t.n,v:t.v,sec:t.sec}; }),
+    owned:[], equip:{ weapon:null, armor:null, acc:null }, cleared:{}, log:[], last:null, seen:false,
+    depth:1, maxDepth:0, train:{ atk:0, def:0, hp:0 }, dailyDone:"", dailyCount:0 };
+}
+var S = load() || fresh();
+// v3: タスクを2つに整理する（以前の10個は削除）
+var migrated = (S.v !== 3);
+if(migrated){ S.tasks = fresh().tasks; S.v = 3; }
+if(!S.tasks || !S.tasks.length) S.tasks = fresh().tasks;
+if(!S.owned) S.owned = [];
+if(!S.equip) S.equip = { weapon:null, armor:null, acc:null };
+if(!S.cleared) S.cleared = {};
+if(!S.depth) S.depth = 1;
+if(!S.maxDepth) S.maxDepth = 0;
+if(!S.train) S.train = { atk:0, def:0, hp:0 };
+if(!S.dailyCount) S.dailyCount = 0;
+if(!S.log) S.log = [];
+
+function rollDay(){ var t = today(); if(S.day !== t){ S.day = t; S.dayCount = 0; } }
+rollDay();
+if(migrated) save();
+
+/* ============ 計算 ============ */
+function need(lv){ return 8 + (lv-1)*5; }
+function findGear(slot, id){ var a = SHOP[slot]; for(var i=0;i<a.length;i++) if(a[i].id === id) return a[i]; return null; }
+function bonus(){
+  var b = { atk:0, def:0, hp:0 };
+  ["weapon","armor","acc"].forEach(function(slot){
+    var g = findGear(slot, S.equip[slot]);
+    if(g){ b.atk += g.atk||0; b.def += g.def||0; b.hp += g.hp||0; }
+  });
+  return b;
+}
+function stats(){
+  var b = bonus(), t = S.train || { atk:0, def:0, hp:0 };
+  return {
+    hp:  24 + (S.lv-1)*6 + b.hp + t.hp*10,
+    atk: 4  + (S.lv-1)*2 + b.atk + t.atk*2,
+    def: 2  + Math.round((S.lv-1)*1.5) + b.def + t.def*2,
+    b: b, t: t
+  };
+}
+function allCleared(){
+  var last = AREAS[AREAS.length-1].e;
+  return !!S.cleared[last[last.length-1].id];
+}
+function areaOpen(i){
+  if(i === 0) return true;
+  var prev = AREAS[i-1].e;
+  return !!S.cleared[prev[prev.length-1].id];
+}
+function toNext(targetLv){
+  var t = 0;
+  for(var lv = S.lv; lv < targetLv; lv++) t += need(lv);
+  return Math.max(1, t - S.xp);
+}
+function nextTarget(){
+  for(var i=0;i<AREAS.length;i++){
+    if(!areaOpen(i)) return null;
+    for(var j=0;j<AREAS[i].e.length;j++){ var e = AREAS[i].e[j]; if(!S.cleared[e.id]) return e; }
+  }
+  return null;
+}
+
+/* ============ 進行 ============ */
+function touchStreak(){
+  var t = today();
+  if(S.lastDay === t) return;
+  S.streak = (S.lastDay === yesterday()) ? S.streak + 1 : 1;
+  S.lastDay = t;
+  if(S.streak > 1) toast("🔥 " + S.streak + "日連続。途切れさせなかった。");
+}
+function gain(label, amount, ev){
+  rollDay(); touchStreak();
+  var before = S.lv;
+  S.xp += amount; S.gold += amount;
+  S.dayCount += 1; S.total += 1;
+  while(S.xp >= need(S.lv)){ S.xp -= need(S.lv); S.lv += 1; }
+  S.last = { label:label, amount:amount };
+  pushLog(label, "+" + amount, false);
+  save(); render(); pop("+" + amount, ev);
+  if(S.lv > before) levelUp(S.lv, before);
+  checkQuest();
+}
+function undo(){
+  var L = S.last; if(!L) return;
+  S.gold = Math.max(0, S.gold - L.amount);
+  var t = S.xp; for(var i=1;i<S.lv;i++) t += need(i);
+  t = Math.max(0, t - L.amount);
+  S.lv = 1; S.xp = t;
+  while(S.xp >= need(S.lv)){ S.xp -= need(S.lv); S.lv += 1; }
+  S.dayCount = Math.max(0, S.dayCount-1); S.total = Math.max(0, S.total-1);
+  S.last = null; if(S.log.length) S.log.shift();
+  save(); render(); toast("取り消しました");
+}
+function checkQuest(){
+  if(S.dayCount >= GOAL && S.claimed !== today()){
+    S.claimed = today();
+    var b = 5 + (S.streak - 1) * 2;
+    S.gold += b;
+    pushLog("デイリー達成", "+" + b, false);
+    save(); render();
+    toast("★ 今日のノルマ達成。ボーナス " + b + " G");
+  }
+}
+function pushLog(text, delta, spend){
+  var d = new Date();
+  S.log.unshift({ t: String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"), x:text, g:delta, s:!!spend });
+  if(S.log.length > 40) S.log.pop();
+}
+
+/* ============ 演出 ============ */
+function pop(text, ev){
+  var el = document.createElement("div");
+  el.className = "pop"; el.textContent = text;
+  var x = window.innerWidth/2, y = window.innerHeight - 170;
+  if(ev && ev.currentTarget){ var r = ev.currentTarget.getBoundingClientRect(); x = r.left + r.width/2; y = r.top; }
+  el.style.left = x+"px"; el.style.top = y+"px";
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 960);
+  buzz(12);
+}
+function buzz(p){ if(navigator.vibrate){ try{ navigator.vibrate(p); }catch(e){} } }
+function ask(text, okLabel, cb){
+  var ov = document.createElement("div");
+  ov.className = "ov";
+  ov.style.zIndex = 95;
+  ov.innerHTML =
+    '<div class="ov-in" style="justify-content:center">' +
+      '<div class="story" style="border-left-color:var(--ember)"></div>' +
+      '<div class="ov-btns">' +
+        '<button class="btn btn-q" data-a="no">やめる</button>' +
+        '<button class="btn" data-a="yes"></button>' +
+      '</div>' +
+    '</div>';
+  ov.querySelector(".story").textContent = text;
+  ov.querySelector('[data-a="yes"]').textContent = okLabel;
+  ov.querySelector('[data-a="no"]').addEventListener("click", function(){ ov.remove(); });
+  ov.querySelector('[data-a="yes"]').addEventListener("click", function(){ ov.remove(); cb(); });
+  document.body.appendChild(ov);
+}
+var toastEl = null;
+function toast(text){
+  if(toastEl) toastEl.remove();
+  var el = document.createElement("div"); el.className = "toast"; el.textContent = text;
+  document.body.appendChild(el); toastEl = el;
+  setTimeout(function(){ if(el === toastEl) toastEl = null; el.remove(); }, 2600);
+}
+function levelUp(lv, before){
+  var st = stats();
+  var el = document.createElement("div");
+  el.className = "lvup";
+  el.innerHTML = '<div class="t">LEVEL UP</div><div class="n"></div><div class="s"></div>';
+  el.querySelector(".n").textContent = lv;
+  var d = (lv - before);
+  el.querySelector(".s").innerHTML = "HP <b>" + st.hp + "</b> ／ こうげき <b>" + st.atk + "</b> ／ まもり <b>" + st.def + "</b><br>部屋が片づくほど、あなたは強くなる。";
+  document.body.appendChild(el);
+  var close = function(){ el.remove(); };
+  el.addEventListener("click", close);
+  setTimeout(close, 2100);
+  buzz([18,60,18]);
+}
+
+/* ============ タイマー ============ */
+var timer = null;
+function runTimer(task){
+  var total = task.sec, left = total, paused = false;
+  var ov = document.createElement("div");
+  ov.className = "ov tm";
+  ov.innerHTML =
+    '<div class="ov-in tm-in">' +
+      '<div class="tm-title"></div>' +
+      '<div class="ring">' +
+        '<svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"></circle>' +
+        '<circle class="prog" cx="50" cy="50" r="45" stroke-dasharray="282.7" stroke-dashoffset="0"></circle></svg>' +
+        '<div class="cx"><div class="t">0:00</div><div class="s"></div></div>' +
+      '</div>' +
+      '<div class="tm-note">やめても、動いた時間ぶんの EXP は入ります。<br>0秒でやめても失うものはありません。</div>' +
+      '<div class="ov-btns" style="width:100%">' +
+        '<button class="btn btn-q" data-a="pause">一時停止</button>' +
+        '<button class="btn" data-a="stop">ここでやめる</button>' +
+      '</div>' +
+    '</div>';
+  ov.querySelector(".tm-title").textContent = task.n;
+  ov.querySelector(".cx .s").textContent = "完走で +" + task.v + " EXP / +" + task.v + " G";
+  document.body.appendChild(ov);
+
+  var tEl = ov.querySelector(".ring .t"), prog = ov.querySelector(".prog");
+  var pauseBtn = ov.querySelector('[data-a="pause"]'), stopBtn = ov.querySelector('[data-a="stop"]');
+
+  function paint(){
+    var m = Math.floor(left/60), s = left % 60;
+    tEl.textContent = m + ":" + String(s).padStart(2,"0");
+    prog.style.strokeDashoffset = (282.7 * (1 - left/total)).toFixed(1);
+  }
+  paint();
+
+  function finish(done){
+    clearInterval(timer); timer = null;
+    var ratio = (total - left) / total;
+    var amt = done ? task.v : Math.max(0, Math.round(task.v * ratio));
+    ov.remove();
+    if(done){ gain(task.n, task.v, null); toast("完走。" + task.n + " を最後までやりきった。"); buzz([20,50,20,50,30]); }
+    else if(amt > 0){ gain(task.n + "（途中まで）", amt, null); toast("途中でも " + amt + " EXP。動いた分は消えません。"); }
+    else { toast("また今度でいい。開いただけでも一歩。"); }
+  }
+
+  pauseBtn.addEventListener("click", function(){
+    paused = !paused;
+    pauseBtn.textContent = paused ? "再開する" : "一時停止";
+  });
+  stopBtn.addEventListener("click", function(){ finish(false); });
+
+  if(timer) clearInterval(timer);
+  timer = setInterval(function(){
+    if(paused) return;
+    left -= 1; paint();
+    if(left <= 0) finish(true);
+  }, 1000);
+}
+
+/* ============ 戦闘 ============ */
+function battle(e){
+  var P = stats();
+  var php = P.hp, ehp = e.hp, turn = 0, over = false, speed = 620;
+  var ov = document.createElement("div");
+  ov.className = "ov";
+  ov.innerHTML =
+    '<div class="ov-in">' +
+      '<div class="bt-head">' +
+        '<div class="lbl">' + (e.boss ? "BOSS BATTLE" : "BATTLE") + '</div>' +
+        '<div class="bt-sig' + (e.boss ? " boss" : "") + '"></div>' +
+        '<div class="bt-name"></div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:7px">' +
+        '<div class="hpline"><span class="who">てき</span><div class="bar" style="flex:1"><i class="hp-e"></i></div><span class="num e-num"></span></div>' +
+        '<div class="hpline"><span class="who">じぶん</span><div class="bar" style="flex:1"><i class="hp-p"></i></div><span class="num p-num"></span></div>' +
+      '</div>' +
+      '<div class="bt-log"></div>' +
+      '<div class="ov-btns"><button class="btn btn-q" data-a="fast">はやく</button><button class="btn btn-q" data-a="close">にげる</button></div>' +
+    '</div>';
+  ov.querySelector(".bt-sig").textContent = e.s;
+  ov.querySelector(".bt-name").textContent = e.n;
+  document.body.appendChild(ov);
+
+  var sig = ov.querySelector(".bt-sig"), logEl = ov.querySelector(".bt-log");
+  var eFill = ov.querySelector(".hp-e"), pFill = ov.querySelector(".hp-p");
+  var eNum = ov.querySelector(".e-num"), pNum = ov.querySelector(".p-num");
+  var btns = ov.querySelector(".ov-btns");
+
+  function paint(){
+    eFill.style.width = Math.max(0, ehp/e.hp*100) + "%";
+    pFill.style.width = Math.max(0, php/P.hp*100) + "%";
+    eNum.textContent = Math.max(0,ehp) + " / " + e.hp;
+    pNum.textContent = Math.max(0,php) + " / " + P.hp;
+  }
+  function say(text, cls){
+    var d = document.createElement("div");
+    if(cls) d.className = cls;
+    d.textContent = text;
+    logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+  }
+  paint();
+  say("Lv" + e.lv + " " + e.n + " があらわれた。", "sys");
+
+  function roll(a, d, cr, cm){
+    var r = 0.85 + Math.random()*0.30, c = Math.random() < cr;
+    return { v: Math.max(1, Math.round((a - d) * r * (c ? cm : 1))), c:c };
+  }
+
+  var loop = setInterval(step, speed);
+  function step(){
+    if(over) return;
+    turn++;
+    var mine = roll(P.atk, e.def*0.85, 0.10, 1.6);
+    ehp -= mine.v; paint();
+    sig.classList.add("hit"); setTimeout(function(){ sig.classList.remove("hit"); }, 280);
+    say((mine.c ? "会心の一撃！ " : "") + e.n + " に " + mine.v + " のダメージ", mine.c ? "crit" : "dmg");
+    if(ehp <= 0){ return end(true); }
+    var his = roll(e.atk, P.def*0.60, 0.06, 1.5);
+    php -= his.v; paint();
+    say(e.n + " の攻撃。" + his.v + " のダメージを受けた", "hurt");
+    if(php <= 0){ return end(false); }
+    if(turn > 60) end(false);
+  }
+
+  function end(win){
+    over = true; clearInterval(loop);
+    var first = win && (e.daily ? (S.dailyDone !== today())
+                       : e.deep ? (e.deep >= S.depth)
+                       : !S.cleared[e.id]);
+    if(win){
+      if(e.daily){
+        if(first){
+          S.gold += e.g;
+          S.dailyDone = today();
+          S.dailyCount = (S.dailyCount || 0) + 1;
+          pushLog("今日の魔物：" + e.n, "+" + e.g, false);
+          S.last = null;
+          save();
+        }
+      } else if(e.deep){
+        if(first){
+          S.gold += e.g;
+          S.depth = e.deep + 1;
+          S.maxDepth = Math.max(S.maxDepth || 0, e.deep);
+          pushLog("深層 B" + e.deep + "F 突破", "+" + e.g, false);
+          S.last = null;
+          save();
+        }
+      } else if(first){
+        S.cleared[e.id] = true;
+        S.gold += e.g;
+        pushLog("撃破：" + e.n, "+" + e.g, false);
+        S.last = null;
+        save();
+      }
+      buzz([20,60,20]);
+    } else buzz(200);
+
+    var box = document.createElement("div");
+    box.className = "result " + (win ? "win" : "lose");
+    box.innerHTML = '<div class="big">' + (win ? "VICTORY" : "DEFEAT") + '</div><div class="sub"></div>';
+    box.querySelector(".sub").textContent = win
+      ? (e.daily
+          ? (first ? "今日の魔物を倒した！  +" + e.g + " G　（通算 " + S.dailyCount + " 体）" : "今日はもう倒しています")
+          : e.deep
+          ? (first ? "B" + e.deep + "F 突破！  +" + e.g + " G　次は B" + (e.deep+1) + "F へ" : "すでに越えた階層です（報酬は初回のみ）")
+          : (first ? e.n + " を倒した！  +" + e.g + " G" : e.n + " をもう一度倒した（報酬は初回のみ）"))
+      : (e.daily
+          ? "今日の魔物には届かなかった。何度でも挑めます。"
+          : e.deep
+          ? "ここが今の限界。鍛えるか、部屋を片づけてレベルを上げてから戻ってきてください。"
+          : "力が足りなかった。部屋をすこし片づければ、それがそのまま強さになる。");
+    ov.querySelector(".ov-in").insertBefore(box, logEl);
+
+    if(win && first){
+      var st = document.createElement("div");
+      st.className = "story"; st.textContent = e.st;
+      ov.querySelector(".ov-in").insertBefore(st, btns);
+      var nx = (e.deep || e.daily) ? true : nextTarget();
+      if(!nx){
+        var fin = document.createElement("div");
+        fin.className = "story"; fin.style.borderLeftColor = "var(--gold)";
+        fin.textContent = "——塵界、踏破。すべての魔物を倒した。あとは、あなたの部屋の話だ。";
+        ov.querySelector(".ov-in").insertBefore(fin, btns);
+      }
+    }
+    btns.innerHTML = '<button class="btn" data-a="close">とじる</button>';
+    btns.querySelector('[data-a="close"]').addEventListener("click", close);
+    render();
+  }
+
+  function close(){ over = true; clearInterval(loop); ov.remove(); render(); }
+  btns.addEventListener("click", function(ev){
+    var a = ev.target.getAttribute("data-a");
+    if(a === "close") close();
+    if(a === "fast"){ clearInterval(loop); speed = speed > 200 ? 140 : 620; loop = setInterval(step, speed); }
+  });
+}
+
+/* ============ 描画 ============ */
+var $ = function(id){ return document.getElementById(id); };
+var view = "clean";
+
+function render(){
+  rollDay();
+  var st = stats();
+
+  $("lv").textContent = S.lv;
+  $("gold").textContent = S.gold;
+  var nd = need(S.lv);
+  $("xptxt").textContent = S.xp + " / " + nd;
+  $("xpfill").style.width = Math.min(100, S.xp/nd*100) + "%";
+
+  $("t-day").textContent = S.dayCount;
+  $("t-streak").textContent = S.streak;
+  $("t-total").textContent = S.total;
+
+  var done = S.dayCount >= GOAL;
+  $("quest").className = "quest" + (done ? " done" : "");
+  $("q-count").textContent = Math.min(S.dayCount, GOAL) + " / " + GOAL;
+  $("q-fill").style.width = Math.min(100, S.dayCount/GOAL*100) + "%";
+  $("q-note").textContent = done
+    ? "達成ずみ。ここから先は、ぜんぶ上乗せ。"
+    : "達成でボーナス +" + (5 + Math.max(0, S.streak-1)*2) + " G。ゴミ1個も1回に数えます。";
+
+  // 常設の2つ＝ドックのボタン
+  var head = S.tasks[0];
+  if(head){
+    $("tap-n").textContent = head.n;
+    $("tap-v").textContent = (head.sec ? "⏱ " : "") + "+" + head.v + " EXP / +" + head.v + " G";
+  }
+  var second = S.tasks[1];
+  $("tap2").style.display = second ? "block" : "none";
+  if(second){
+    $("tap2-n").textContent = second.n;
+    $("tap2-v").textContent = (second.sec ? "⏱ " : "") + "+" + second.v + " EXP / +" + second.v + " G";
+  }
+
+  // タスク一覧：常設2つはドックにあるので、自分で足した3つ目以降だけ並べる
+  var extra = S.tasks.slice(2);
+  $("sec-task").style.display = extra.length ? "flex" : "none";
+  var box = $("tasks"); box.innerHTML = "";
+  extra.forEach(function(t, i){
+    var row = document.createElement("div");
+    row.className = "task" + (t.v <= 2 ? " easy" : "");
+    var b = document.createElement("button");
+    b.className = "tn";
+    b.style.cssText = "flex:1;min-width:0;text-align:left;background:none;border:none;padding:0";
+    b.innerHTML = "<span></span><i></i>";
+    b.firstChild.textContent = t.n;
+    b.querySelector("i").textContent = t.sec ? "⏱ " + (t.sec>=60 ? (t.sec/60)+"分" : t.sec+"秒") + "タイマー" : "タップで完了";
+    b.addEventListener("click", function(ev){ t.sec ? runTimer(t) : gain(t.n, t.v, ev); });
+    var v = document.createElement("div");
+    v.className = "tv"; v.innerHTML = "+" + t.v + " <b>+" + t.v + "G</b>";
+    var x = document.createElement("button");
+    x.className = "task-x"; x.textContent = "×"; x.setAttribute("aria-label", t.n + " を削除");
+    x.addEventListener("click", function(){
+      S.tasks = S.tasks.filter(function(o){ return o.id !== t.id; });
+      save(); render();
+    });
+    row.appendChild(b); row.appendChild(v); row.appendChild(x);
+    box.appendChild(row);
+  });
+
+  // ログ
+  var log = $("log"); log.innerHTML = "";
+  var rows = S.log.slice(0, 6);
+  if(!rows.length) log.innerHTML = '<div class="empty">まだ何もしていません。ゴミ1個から。</div>';
+  else rows.forEach(function(e){
+    var r = document.createElement("div"); r.className = "log-row" + (e.s ? " spend" : "");
+    var t = document.createElement("time"); t.textContent = e.t;
+    var x = document.createElement("div"); x.className = "t"; x.textContent = e.x;
+    var g = document.createElement("div"); g.className = "g"; g.textContent = e.g + " G";
+    r.appendChild(t); r.appendChild(x); r.appendChild(g); log.appendChild(r);
+  });
+  $("undo").disabled = !S.last;
+
+  renderDungeon();
+  renderGear(st);
+
+  // 今日の魔物
+  var dcard = $("daily-card"), dnote = $("dm-note"), dsp = $("dm-s");
+  if(S.dayCount < 1){
+    $("dm-n").textContent = "今日の魔物は、まだ現れていない";
+    dsp.textContent = "未出現"; dsp.style.color = "var(--dim)";
+    dnote.textContent = "今日なにか1つ動くと現れます。ゴミ1個で十分です。";
+    dcard.style.borderLeftColor = "var(--line)";
+    dcard.style.opacity = ".65";
+  } else if(S.dailyDone === today()){
+    $("dm-n").textContent = "今日の魔物は倒した";
+    dsp.textContent = "撃破"; dsp.style.color = "var(--mint)";
+    dnote.textContent = "通算 " + (S.dailyCount || 0) + " 体。明日、また別の顔で現れます。";
+    dcard.style.borderLeftColor = "var(--mint)";
+    dcard.style.opacity = "1";
+  } else {
+    var db = dailyBoss();
+    $("dm-n").textContent = db.n;
+    dsp.textContent = "挑む"; dsp.style.color = "var(--blood)";
+    dnote.textContent = "HP" + db.hp + " ／ 撃破 +" + db.g + " G　いまの自分の強さに合わせて現れています。";
+    dcard.style.borderLeftColor = "var(--blood)";
+    dcard.style.opacity = "1";
+  }
+
+  var since = S.total - (S.backupTotal || 0);
+  var warn = $("bk-warn");
+  if(S.total >= 5 && since >= 5){
+    warn.style.display = "block";
+    $("bk-warn-note").textContent = S.backupAt
+      ? "前回のバックアップから " + since + " 回ぶん進みました。タップして取り直してください。"
+      : "この端末の記録は消えることがあります。タップして今の記録を控えておいてください。";
+  } else {
+    warn.style.display = "none";
+  }
+
+  var nx = nextTarget();
+  if(nx){
+    $("nx-n").textContent = "つぎの敵：" + nx.n;
+    $("nx-s").textContent = "Lv" + nx.lv;
+    $("nx-s").style.color = S.lv >= nx.lv ? "var(--mint)" : "var(--muted)";
+    $("nx-note").textContent = S.lv >= nx.lv
+      ? "いま挑める。タップしてダンジョンへ。"
+      : "あと " + toNext(nx.lv) + " EXP でレベルが足りる。ゴミ" + toNext(nx.lv) + "個ぶん。";
+  } else {
+    $("nx-n").textContent = "塵界の深層 B" + S.depth + "F";
+    $("nx-s").textContent = "ENDLESS";
+    $("nx-s").style.color = "var(--violet)";
+    $("nx-note").textContent = S.maxDepth
+      ? "最高到達 B" + S.maxDepth + "F。まだ下がある。"
+      : "塵界を踏破した。ここから先は、終わりのない深層。";
+  }
+  $("nav-dot").className = (nx && S.lv >= nx.lv && view !== "dungeon") ? "dot" : "dot hide";
+}
+
+function renderDungeon(){
+  $("intro").textContent = INTRO;
+  var wrap = $("areas"); wrap.innerHTML = "";
+  AREAS.forEach(function(a, i){
+    var open = areaOpen(i);
+    var el = document.createElement("section");
+    el.className = "area" + (open ? "" : " locked");
+    var h = document.createElement("div");
+    h.className = "area-h";
+    h.innerHTML = '<div class="t"><b></b><span></span></div><p></p>';
+    h.querySelector("b").textContent = a.n;
+    h.querySelector("span").textContent = a.sub;
+    h.querySelector("p").textContent = open ? a.d : "前のエリアのボスを倒すと開放される。";
+    el.appendChild(h);
+    if(open){
+      var list = document.createElement("div"); list.className = "enemies";
+      a.e.forEach(function(e){
+        var cleared = !!S.cleared[e.id];
+        var b = document.createElement("button");
+        b.className = "en" + (e.boss ? " boss" : "") + (cleared ? " cleared" : "");
+        b.innerHTML = '<div class="sig"></div><div class="info"><b></b><span class="meta"></span></div><div class="st"></div>';
+        b.querySelector(".sig").textContent = cleared ? "✓" : e.s;
+        b.querySelector(".info .meta").textContent = "適正 Lv" + e.lv + " ／ HP" + e.hp + " ／ 初回撃破 +" + e.g + "G";
+        var nm = b.querySelector(".info b");
+        nm.textContent = e.n;
+        if(e.boss){ var bd = document.createElement("span"); bd.className = "badge"; bd.textContent = "BOSS"; nm.appendChild(bd); }
+        b.querySelector(".st").textContent = cleared ? "撃破ずみ" : (S.lv >= e.lv ? "挑める" : "まだ早い");
+        b.addEventListener("click", function(){ battle(e); });
+        list.appendChild(b);
+      });
+      el.appendChild(list);
+    }
+    wrap.appendChild(el);
+  });
+
+  // 踏破後：無限の深層
+  if(allCleared()){
+    var f = S.depth, en = deepEnemy(f);
+    var d = document.createElement("section");
+    d.className = "area";
+    d.style.borderColor = "var(--violet)";
+    d.innerHTML =
+      '<div class="area-h" style="background:linear-gradient(180deg,#1D1B33,#171C28)">' +
+        '<div class="t"><b>塵界の深層</b><span>ENDLESS</span></div>' +
+        '<p>踏破しても、塵はまた積もる。ここに終わりはない。<br>最高到達：<b class="rec"></b></p>' +
+      '</div>' +
+      '<div class="enemies"></div>';
+    d.querySelector(".rec").textContent = S.maxDepth ? "B" + S.maxDepth + "F" : "まだ潜っていない";
+    d.querySelector(".rec").style.color = "var(--violet)";
+    var btn = document.createElement("button");
+    btn.className = "en" + (en.boss ? " boss" : "");
+    btn.innerHTML = '<div class="sig"></div><div class="info"><b></b><span class="meta"></span></div><div class="st">潜る</div>';
+    btn.querySelector(".sig").textContent = en.s;
+    btn.querySelector(".info .meta").textContent = "B" + f + "F ／ HP" + en.hp + " ／ 突破 +" + en.g + "G";
+    var dn = btn.querySelector(".info b");
+    dn.textContent = en.n;
+    if(en.boss){ var db = document.createElement("span"); db.className = "badge"; db.textContent = "層主"; dn.appendChild(db); }
+    btn.addEventListener("click", function(){ battle(deepEnemy(S.depth)); });
+    d.querySelector(".enemies").appendChild(btn);
+    wrap.appendChild(d);
+  }
+}
+
+function renderGear(st){
+  var t = st.t || { atk:0, def:0, hp:0 };
+  $("s-hp").textContent = st.hp;   $("s-hp-b").textContent  = (st.b.hp + t.hp*10)  ? "+" + (st.b.hp + t.hp*10)  : "";
+  $("s-atk").textContent = st.atk; $("s-atk-b").textContent = (st.b.atk + t.atk*2)  ? "+" + (st.b.atk + t.atk*2)  : "";
+  $("s-def").textContent = st.def; $("s-def-b").textContent = (st.b.def + t.def*2)  ? "+" + (st.b.def + t.def*2)  : "";
+
+  // 鍛錬（踏破後のみ）
+  var tsec = $("sec-train"), tbox = $("train");
+  if(allCleared()){
+    tsec.style.display = "flex";
+    tbox.innerHTML = "";
+    TRAIN.forEach(function(item){
+      var cost = trainCost(), lvl = t[item.k] || 0;
+      var row = document.createElement("div");
+      row.className = "gi";
+      row.innerHTML = '<div class="gn"><b></b><span></span></div>';
+      var mul = (item.k === "hp") ? 10 : 2;
+      row.querySelector("b").textContent = item.n + (lvl ? "　いま +" + (lvl * mul) : "");
+      row.querySelector("span").textContent = item.d;
+      var buy = document.createElement("button");
+      buy.className = "btn act"; buy.textContent = cost + " G";
+      buy.disabled = S.gold < cost;
+      buy.addEventListener("click", function(){
+        var c = trainCost();
+        if(S.gold < c) return;
+        S.gold -= c; S.train[item.k] = (S.train[item.k] || 0) + 1;
+        pushLog("鍛錬：" + item.d, "-" + c, true); S.last = null;
+        save(); render(); toast(item.d + "。強くなった。"); buzz([15,40,15]);
+      });
+      row.appendChild(buy);
+      tbox.appendChild(row);
+    });
+  } else {
+    tsec.style.display = "none";
+  }
+
+  [["weapon","g-weapon"],["armor","g-armor"],["acc","g-acc"]].forEach(function(pair){
+    var slot = pair[0], box = $(pair[1]);
+    box.innerHTML = "";
+    SHOP[slot].forEach(function(g){
+      var owned = S.owned.indexOf(slot + ":" + g.id) >= 0;
+      var eq = S.equip[slot] === g.id;
+      var row = document.createElement("div");
+      row.className = "gi" + (eq ? " equipped" : "");
+      var d = [];
+      if(g.atk) d.push("こうげき+" + g.atk);
+      if(g.def) d.push("まもり+" + g.def);
+      if(g.hp)  d.push("HP+" + g.hp);
+      row.innerHTML = '<div class="gn"><b></b><span></span></div>';
+      row.querySelector("b").textContent = g.n;
+      row.querySelector("span").textContent = d.join(" / ");
+      var act;
+      if(eq){ act = document.createElement("div"); act.className = "tag"; act.textContent = "装備中"; }
+      else if(owned){
+        act = document.createElement("button"); act.className = "btn btn-q"; act.textContent = "装備する";
+        act.addEventListener("click", function(){ S.equip[slot] = g.id; save(); render(); toast(g.n + " を装備した"); });
+      } else {
+        act = document.createElement("button"); act.className = "btn"; act.textContent = g.cost + " G";
+        act.disabled = S.gold < g.cost;
+        act.addEventListener("click", function(){
+          if(S.gold < g.cost) return;
+          S.gold -= g.cost; S.owned.push(slot + ":" + g.id); S.equip[slot] = g.id;
+          pushLog("購入：" + g.n, "-" + g.cost, true); S.last = null;
+          save(); render(); toast(g.n + " を手に入れた！ 装備した。"); buzz([15,40,15]);
+        });
+      }
+      act.classList.add("act");
+      row.appendChild(act);
+      box.appendChild(row);
+    });
+  });
+}
+
+/* ============ 入力 ============ */
+$("tap").addEventListener("click", function(ev){
+  var t = S.tasks[0]; if(!t) return;
+  t.sec ? runTimer(t) : gain(t.n, t.v, ev);
+});
+$("form-toggle").addEventListener("click", function(){
+  var open = $("form-box").classList.toggle("hide");
+  $("guide-box").classList.toggle("hide");
+  $("form-toggle").textContent = open ? "＋ 自分のタスクを作る" : "− とじる";
+  if(!open) $("form-box").scrollIntoView({ block:"nearest" });
+});
+$("daily-card").addEventListener("click", function(){
+  if(S.dayCount < 1){ toast("まず1つだけ動いてください。そこから現れます。"); return; }
+  if(S.dailyDone === today()){ toast("今日の魔物はもう倒しています。"); return; }
+  battle(dailyBoss());
+});
+$("bk-warn").addEventListener("click", openBackup);
+$("next-card").addEventListener("click", function(){
+  var b = document.querySelector('.nav button[data-v="dungeon"]');
+  if(b) b.click();
+});
+function openBackup(){
+  var ov = document.createElement("div");
+  ov.className = "ov";
+  ov.innerHTML =
+    '<div class="ov-in">' +
+      '<div class="bk-h">BACKUP</div>' +
+      '<div class="note" id="bk-saved"></div>' +
+      '<div class="note">この文字列があれば、いつでも今の状態に戻せます。メモアプリなどに貼って保存しておいてください。</div>' +
+      '<textarea class="ta" id="bk-out" readonly></textarea>' +
+      '<button class="btn" id="bk-copy">コピーする</button>' +
+      '<button class="btn btn-q" id="bk-manual" style="display:none">手動でコピーしたので、控えたことにする</button>' +
+      '<div class="bk-h" style="margin-top:8px">RESTORE</div>' +
+      '<div class="note">下の枠を<b style="color:var(--mint)">長押し</b>して<b style="color:var(--mint)">「ペースト」</b>を選んでください。貼り付けた時点で自動的に読み取ります。</div>' +
+      '<textarea class="ta" id="bk-in" placeholder="ここに貼り付け"></textarea>' +
+      '<div class="ov-btns"><button class="btn" id="bk-load">この内容で復元する</button></div>' +
+      '<div class="note" id="bk-msg" style="min-height:1.6em"></div>' +
+      '<div class="ov-btns" style="margin-top:6px"><button class="btn btn-q" id="bk-close">とじる</button></div>' +
+    '</div>';
+  document.body.appendChild(ov);
+  var out = ov.querySelector("#bk-out");
+  out.value = JSON.stringify(S);
+  ov.querySelector("#bk-saved").textContent = "この端末の保存状態：" + savedLabel();
+  var msg0 = ov.querySelector("#bk-msg");
+  function say(text, bad){ msg0.textContent = text; msg0.style.color = bad ? "var(--ember)" : "var(--mint)"; }
+  function markBackup(){
+    S.backupAt = Date.now(); S.backupTotal = S.total; save(); render();
+  }
+  ov.querySelector("#bk-copy").addEventListener("click", function(){
+    out.focus(); out.select(); out.setSelectionRange(0, 999999);
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch(e){ ok = false; }
+    if(ok){
+      markBackup();
+      say("コピーしました。メモアプリなどに貼って保存してください。", false);
+      return;
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(out.value).then(function(){
+        markBackup();
+        say("コピーしました。メモアプリなどに貼って保存してください。", false);
+      }, function(){
+        say("自動コピーできませんでした。枠の中を長押しして「すべてを選択」→「コピー」してください。", true);
+        ov.querySelector("#bk-manual").style.display = "block";
+      });
+    } else {
+      say("枠の中を長押しして「すべてを選択」→「コピー」してください。", true);
+      ov.querySelector("#bk-manual").style.display = "block";
+    }
+  });
+  ov.querySelector("#bk-manual").addEventListener("click", function(){
+    markBackup();
+    say("控えた記録として扱います。", false);
+    ov.querySelector("#bk-manual").style.display = "none";
+  });
+  var inEl = ov.querySelector("#bk-in");
+
+  // 貼り付けられた文字列から記録を読み取る（前後に余計な文字があっても可）
+  function readPaste(raw, quiet){
+    if(!raw || !raw.trim()){ if(!quiet) say("復元する文字列を貼り付けてください。", true); return null; }
+    var a = raw.indexOf("{"), b = raw.lastIndexOf("}");
+    if(a < 0 || b < a){ if(!quiet) say("バックアップの文字列が見つかりません。{ で始まる部分ごと貼り付けてください。", true); return null; }
+    var d;
+    try { d = JSON.parse(raw.slice(a, b+1)); }
+    catch(e){ if(!quiet) say("うまく読み取れませんでした。途中で切れていないか確認してください。", true); return null; }
+    if(!d || typeof d.lv !== "number"){ if(!quiet) say("このアプリのバックアップではないようです。", true); return null; }
+    return d;
+  }
+
+  // 枠に貼り付けた瞬間・入力した瞬間に自動で読み取って知らせる
+  function onInput(){
+    var d = readPaste(inEl.value, true);
+    if(d) say("Lv" + d.lv + " ／ " + (d.gold||0) + "G の記録を読み取りました。「この内容で復元する」を押してください。", false);
+    else if(inEl.value.trim()) say("まだ読み取れていません。文字列の全体が入っているか確認してください。", true);
+  }
+  inEl.addEventListener("input", onInput);
+  inEl.addEventListener("paste", function(){ setTimeout(onInput, 0); });
+
+
+  ov.querySelector("#bk-load").addEventListener("click", function(){
+    var d = readPaste(inEl.value, false);
+    if(!d) return;
+    ask("Lv" + d.lv + " ／ " + (d.gold||0) + "G の記録に戻します。いまの記録は消えます。", "復元する", function(){
+      S = d;
+      if(!S.owned) S.owned = [];
+      if(!S.equip) S.equip = { weapon:null, armor:null, acc:null };
+      if(!S.cleared) S.cleared = {};
+      if(!S.log) S.log = [];
+      if(!S.tasks || !S.tasks.length) S.tasks = fresh().tasks;
+      S.last = null;
+      save(); render(); ov.remove();
+      toast("Lv" + S.lv + " の記録に戻しました");
+    });
+  });
+  ov.querySelector("#bk-close").addEventListener("click", function(){ ov.remove(); });
+}
+$("backup").addEventListener("click", openBackup);
+$("tap2").addEventListener("click", function(ev){
+  var t = S.tasks[1]; if(!t) return;
+  t.sec ? runTimer(t) : gain(t.n, t.v, ev);
+});
+$("undo").addEventListener("click", undo);
+$("reset").addEventListener("click", function(){
+  ask("レベル・装備・撃破記録をすべて消して、最初からやり直しますか？", "最初から始める", function(){
+    S = fresh(); save(); render(); toast("塵界は、また最初から。");
+  });
+});
+
+document.querySelectorAll(".nav button").forEach(function(b){
+  b.addEventListener("click", function(){
+    view = b.getAttribute("data-v");
+    document.querySelectorAll(".nav button").forEach(function(o){ o.classList.toggle("on", o === b); });
+    ["clean","dungeon","gear"].forEach(function(v){ $("v-" + v).classList.toggle("hide", v !== view); });
+    window.scrollTo(0,0);
+    render();
+  });
+});
+
+// タスク作成フォーム
+var fMin = 0, fW = 1, fTimer = false;
+function paintForm(){
+  var chipsM = $("f-min").children, chipsW = $("f-weight").children;
+  for(var i=0;i<chipsM.length;i++) chipsM[i].classList.toggle("on", i === fMin);
+  for(var j=0;j<chipsW.length;j++) chipsW[j].classList.toggle("on", j === fW);
+  $("f-timer").classList.toggle("on", fTimer);
+  var v = calcExp();
+  $("f-prev").innerHTML = "+" + v + " EXP / <b>+" + v + " G</b>";
+  $("f-prev-note").textContent = MINS[fMin].k + "・" + WEIGHTS[fW].k + (fTimer ? "・タイマーあり" : "");
+}
+function calcExp(){ return Math.max(1, Math.round(MINS[fMin].b * WEIGHTS[fW].m)); }
+MINS.forEach(function(m, i){
+  var b = document.createElement("button"); b.className = "chip"; b.textContent = m.k;
+  b.addEventListener("click", function(){ fMin = i; paintForm(); });
+  $("f-min").appendChild(b);
+});
+WEIGHTS.forEach(function(w, i){
+  var b = document.createElement("button"); b.className = "chip"; b.textContent = w.k;
+  b.addEventListener("click", function(){ fW = i; paintForm(); });
+  $("f-weight").appendChild(b);
+});
+$("f-timer").addEventListener("click", function(){ fTimer = !fTimer; paintForm(); });
+$("f-add").addEventListener("click", function(){
+  var n = $("f-name").value.trim();
+  if(!n){ toast("なにをするか、ひとことで書いてください"); return; }
+  var t = { id:"u"+Date.now(), n:n, v:calcExp() };
+  if(fTimer) t.sec = MINS[fMin].sec;
+  S.tasks.push(t);
+  $("f-name").value = "";
+  save(); render(); toast("タスクを追加しました");
+});
+paintForm();
+
+if(!canStore) setTimeout(function(){ toast("※この環境では記録が保存されません"); }, 900);
+render();
+
+// はじめての起動：物語の導入
+if(!S.seen){
+  S.seen = true; save();
+  var ov = document.createElement("div");
+  ov.className = "ov";
+  ov.innerHTML = '<div class="ov-in" style="justify-content:center">' +
+    '<div class="lbl" style="font-family:var(--f-hud);font-size:11px;letter-spacing:.3em;color:var(--dim);text-align:center">PROLOGUE</div>' +
+    '<div class="story" style="border-left-color:var(--gold);white-space:pre-line"></div>' +
+    '<div class="story" style="white-space:pre-line">この世界であなたが強くなる方法は、ひとつだけ。\n現実の部屋で、なにかを1つ片づけること。\n\nゴミを1個すてれば EXP が 1。それで十分だ。</div>' +
+    '<div class="ov-btns"><button class="btn" data-a="go">はじめる</button></div>' +
+    '<div class="note" style="text-align:center">前に遊んでいて記録が消えてしまった場合は、こちらから戻せます。</div>' +
+    '<div class="ov-btns"><button class="btn btn-q" data-a="load">バックアップから復元する</button></div></div>';
+  ov.querySelector(".story").textContent = INTRO;
+  ov.querySelector('[data-a="go"]').addEventListener("click", function(){ ov.remove(); });
+  ov.querySelector('[data-a="load"]').addEventListener("click", function(){ ov.remove(); openBackup(); });
+  document.body.appendChild(ov);
+}
+})();
+</script>
