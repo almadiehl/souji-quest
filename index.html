@@ -514,6 +514,8 @@ textarea.ta{height:112px;resize:none;font-size:16px}
     </section>
     <section class="sec"><div class="sec-h">ぶき</div><div class="gear" id="g-weapon"></div></section>
     <section class="sec"><div class="sec-h">よろい</div><div class="gear" id="g-armor"></div></section>
+    <section class="sec"><div class="sec-h">てぶくろ</div><div class="gear" id="g-glove"></div></section>
+    <section class="sec"><div class="sec-h">はきもの</div><div class="gear" id="g-boots"></div></section>
     <section class="sec"><div class="sec-h">おまもり</div><div class="gear" id="g-acc"></div></section>
 
     <section class="sec">
@@ -564,9 +566,9 @@ var WEIGHTS = [ { k:"軽い", m:1 }, { k:"ふつう", m:1.2 }, { k:"重い", m:1
 var AREAS = [
   { id:"a1", n:"玄関の霧", sub:"AREA 1", d:"扉のそばに、ぬるい霧がたまっている。ここが塵界の入口。",
     e:[
-      { id:"e1", n:"ほこりの精",     s:"塵", lv:1, hp:19,  atk:6, def:0, g:6,
+      { id:"e1", n:"ほこりの精",     s:"塵", lv:1, hp:20,  atk:6, def:0, g:6,
         st:"ほこりの精は、光の粒になって消えた。玄関の空気が、すこしだけ動いた気がする。" },
-      { id:"e2", n:"空き缶スライム", s:"缶", lv:2, hp:30,  atk:7, def:1, g:12,
+      { id:"e2", n:"空き缶スライム", s:"缶", lv:2, hp:32,  atk:7, def:1, g:12,
         st:"つぶれた缶が転がっていく。「捨てる」という行為に、こんなに力があるとは思わなかった。" },
       { id:"e3", n:"靴箱のヌシ",     s:"靴", lv:3, hp:49,  atk:10, def:3, g:35, boss:true,
         st:"ヌシは去り、玄関に道ができた。ここは、部屋のいちばん外側。外に出られるということは、帰ってこられるということだ。" }
@@ -575,44 +577,44 @@ var AREAS = [
     e:[
       { id:"e4", n:"積読ゴーレム",   s:"積", lv:4, hp:59,  atk:11, def:5, g:22,
         st:"崩れた本の山から、読みかけの一冊が出てきた。積むことは罪ではない。埋もれさせることが、そうだっただけ。" },
-      { id:"e5", n:"書類のミミック", s:"紙", lv:5, hp:77,  atk:15, def:5, g:26,
+      { id:"e5", n:"書類のミミック", s:"紙", lv:5, hp:81,  atk:16, def:5, g:26,
         st:"大事な紙が1枚、ただの紙の山にまぎれていた。分けられた瞬間、それは価値を取り戻した。" },
-      { id:"e6", n:"絡まりコードの蛇", s:"線", lv:6, hp:85,  atk:17, def:7, g:30,
+      { id:"e6", n:"絡まりコードの蛇", s:"線", lv:6, hp:89,  atk:18, def:7, g:30,
         st:"ほどけたケーブルは、ただのケーブルだった。絡まっていたのは、線ではなく順番だった。" },
-      { id:"e7", n:"万年筆騎士",     s:"筆", lv:7, hp:129,  atk:19, def:8, g:80, boss:true,
+      { id:"e7", n:"万年筆騎士",     s:"筆", lv:7, hp:142,  atk:21, def:9, g:80, boss:true,
         st:"騎士は膝をつき、机の天板があらわれた。ここでまた、何かを始めていい。机とはそういう場所だ。" }
     ] },
   { id:"a3", n:"洗濯迷宮", sub:"AREA 3", d:"乾いたものと乾いていないものが、区別なく積まれた回廊。",
     e:[
-      { id:"e8",  n:"靴下の亡霊",     s:"足", lv:8,  hp:116,  atk:23, def:10, g:42,
+      { id:"e8",  n:"靴下の亡霊",     s:"足", lv:8,  hp:122,  atk:24, def:11, g:42,
         st:"片方だけの靴下が、ようやく相方を見つけた。揃うと、ただの布に戻った。" },
-      { id:"e9",  n:"洗濯物ヒュドラ", s:"洗", lv:9,  hp:142,  atk:24, def:11, g:50,
+      { id:"e9",  n:"洗濯物ヒュドラ", s:"洗", lv:9,  hp:156,  atk:26, def:12, g:50,
         st:"畳むそばから増えるように見えていたのは、終わりを決めていなかったからだ。今日はここまで、と決めた瞬間に首は落ちた。" },
-      { id:"e10", n:"生乾きのゴースト", s:"湿", lv:10, hp:159,  atk:28, def:12, g:58,
+      { id:"e10", n:"生乾きのゴースト", s:"湿", lv:10, hp:175,  atk:31, def:13, g:58,
         st:"におい、という亡霊。実体がないから戦えないと思っていたが、風を通すだけでよかった。" },
-      { id:"e11", n:"乾燥機の番人",   s:"乾", lv:12, hp:229,  atk:31, def:13, g:170, boss:true,
+      { id:"e11", n:"乾燥機の番人",   s:"乾", lv:12, hp:252,  atk:34, def:14, g:170, boss:true,
         st:"番人が扉を開ける。あたたかい布の山。ここまで来ると、部屋の中の「循環」が動きはじめたのがわかる。" }
     ] },
   { id:"a4", n:"台所の深淵", sub:"AREA 4", d:"いちばん見たくない場所。だからこそ、いちばん効く場所。",
     e:[
-      { id:"e12", n:"皿の塔",       s:"皿", lv:13, hp:224,  atk:32, def:16, g:90,
+      { id:"e12", n:"皿の塔",       s:"皿", lv:13, hp:246,  atk:35, def:18, g:90,
         st:"塔が崩れ、シンクの底が見えた。底があると分かっているものは、もう深淵ではない。" },
-      { id:"e13", n:"排水口のヌメリ", s:"水", lv:14, hp:234,  atk:35, def:16, g:100,
+      { id:"e13", n:"排水口のヌメリ", s:"水", lv:14, hp:257,  atk:39, def:18, g:100,
         st:"手袋ごしの、ひとつまみの勇気。ぬめりは流れ、水は音を立てて落ちていった。" },
-      { id:"e14", n:"期限切れリッチ", s:"腐", lv:15, hp:267,  atk:38, def:18, g:115,
+      { id:"e14", n:"期限切れリッチ", s:"腐", lv:15, hp:294,  atk:42, def:20, g:115,
         st:"日付だけが残った箱たち。捨てるとは、過去の自分を責めることではなく、許すことだった。" },
-      { id:"e15", n:"冷蔵庫竜",     s:"冷", lv:17, hp:331,  atk:40, def:20, g:320, boss:true,
+      { id:"e15", n:"冷蔵庫竜",     s:"冷", lv:17, hp:430,  atk:52, def:26, g:320, boss:true,
         st:"竜は静かになり、庫内の灯りが白く戻った。あなたはもう、自分の部屋で食べるものを選べる。" }
     ] },
   { id:"a5", n:"床下の混沌", sub:"FINAL", d:"部屋の底。ここを抜ければ、床は床に戻る。",
     e:[
-      { id:"e16", n:"綿ぼこりの群れ", s:"綿", lv:18, hp:342,  atk:52, def:25, g:170,
+      { id:"e16", n:"綿ぼこりの群れ", s:"綿", lv:18, hp:393,  atk:60, def:29, g:170,
         st:"群れは吸い込まれ、床板の木目があらわれた。この部屋には、ちゃんと模様があった。" },
-      { id:"e17", n:"ケーブル大蛇",   s:"電", lv:19, hp:354,  atk:52, def:28, g:185,
+      { id:"e17", n:"ケーブル大蛇",   s:"電", lv:19, hp:407,  atk:60, def:32, g:185,
         st:"床を這っていた大蛇は、壁ぎわに沿って眠りについた。通り道ができた。" },
-      { id:"e18", n:"忘却の段ボール", s:"箱", lv:20, hp:382,  atk:55, def:27, g:200,
+      { id:"e18", n:"忘却の段ボール", s:"箱", lv:20, hp:420,  atk:61, def:30, g:200,
         st:"開けてみれば、要るものは3つだけだった。忘れていたということは、要らなかったということでもある。" },
-      { id:"e19", n:"混沌王カオス",   s:"混", lv:22, hp:580,  atk:62, def:30, g:700, boss:true,
+      { id:"e19", n:"混沌王カオス",   s:"混", lv:22, hp:667,  atk:71, def:35, g:700, boss:true,
         st:"混沌王は最後にこう言った。「私は、あなたが立ち止まった日の集まりだ」。——そして床が、床に戻った。\n部屋は、また散らかる。けれどあなたはもう、ゴミを1個すてるところから始められることを知っている。" }
     ] }
 ];
@@ -627,15 +629,29 @@ var SHOP = {
     { id:"w6", n:"断捨離の斧",      atk:34, cost:1500 }
   ],
   armor: [
-    { id:"a1", n:"ゴム手袋",   def:2,  cost:25  },
+    { id:"a1", n:"ぼろ布のエプロン", def:2, cost:25  },
     { id:"a2", n:"エプロン",   def:4, hp:5,  cost:80  },
     { id:"a3", n:"作業着",     def:7, hp:12, cost:180 },
     { id:"a4", n:"防塵スーツ", def:12,hp:25, cost:380 },
     { id:"a5", n:"除菌の鎧",   def:18,hp:45, cost:760 }
   ],
+  glove: [
+    { id:"g1", n:"軍手",         def:1, hp:2,  cost:20  },
+    { id:"g2", n:"ゴム手袋",     def:2, hp:4,  cost:70  },
+    { id:"g3", n:"作業手袋",     def:4, hp:8,  cost:160 },
+    { id:"g4", n:"防護グローブ", def:7, hp:14, cost:340 },
+    { id:"g5", n:"匠の手袋",     def:10,hp:22, cost:700 }
+  ],
+  boots: [
+    { id:"b1", n:"スリッパ",   def:1, hp:4,  cost:22  },
+    { id:"b2", n:"サンダル",   def:2, hp:8,  cost:75  },
+    { id:"b3", n:"作業靴",     def:3, hp:14, cost:170 },
+    { id:"b4", n:"長靴",       def:5, hp:24, cost:360 },
+    { id:"b5", n:"無音の靴",   def:8, hp:38, cost:720 }
+  ],
   acc: [
     { id:"c1", n:"消臭タグ",         hp:8, cost:40   },
-    { id:"c2", n:"軍手のおまもり",    atk:2, def:2, cost:120 },
+    { id:"c2", n:"掃除神のお守り",    atk:2, def:2, cost:120 },
     { id:"c3", n:"タイマーの懐中時計", atk:4, cost:260 },
     { id:"c4", n:"洗剤の指輪",       atk:6, def:4, cost:520 },
     { id:"c5", n:"換気の羽根",       atk:8, def:8, hp:30, cost:1000 }
@@ -663,9 +679,9 @@ function deepEnemy(f){
     n: (lord ? "層主・" : DEEP_PRE[(f*3) % DEEP_PRE.length]) + DEEP_CORE[(f*7) % DEEP_CORE.length],
     s: DEEP_SIG[(f*11) % DEEP_SIG.length],
     lv: 22 + f,
-    hp:  Math.round(582 * Math.pow(1.035, f-1) * (lord ? 1.25 : 1)),
-    atk: Math.round(60  * Math.pow(1.020, f-1) * (lord ? 1.10 : 1)),
-    def: Math.round(29  * Math.pow(1.015, f-1)),
+    hp:  Math.round(674 * Math.pow(1.035, f-1) * (lord ? 1.25 : 1)),
+    atk: Math.round(70  * Math.pow(1.020, f-1) * (lord ? 1.10 : 1)),
+    def: Math.round(34  * Math.pow(1.015, f-1)),
     g:   Math.round(100 * Math.pow(1.050, f-1) * (lord ? 2.5 : 1)),
     st:  DEEP_WORD[(f-1) % DEEP_WORD.length]
   };
@@ -708,6 +724,9 @@ function dailyBoss(){
 }
 
 // ===== 装備のドロップ（1点もの） =====
+var SLOTS = ["weapon","armor","glove","boots","acc"];
+var EMPTY_EQUIP = { weapon:null, armor:null, glove:null, boots:null, acc:null };
+function newEquip(){ return { weapon:null, armor:null, glove:null, boots:null, acc:null }; }
 var RARITY = [
   { n:"",      mul:1.00, col:"var(--text)"   , af:0 },
   { n:"上質な", mul:1.12, col:"var(--mint)"   , af:1 },
@@ -717,7 +736,7 @@ var RARITY = [
 ];
 var RARITY_W      = [100, 38, 11, 3];   // 通常の敵
 var RARITY_W_BOSS = [ 70, 45, 22, 8];   // ボス・層主・今日の魔物
-var BAG_MAX = 60;
+var BAG_MAX = 80;
 
 // ===== 追加効果（接辞）=====
 var AFFIX = [
@@ -731,19 +750,41 @@ var AFFIX = [
   { k:"sharp",   n:"鋭さ",     d:"与えるダメージ",  min:2,  max:4,  u:"%" }
 ];
 function affixDef(k){ for(var i=0;i<AFFIX.length;i++) if(AFFIX[i].k === k) return AFFIX[i]; return null; }
-function rollAffixes(n, strong){
-  var pool = AFFIX.slice(), out = [];
-  for(var i=0;i<n && pool.length;i++){
-    var a = pool.splice(Math.floor(Math.random()*pool.length), 1)[0];
+// スロットごとに出やすい接辞が違う（狙って集められるようにする）
+var SLOT_AFFIX = {
+  weapon: ["crit","sharp","gold"],
+  armor:  ["tough","heal","find"],
+  glove:  ["kipick","heal","find"],
+  boots:  ["kistart","crit","tough"],
+  acc:    ["gold","find","kistart","heal"]
+};
+function rollAffixes(n, strong, slot){
+  var biased = SLOT_AFFIX[slot] || [];
+  var out = [], used = {};
+  for(var i=0;i<n;i++){
+    var k;
+    // 2割は完全にランダム（思わぬ組み合わせが出る余地）
+    if(biased.length && Math.random() < 0.8){
+      var cand = biased.filter(function(x){ return !used[x]; });
+      if(!cand.length) cand = AFFIX.map(function(a){ return a.k; }).filter(function(x){ return !used[x]; });
+      k = cand[Math.floor(Math.random()*cand.length)];
+    } else {
+      var all = AFFIX.map(function(a){ return a.k; }).filter(function(x){ return !used[x]; });
+      if(!all.length) break;
+      k = all[Math.floor(Math.random()*all.length)];
+    }
+    if(!k) break;
+    used[k] = 1;
+    var a2 = affixDef(k); if(!a2) continue;
     var t = strong ? (0.55 + Math.random()*0.45) : Math.random();
-    out.push({ k:a.k, v: Math.round(a.min + (a.max - a.min) * t) });
+    out.push({ k:k, v: Math.round(a2.min + (a2.max - a2.min) * t) });
   }
   return out;
 }
 // 装備している3点の追加効果を合計する
 function affixTotals(){
   var t = { crit:0, kipick:0, heal:0, kistart:0, gold:0, find:0, tough:0, sharp:0 };
-  ["weapon","armor","acc"].forEach(function(slot){
+  SLOTS.forEach(function(slot){
     var g = findItem(S.equip[slot]);
     if(g && g.af) g.af.forEach(function(a){ if(t[a.k] !== undefined) t[a.k] += a.v; });
   });
@@ -752,9 +793,9 @@ function affixTotals(){
 
 // ===== ボス専用の1点もの =====
 var UNIQUES = {
-  e3:  { key:"e3",  s:"armor",  n:"ヌシの靴べら",       atk:0,  def:5,  hp:8,  cost:200,  af:[{k:"find",v:15}] },
+  e3:  { key:"e3",  s:"boots",  n:"ヌシの靴べら",       atk:0,  def:5,  hp:8,  cost:200,  af:[{k:"find",v:15}] },
   e7:  { key:"e7",  s:"weapon", n:"万年筆騎士の羽根",   atk:12, def:0,  hp:0,  cost:420,  af:[{k:"crit",v:5}] },
-  e11: { key:"e11", s:"acc",    n:"乾燥機の番人の腕輪", atk:0,  def:4,  hp:20, cost:700,  af:[{k:"kipick",v:1},{k:"heal",v:4}] },
+  e11: { key:"e11", s:"glove",  n:"乾燥機の番人の手袋", atk:0,  def:4,  hp:20, cost:700,  af:[{k:"kipick",v:1},{k:"heal",v:4}] },
   e15: { key:"e15", s:"armor",  n:"冷蔵庫竜の鱗",       atk:0,  def:16, hp:30, cost:1200, af:[{k:"tough",v:5}] },
   e19: { key:"e19", s:"weapon", n:"混沌王の箒",         atk:38, def:0,  hp:0,  cost:2400, af:[{k:"sharp",v:5},{k:"crit",v:5}] }
 };
@@ -774,7 +815,7 @@ function mkItem(slot, baseId, r, exact){
   function roll(v){ if(!v) return 0; return Math.max(1, Math.round(v * (exact ? 1 : (0.88 + Math.random()*0.24)) * mul)); }
   var it = { i:newIid(), s:slot, b:baseId, r:r, atk:roll(b.atk), def:roll(b.def), hp:roll(b.hp), up:0 };
   var n = exact ? 0 : RARITY[r].af;
-  if(n) it.af = rollAffixes(n, r >= 2);
+  if(n) it.af = rollAffixes(n, r >= 2, slot);
   return it;
 }
 function mkUnique(key){
@@ -837,8 +878,7 @@ function rollDrop(e, picks){
   chance *= (1 + af.find / 100);
   if(e.treasure) chance = 1;
   if(Math.random() > chance) return null;
-  var slots = ["weapon","armor","acc"];
-  var slot = slots[Math.floor(Math.random()*slots.length)];
+  var slot = SLOTS[Math.floor(Math.random()*SLOTS.length)];
   var r = pickRarity(boss || !!e.deep || !!e.daily);
   if(e.treasure) r = Math.max(1, r);        // 宝を抱えた敵は必ず上質以上
   return mkItem(slot, pickBase(slot, e.lv), r, false);
@@ -891,7 +931,7 @@ function yesterday(){ var d = new Date(); d.setDate(d.getDate()-1); return dstr(
 function fresh(){
   return { v:4, lv:1, xp:0, gold:0, day:today(), dayCount:0, total:0,
     streak:0, lastDay:"", claimed:"", tasks:DEFAULT_TASKS.map(function(t){ return {id:t.id,n:t.n,v:t.v,sec:t.sec}; }),
-    items:[], equip:{ weapon:null, armor:null, acc:null }, cleared:{}, log:[], last:null, seen:false,
+    items:[], equip:newEquip(), cleared:{}, log:[], last:null, seen:false,
     depth:1, maxDepth:0, train:{ atk:0, def:0, hp:0 }, dailyDone:"", dailyCount:0 };
 }
 var S = load() || fresh();
@@ -906,10 +946,10 @@ function migrate(st){
   (st.tasks || []).forEach(function(t){
     if(t.id === "t7" && t.n === "タイマー5分"){ t.n = "タイマー"; changed = true; }
   });
-  if(!st.equip) st.equip = { weapon:null, armor:null, acc:null };
+  if(!st.equip) st.equip = newEquip();
   if(!st.items){
     st.items = [];
-    var eq = { weapon:null, armor:null, acc:null };
+    var eq = newEquip();
     (st.owned || []).forEach(function(key){
       var pr = key.split(":"), slot = pr[0], id = pr[1];
       var it = mkItem(slot, id, 0, true);
@@ -922,7 +962,8 @@ function migrate(st){
     changed = true;
   }
   // 装備しているものが持ち物に無ければ外す
-  ["weapon","armor","acc"].forEach(function(slot){
+  SLOTS.forEach(function(slot){
+    if(!(slot in st.equip)){ st.equip[slot] = null; changed = true; }
     var id = st.equip[slot];
     if(id && !st.items.some(function(x){ return x.i === id; })){ st.equip[slot] = null; changed = true; }
   });
@@ -947,7 +988,7 @@ if(migrated) save();
 function need(lv){ return 8 + (lv-1)*5; }
 function bonus(){
   var b = { atk:0, def:0, hp:0 };
-  ["weapon","armor","acc"].forEach(function(slot){
+  SLOTS.forEach(function(slot){
     var g = findItem(S.equip[slot]);
     if(g){ b.atk += iv(g,"atk"); b.def += iv(g,"def"); b.hp += iv(g,"hp"); }
   });
@@ -1412,7 +1453,7 @@ function battle(e){
     if(normal >= ehp) return "hataku";                                  // 今すぐ倒せる
     if(ki >= kiMax && big >= ehp) return "oosouji";
     if(ki >= 1 && charge >= ehp) return "tameru";
-    if(php <= P.hp*0.45 && heal > incoming*0.8 && ehp > normal*3) return "pick";
+    if(php <= P.hp*0.45 && heal > incoming*1.15 && ehp > normal*3) return "pick";
     if(normal < P.atk*0.45){                                            // 硬い相手
       if(ki >= kiMax && ehp > big) return "oosouji";
       if(ki >= 1) return "tameru";
@@ -1870,7 +1911,7 @@ function renderDungeon(){
   }
 }
 
-var gearOpen = { weapon:false, armor:false, acc:false };
+var gearOpen = { weapon:false, armor:false, glove:false, boots:false, acc:false };
 function renderGear(st){
   var t = st.t || { atk:0, def:0, hp:0 };
   $("s-hp").textContent = st.hp;   $("s-hp-b").textContent  = (st.b.hp + t.hp*10)  ? "(+" + (st.b.hp + t.hp*10)  + ")" : "";
@@ -1908,7 +1949,8 @@ function renderGear(st){
   }
 
   // 所持している装備（1点もの）
-  var slots = [["weapon","g-weapon","ぶき"],["armor","g-armor","よろい"],["acc","g-acc","おまもり"]];
+  var slots = [["weapon","g-weapon","ぶき"],["armor","g-armor","よろい"],
+               ["glove","g-glove","てぶくろ"],["boots","g-boots","はきもの"],["acc","g-acc","おまもり"]];
   slots.forEach(function(pair){
     var slot = pair[0], box = $(pair[1]);
     box.innerHTML = "";
