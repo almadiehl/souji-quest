@@ -232,6 +232,13 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .dp.up{color:#0E1118;background:var(--mint)}
 .dp.dn{color:#0E1118;background:var(--ember)}
 .dp.eq{color:var(--dim)}
+.afx{font-family:var(--f-body);font-size:11px;color:var(--violet);letter-spacing:.02em}
+.loot span{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 10px;margin-top:3px}
+.loot.uniq{box-shadow:0 0 26px rgba(255,122,89,.28)}
+.btn.upg{display:flex;flex-direction:column;align-items:center;gap:0;padding:5px 8px;line-height:1.15}
+.btn.upg b{font-size:12px;font-weight:400}
+.btn.upg i{font-style:normal;font-size:9.5px;color:var(--dim)}
+.bt-sig.treasure{border-color:var(--gold);box-shadow:0 0 24px rgba(240,193,75,.4);color:var(--gold)}
 
 /* ===== ナビ ===== */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:31;background:linear-gradient(180deg,rgba(14,17,24,0),#0E1118 30%);padding-top:10px}
@@ -702,31 +709,106 @@ function dailyBoss(){
 
 // ===== 装備のドロップ（1点もの） =====
 var RARITY = [
-  { n:"",      mul:1.00, col:"var(--text)"   },
-  { n:"上質な", mul:1.12, col:"var(--mint)"   },
-  { n:"業物の", mul:1.28, col:"var(--gold)"   },
-  { n:"銘品・", mul:1.45, col:"var(--violet)" }
+  { n:"",      mul:1.00, col:"var(--text)"   , af:0 },
+  { n:"上質な", mul:1.12, col:"var(--mint)"   , af:1 },
+  { n:"業物の", mul:1.28, col:"var(--gold)"   , af:1 },
+  { n:"銘品・", mul:1.45, col:"var(--violet)" , af:2 },
+  { n:"",      mul:1.00, col:"var(--ember)"  , af:0 }   // 伝説（ユニーク）
 ];
 var RARITY_W      = [100, 38, 11, 3];   // 通常の敵
 var RARITY_W_BOSS = [ 70, 45, 22, 8];   // ボス・層主・今日の魔物
 var BAG_MAX = 60;
 
+// ===== 追加効果（接辞）=====
+var AFFIX = [
+  { k:"crit",    n:"会心",     d:"会心率",         min:2,  max:4,  u:"%" },
+  { k:"kipick",  n:"拾い上手", d:"拾うと気力",      min:1,  max:1,  u:""  },
+  { k:"heal",    n:"手当て",   d:"拾うとHP回復",    min:3,  max:5,  u:"%" },
+  { k:"kistart", n:"はじまり", d:"開始時の気力",    min:1,  max:1,  u:""  },
+  { k:"gold",    n:"金運",     d:"獲得ゴールド",    min:8,  max:15, u:"%" },
+  { k:"find",    n:"宝運",     d:"戦利品の出やすさ", min:10, max:20, u:"%" },
+  { k:"tough",   n:"頑丈",     d:"受けるダメージ",  min:2,  max:4,  u:"%", minus:true },
+  { k:"sharp",   n:"鋭さ",     d:"与えるダメージ",  min:2,  max:4,  u:"%" }
+];
+function affixDef(k){ for(var i=0;i<AFFIX.length;i++) if(AFFIX[i].k === k) return AFFIX[i]; return null; }
+function rollAffixes(n, strong){
+  var pool = AFFIX.slice(), out = [];
+  for(var i=0;i<n && pool.length;i++){
+    var a = pool.splice(Math.floor(Math.random()*pool.length), 1)[0];
+    var t = strong ? (0.55 + Math.random()*0.45) : Math.random();
+    out.push({ k:a.k, v: Math.round(a.min + (a.max - a.min) * t) });
+  }
+  return out;
+}
+// 装備している3点の追加効果を合計する
+function affixTotals(){
+  var t = { crit:0, kipick:0, heal:0, kistart:0, gold:0, find:0, tough:0, sharp:0 };
+  ["weapon","armor","acc"].forEach(function(slot){
+    var g = findItem(S.equip[slot]);
+    if(g && g.af) g.af.forEach(function(a){ if(t[a.k] !== undefined) t[a.k] += a.v; });
+  });
+  return t;
+}
+
+// ===== ボス専用の1点もの =====
+var UNIQUES = {
+  e3:  { key:"e3",  s:"armor",  n:"ヌシの靴べら",       atk:0,  def:5,  hp:8,  cost:200,  af:[{k:"find",v:15}] },
+  e7:  { key:"e7",  s:"weapon", n:"万年筆騎士の羽根",   atk:12, def:0,  hp:0,  cost:420,  af:[{k:"crit",v:5}] },
+  e11: { key:"e11", s:"acc",    n:"乾燥機の番人の腕輪", atk:0,  def:4,  hp:20, cost:700,  af:[{k:"kipick",v:1},{k:"heal",v:4}] },
+  e15: { key:"e15", s:"armor",  n:"冷蔵庫竜の鱗",       atk:0,  def:16, hp:30, cost:1200, af:[{k:"tough",v:5}] },
+  e19: { key:"e19", s:"weapon", n:"混沌王の箒",         atk:38, def:0,  hp:0,  cost:2400, af:[{k:"sharp",v:5},{k:"crit",v:5}] }
+};
+
 var itemSeq = 0;
 function newIid(){ itemSeq++; return "i" + Date.now().toString(36) + itemSeq.toString(36); }
 function shopBase(slot, id){ var a = SHOP[slot]; for(var i=0;i<a.length;i++) if(a[i].id === id) return a[i]; return null; }
+function baseOf(it){ return it.u ? UNIQUES[it.u] : shopBase(it.s, it.b); }
 function findItem(iid){ if(!iid) return null; for(var i=0;i<S.items.length;i++) if(S.items[i].i === iid) return S.items[i]; return null; }
+
+// 強化（+N）を反映した実効値
+function iv(it, key){ if(!it) return 0; return Math.round((it[key] || 0) * (1 + 0.05 * (it.up || 0))); }
 
 function mkItem(slot, baseId, r, exact){
   var b = shopBase(slot, baseId); if(!b) return null;
   var mul = RARITY[r].mul;
   function roll(v){ if(!v) return 0; return Math.max(1, Math.round(v * (exact ? 1 : (0.88 + Math.random()*0.24)) * mul)); }
-  return { i:newIid(), s:slot, b:baseId, r:r, atk:roll(b.atk), def:roll(b.def), hp:roll(b.hp) };
+  var it = { i:newIid(), s:slot, b:baseId, r:r, atk:roll(b.atk), def:roll(b.def), hp:roll(b.hp), up:0 };
+  var n = exact ? 0 : RARITY[r].af;
+  if(n) it.af = rollAffixes(n, r >= 2);
+  return it;
 }
-function itemName(it){ var b = shopBase(it.s, it.b); return RARITY[it.r].n + (b ? b.n : "?"); }
-function itemScore(it){ return it.atk*3 + it.def*2.5 + it.hp*0.5; }
+function mkUnique(key){
+  var u = UNIQUES[key]; if(!u) return null;
+  return { i:newIid(), s:u.s, u:key, r:4, atk:u.atk, def:u.def, hp:u.hp, up:0,
+           af: u.af.map(function(a){ return { k:a.k, v:a.v }; }) };
+}
+// 数値と追加効果をまとめて文字列にする
+function itemStatsHtml(it){
+  var out = [];
+  if(iv(it,"atk")) out.push('<span class="sv">こうげき+' + iv(it,"atk") + '</span>');
+  if(iv(it,"def")) out.push('<span class="sv">まもり+' + iv(it,"def") + '</span>');
+  if(iv(it,"hp"))  out.push('<span class="sv">HP+' + iv(it,"hp") + '</span>');
+  if(it.af) it.af.forEach(function(a){
+    var d = affixDef(a.k); if(!d) return;
+    out.push('<span class="afx">◇' + d.d + " " + (d.minus ? "−" : "+") + a.v + d.u + '</span>');
+  });
+  return out.join("");
+}
+function itemName(it){ var b = baseOf(it); return (it.u ? "" : RARITY[it.r].n) + (b ? b.n : "?") + ((it.up||0) ? " +" + it.up : ""); }
+function itemScore(it){
+  var sc = iv(it,"atk")*3 + iv(it,"def")*2.5 + iv(it,"hp")*0.5;
+  if(it.af) it.af.forEach(function(a){ sc += a.v * 1.5; });
+  return sc;
+}
 function sellPrice(it){
-  var b = shopBase(it.s, it.b);
-  return Math.max(2, Math.round((b ? b.cost : 20) * RARITY[it.r].mul * 0.35));
+  var b = baseOf(it);
+  var base = (b ? b.cost : 20) * (it.u ? 1 : RARITY[it.r].mul);
+  return Math.max(2, Math.round(base * 0.35 * (1 + 0.35 * (it.up||0))));
+}
+function upgradeCost(it){
+  var b = baseOf(it);
+  var base = (b ? b.cost : 40) * (it.u ? 1.3 : RARITY[it.r].mul);
+  return Math.max(20, Math.round(base * 0.45 * Math.pow(1.5, it.up || 0)));
 }
 function pickRarity(boss){
   var w = boss ? RARITY_W_BOSS : RARITY_W, t = 0, i;
@@ -751,10 +833,15 @@ function rollDrop(e, picks){
   else if(e.deep) chance = boss ? 1 : 0.55;
   else chance = boss ? 1 : 0.40;
   chance *= Math.min(1.3, 0.4 + 0.3 * (picks || 0));
+  var af = affixTotals();
+  chance *= (1 + af.find / 100);
+  if(e.treasure) chance = 1;
   if(Math.random() > chance) return null;
   var slots = ["weapon","armor","acc"];
   var slot = slots[Math.floor(Math.random()*slots.length)];
-  return mkItem(slot, pickBase(slot, e.lv), pickRarity(boss || !!e.deep || !!e.daily), false);
+  var r = pickRarity(boss || !!e.deep || !!e.daily);
+  if(e.treasure) r = Math.max(1, r);        // 宝を抱えた敵は必ず上質以上
+  return mkItem(slot, pickBase(slot, e.lv), r, false);
 }
 // 手に入れる。持ち物がいっぱいなら、弱い方を自動で売る
 function takeItem(it){
@@ -862,7 +949,7 @@ function bonus(){
   var b = { atk:0, def:0, hp:0 };
   ["weapon","armor","acc"].forEach(function(slot){
     var g = findItem(S.equip[slot]);
-    if(g){ b.atk += g.atk||0; b.def += g.def||0; b.hp += g.hp||0; }
+    if(g){ b.atk += iv(g,"atk"); b.def += iv(g,"def"); b.hp += iv(g,"hp"); }
   });
   return b;
 }
@@ -1131,7 +1218,21 @@ var CMDS = [
 function battle(e){
   if(document.querySelector(".ov-main")) return;   // 画面の二重起動を防ぐ
   var P = stats();
-  var php = P.hp, ehp = e.hp, ki = KI.START, charged = false, turn = 0;
+  var AF = affixTotals();
+  var kiMax = KI.MAX;
+  var kiStart = Math.min(kiMax, KI.START + AF.kistart);
+  var kiPick = KI.PICK + AF.kipick;
+  var healPct = KI.HEAL + AF.heal / 100;
+  var critRate = 0.10 + AF.crit / 100;
+  var dmgMul = 1 + AF.sharp / 100;
+  var takeMul = 1 - AF.tough / 100;
+  // 宝を抱えた敵（たまに現れる）
+  if(!e.daily && Math.random() < (e.deep ? 0.18 : 0.12)){
+    e = { id:e.id, deep:e.deep, daily:e.daily, boss:e.boss, treasure:true,
+          n:"宝を抱えた" + e.n, s:e.s, lv:e.lv, st:e.st,
+          hp:Math.round(e.hp*1.3), atk:Math.round(e.atk*1.15), def:e.def, g:Math.round(e.g*2) };
+  }
+  var php = P.hp, ehp = e.hp, ki = kiStart, charged = false, turn = 0;
   var over = false, auto = false, autoLoop = null, picks = 0, busy = false;
 
   var ov = document.createElement("div");
@@ -1170,7 +1271,8 @@ function battle(e){
   var kiBox = ov.querySelector("#ki"), kiNum = ov.querySelector(".ki-num");
   var cmdBox = ov.querySelector("#cmds"), subBtns = ov.querySelector(".sub-btns");
 
-  for(var z = 0; z < KI.MAX; z++) kiBox.appendChild(document.createElement("i"));
+  for(var z = 0; z < kiMax; z++) kiBox.appendChild(document.createElement("i"));
+  if(e.treasure) sig.classList.add("treasure");
 
   function paint(){
     var ep = Math.max(0, ehp/e.hp*100), pp = Math.max(0, php/P.hp*100);
@@ -1179,13 +1281,13 @@ function battle(e){
     requestAnimationFrame(function(){ eGh.style.width = ep + "%"; pGh.style.width = pp + "%"; });
     eNum.textContent = Math.max(0, ehp) + " / " + e.hp;
     pNum.textContent = Math.max(0, php) + " / " + P.hp;
-    kiNum.textContent = ki + " / " + KI.MAX;
+    kiNum.textContent = ki + " / " + kiMax;
     var pips = kiBox.children, gained = ki > lastKi;
     for(var i = 0; i < pips.length; i++){
       pips[i].className = i < ki ? "on" : "";
       if(gained && i < ki && i >= lastKi) pips[i].className = "on flash";
     }
-    kiBox.classList.toggle("full", ki >= KI.MAX);
+    kiBox.classList.toggle("full", ki >= kiMax);
     lastKi = ki;
     var btns = cmdBox.children;
     for(var j = 0; j < btns.length; j++){
@@ -1245,37 +1347,37 @@ function battle(e){
     if(k === "hataku"){
       var dmg;
       if(charged){
-        var cc = Math.random() < 0.10;
-        dmg = Math.max(1, Math.round(P.atk * KI.TAMERU * rnd() * (cc ? 1.6 : 1)));
+        var cc = Math.random() < critRate;
+        dmg = Math.max(1, Math.round(P.atk * KI.TAMERU * rnd() * (cc ? 1.6 : 1) * dmgMul));
         say((cc ? "会心！ " : "") + "ためた一撃！ " + e.n + " に " + dmg + " のダメージ", cc ? "crit" : "dmg");
         dmgPop(dmg, cc ? "crit" : "");
         charged = false;
       } else {
-        var c2 = Math.random() < 0.10;
-        dmg = Math.max(1, Math.round((P.atk - e.def*0.85) * rnd() * (c2 ? 1.6 : 1)));
+        var c2 = Math.random() < critRate;
+        dmg = Math.max(1, Math.round((P.atk - e.def*0.85) * rnd() * (c2 ? 1.6 : 1) * dmgMul));
         say((c2 ? "会心の一撃！ " : "") + e.n + " に " + dmg + " のダメージ", c2 ? "crit" : "dmg");
         dmgPop(dmg, c2 ? "crit" : "");
       }
       ehp -= dmg; shake();
     } else if(k === "oosouji"){
       ki -= KI.MAX;
-      var big = Math.max(1, Math.round(P.atk * KI.OOSOUJI * rnd()));
+      var big = Math.max(1, Math.round(P.atk * KI.OOSOUJI * rnd() * dmgMul));
       ehp -= big; shake(); dmgPop(big, "crit");
       say("大掃除！ " + e.n + " に " + big + " のダメージ", "crit");
     } else if(k === "tameru"){
       ki -= 1; charged = true;
       say("力をためた。次の一撃が重くなる。", "sys");
     } else if(k === "pick"){
-      ki = Math.min(KI.MAX, ki + KI.PICK);
-      var heal = Math.round(P.hp * KI.HEAL);
+      ki = Math.min(kiMax, ki + kiPick);
+      var heal = Math.round(P.hp * healPct);
       php = Math.min(P.hp, php + heal);
       dmgPop("+" + heal, "heal");
       picks++;
       if(picks <= PICK_REWARD_LIMIT){
         gain("ゴミを拾う（戦闘中）", 1, null);
-        say("ゴミを1個ひろった。気力+2 ／ HP+" + heal + " ／ EXP+1", "pick");
+        say("ゴミを1個ひろった。気力+" + kiPick + " ／ HP+" + heal + " ／ EXP+1", "pick");
       } else {
-        say("ゴミを1個ひろった。気力+2 ／ HP+" + heal, "pick");
+        say("ゴミを1個ひろった。気力+" + kiPick + " ／ HP+" + heal, "pick");
       }
       if(picks === 1) say("手が動いている。戦利品が落ちやすくなった。", "sys");
     }
@@ -1287,7 +1389,7 @@ function battle(e){
   function enemyTurn(){
     if(over) return;
     var c = Math.random() < 0.06;
-    var dmg = Math.max(1, Math.round((e.atk - P.def*0.60) * rnd() * (c ? 1.5 : 1)));
+    var dmg = Math.max(1, Math.round((e.atk - P.def*0.60) * rnd() * (c ? 1.5 : 1) * takeMul));
     php -= dmg;
     hurtFlash();
     say(e.n + " の攻撃。" + dmg + " のダメージを受けた", "hurt");
@@ -1302,17 +1404,17 @@ function battle(e){
   // ===== おまかせ =====
   function decide(){
     if(charged) return "hataku";
-    var normal   = Math.max(1, P.atk - e.def*0.85);
-    var charge   = P.atk * KI.TAMERU;
-    var big      = P.atk * KI.OOSOUJI;
-    var incoming = Math.max(1, e.atk - P.def*0.60);
-    var heal     = Math.round(P.hp * KI.HEAL);
+    var normal   = Math.max(1, (P.atk - e.def*0.85) * dmgMul);
+    var charge   = P.atk * KI.TAMERU * dmgMul;
+    var big      = P.atk * KI.OOSOUJI * dmgMul;
+    var incoming = Math.max(1, (e.atk - P.def*0.60) * takeMul);
+    var heal     = Math.round(P.hp * healPct);
     if(normal >= ehp) return "hataku";                                  // 今すぐ倒せる
-    if(ki >= KI.MAX && big >= ehp) return "oosouji";
+    if(ki >= kiMax && big >= ehp) return "oosouji";
     if(ki >= 1 && charge >= ehp) return "tameru";
     if(php <= P.hp*0.45 && heal > incoming*0.8 && ehp > normal*3) return "pick";
     if(normal < P.atk*0.45){                                            // 硬い相手
-      if(ki >= KI.MAX && ehp > big) return "oosouji";
+      if(ki >= kiMax && ehp > big) return "oosouji";
       if(ki >= 1) return "tameru";
       if(ehp > normal*4) return "pick";
     }
@@ -1386,44 +1488,53 @@ function battle(e){
   // ===== 決着 =====
   function end(win){
     over = true; auto = false;
-    var dropInfo = null;
+    var dropInfo = null, uniqueInfo = null;
     if(autoLoop){ clearTimeout(autoLoop); autoLoop = null; }
     var first = win && (e.daily ? (S.dailyDone !== today())
                        : e.deep ? (e.deep >= S.depth)
                        : !S.cleared[e.id]);
     if(win){
+      var gg = Math.round(e.g * (1 + AF.gold / 100));
       if(e.daily){
         if(first){
-          S.gold += e.g; S.dailyDone = today(); S.dailyCount = (S.dailyCount || 0) + 1;
-          pushLog("今日の魔物：" + e.n, "+" + e.g, false); S.last = null; save();
+          S.gold += gg; S.dailyDone = today(); S.dailyCount = (S.dailyCount || 0) + 1;
+          pushLog("今日の魔物：" + e.n, "+" + gg, false); S.last = null; save();
         }
       } else if(e.deep){
         if(first){
-          S.gold += e.g; S.depth = e.deep + 1;
+          S.gold += gg; S.depth = e.deep + 1;
           S.maxDepth = Math.max(S.maxDepth || 0, e.deep);
-          pushLog("深層 B" + e.deep + "F 突破", "+" + e.g, false); S.last = null; save();
+          pushLog("深層 B" + e.deep + "F 突破", "+" + gg, false); S.last = null; save();
         }
       } else if(first){
-        S.cleared[e.id] = true; S.gold += e.g;
-        pushLog("撃破：" + e.n, "+" + e.g, false); S.last = null; save();
+        S.cleared[e.id] = true; S.gold += gg;
+        pushLog("撃破：" + e.n, "+" + gg, false); S.last = null; save();
+        // ボスからは、そのボスだけの1点ものが出る
+        if(UNIQUES[e.id]){
+          var uq = mkUnique(e.id);
+          if(uq){
+            var gotU = takeItem(uq);
+            uniqueInfo = { it:uq, sold:gotU.full ? gotU.gold : 0, swapped:gotU.swapped, sg:gotU.gold };
+            pushLog("伝説：" + itemName(uq), "±0", false);
+            save();
+          }
+        }
       }
       // 戦利品
       var drop = rollDrop(e, picks);
+      var _gg = 0;
       if(drop){
         var got = takeItem(drop);
-        var nm = itemName(drop), dd = [];
-        if(drop.atk) dd.push("こうげき+" + drop.atk);
-        if(drop.def) dd.push("まもり+" + drop.def);
-        if(drop.hp)  dd.push("HP+" + drop.hp);
+        var nm = itemName(drop), dd = [itemStatsHtml(drop)];
         if(got.full){
           pushLog("持ち物がいっぱい：" + nm + " を売却", "+" + got.gold, false);
-          dropInfo = { name:nm, desc:dd.join(" / "), r:drop.r, sold:got.gold };
+          dropInfo = { name:nm, desc:dd.join(""), r:drop.r, sold:got.gold };
         } else if(got.swapped){
           pushLog("戦利品：" + nm + "（" + got.swapped + " を売却）", "+" + got.gold, false);
-          dropInfo = { name:nm, desc:dd.join(" / "), r:drop.r, swapped:got.swapped, gold:got.gold };
+          dropInfo = { name:nm, desc:dd.join(""), r:drop.r, swapped:got.swapped, gold:got.gold };
         } else {
           pushLog("戦利品：" + nm, "±0", false);
-          dropInfo = { name:nm, desc:dd.join(" / "), r:drop.r, it:drop };
+          dropInfo = { name:nm, desc:dd.join(""), r:drop.r, it:drop };
         }
         save();
       }
@@ -1460,13 +1571,23 @@ function battle(e){
       st2.className = "story"; st2.textContent = e.st;
       ov.querySelector(".ov-in").insertBefore(st2, subBtns);
     }
+    if(uniqueInfo){
+      var uv = document.createElement("div");
+      uv.className = "loot r4 uniq";
+      uv.innerHTML = '<div class="lt">伝説の一点もの</div><b></b><span></span>';
+      uv.querySelector("b").textContent = itemName(uniqueInfo.it);
+      uv.querySelector("b").style.color = RARITY[4].col;
+      uv.style.borderLeftColor = RARITY[4].col;
+      uv.querySelector("span").innerHTML = itemStatsHtml(uniqueInfo.it);
+      ov.querySelector(".ov-in").insertBefore(uv, subBtns);
+    }
     if(dropInfo){
       var dv = document.createElement("div");
       dv.className = "loot r" + dropInfo.r;
       dv.innerHTML = '<div class="lt">戦利品</div><b></b><span></span>' + ((dropInfo.sold || dropInfo.swapped) ? '<em></em>' : '');
       dv.querySelector("b").textContent = dropInfo.name;
       dv.querySelector("b").style.color = RARITY[dropInfo.r].col;
-      dv.querySelector("span").textContent = dropInfo.desc;
+      dv.querySelector("span").innerHTML = dropInfo.desc;
       dv.style.borderLeftColor = RARITY[dropInfo.r].col;
       if(dropInfo.sold) dv.querySelector("em").textContent = "持ち物がいっぱいで、こちらの方が弱かったので売却しました（+" + dropInfo.sold + " G）";
       else if(dropInfo.swapped) dv.querySelector("em").textContent = "持ち物がいっぱいなので「" + dropInfo.swapped + "」を売って入れ替えました（+" + dropInfo.gold + " G）";
@@ -1811,7 +1932,7 @@ function renderGear(st){
       if(it.r > 0){
         var chip = document.createElement("i");
         chip.className = "rchip";
-        chip.textContent = ["", "上質", "業物", "銘品"][it.r];
+        chip.textContent = ["", "上質", "業物", "銘品", "伝説"][it.r];
         chip.style.color = RARITY[it.r].col;
         chip.style.borderColor = RARITY[it.r].col;
         nb.appendChild(chip);
@@ -1820,7 +1941,7 @@ function renderGear(st){
       var cur = eq ? null : findItem(S.equip[slot]);
       var sp = row.querySelector("span");
       [["atk","こうげき"],["def","まもり"],["hp","HP"]].forEach(function(pr2){
-        var key = pr2[0], val = it[key] || 0, bs = cur ? (cur[key] || 0) : 0;
+        var key = pr2[0], val = iv(it, key), bs = cur ? iv(cur, key) : 0;
         if(!val && !bs) return;
         var unit = document.createElement("span");
         unit.className = "sv";
@@ -1834,11 +1955,32 @@ function renderGear(st){
           sp.appendChild(dv);
         }
       });
+      if(it.af) it.af.forEach(function(a){
+        var d2 = affixDef(a.k); if(!d2) return;
+        var ax = document.createElement("span");
+        ax.className = "afx";
+        ax.textContent = "◇" + d2.d + " " + (d2.minus ? "−" : "+") + a.v + d2.u;
+        sp.appendChild(ax);
+      });
       var acts = row.querySelector(".acts");
+      var upc = upgradeCost(it);
+      var ub = document.createElement("button");
+      ub.className = "btn act upg";
+      ub.innerHTML = '<b>+1</b><i></i>';
+      ub.querySelector("i").textContent = upc + "G";
+      ub.disabled = S.gold < upc;
+      ub.setAttribute("aria-label", itemName(it) + " を強化する");
+      ub.addEventListener("click", function(){
+        var c = upgradeCost(it);
+        if(S.gold < c) return;
+        S.gold -= c; it.up = (it.up || 0) + 1;
+        pushLog("強化：" + itemName(it), "-" + c, true); S.last = null;
+        save(); render(); toast(itemName(it) + " に鍛え上げた"); buzz([14,35,14]);
+      });
       if(eq){
         var tag = document.createElement("div");
         tag.className = "tag"; tag.textContent = "装備中";
-        acts.appendChild(tag);
+        acts.appendChild(ub); acts.appendChild(tag);
       } else {
         var eb = document.createElement("button");
         eb.className = "btn btn-q act"; eb.textContent = "装備";
@@ -1854,7 +1996,7 @@ function renderGear(st){
           pushLog("売却：" + itemName(it), "+" + g, false); S.last = null;
           save(); render(); toast(itemName(it) + " を売った（+" + g + " G）");
         });
-        acts.appendChild(eb); acts.appendChild(sb);
+        acts.appendChild(ub); acts.appendChild(eb); acts.appendChild(sb);
       }
       box.appendChild(row);
     });
