@@ -114,8 +114,12 @@ main{max-width:560px;margin:0 auto;padding:calc(72px + env(safe-area-inset-top))
 .btn-q{border-color:var(--line);background:var(--panel);color:var(--muted)}
 .guide{font-size:11.5px;color:var(--dim);line-height:1.75}
 .guide b{color:var(--muted);font-weight:500}
-.ta{width:100%;min-height:104px;background:#0E121C;border:1px solid var(--line);border-radius:8px;color:var(--text);
-  padding:10px 11px;font-family:var(--f-hud);font-size:11px;line-height:1.6;resize:none;height:104px;word-break:break-all}
+.ta{width:100%;background:#0E121C;border:1px solid var(--line);border-radius:8px;color:var(--text);
+  padding:10px 11px;font-family:var(--f-hud);line-height:1.6;word-break:break-all}
+/* 表示専用（div）。入力欄ではないので iOS が勝手にズームしない */
+.ta.out{height:104px;overflow-y:auto;font-size:11px;-webkit-user-select:text;user-select:text}
+/* 貼り付け欄。iOS は 16px 未満の入力欄にフォーカスすると自動ズームするため 16px 固定 */
+textarea.ta{height:112px;resize:none;font-size:16px}
 .ta:focus{outline:none;border-color:var(--mint-dim)}
 .bk-h{font-family:var(--f-hud);font-size:12px;letter-spacing:.15em;color:var(--muted)}
 
@@ -1245,7 +1249,7 @@ function openBackup(){
       '<div class="bk-h">BACKUP</div>' +
       '<div class="note" id="bk-saved"></div>' +
       '<div class="note">この文字列があれば、いつでも今の状態に戻せます。メモアプリなどに貼って保存しておいてください。</div>' +
-      '<textarea class="ta" id="bk-out" readonly></textarea>' +
+      '<div class="ta out" id="bk-out"></div>' +
       '<button class="btn" id="bk-copy">コピーする</button>' +
       '<button class="btn btn-q" id="bk-manual" style="display:none">手動でコピーしたので、控えたことにする</button>' +
       '<div class="bk-h" style="margin-top:8px">RESTORE</div>' +
@@ -1257,27 +1261,39 @@ function openBackup(){
     '</div>';
   document.body.appendChild(ov);
   var out = ov.querySelector("#bk-out");
-  out.value = JSON.stringify(S);
+  out.textContent = JSON.stringify(S);
   ov.querySelector("#bk-saved").textContent = "この端末の保存状態：" + savedLabel();
   var msg0 = ov.querySelector("#bk-msg");
   function say(text, bad){ msg0.textContent = text; msg0.style.color = bad ? "var(--ember)" : "var(--mint)"; }
   function markBackup(){
     S.backupAt = Date.now(); S.backupTotal = S.total; save(); render();
   }
+  // 入力欄にフォーカスするとiOSが拡大してしまうので、選択範囲だけでコピーする
+  function selectOut(){
+    try {
+      var r = document.createRange();
+      r.selectNodeContents(out);
+      var sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(r);
+      return true;
+    } catch(e){ return false; }
+  }
   ov.querySelector("#bk-copy").addEventListener("click", function(){
-    out.focus(); out.select(); out.setSelectionRange(0, 999999);
     var ok = false;
-    try { ok = document.execCommand("copy"); } catch(e){ ok = false; }
+    if(selectOut()){
+      try { ok = document.execCommand("copy"); } catch(e){ ok = false; }
+    }
     if(ok){
       markBackup();
       say("コピーしました。メモアプリなどに貼って保存してください。", false);
       return;
     }
     if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(out.value).then(function(){
+      navigator.clipboard.writeText(out.textContent).then(function(){
         markBackup();
         say("コピーしました。メモアプリなどに貼って保存してください。", false);
       }, function(){
+        selectOut();
         say("自動コピーできませんでした。枠の中を長押しして「すべてを選択」→「コピー」してください。", true);
         ov.querySelector("#bk-manual").style.display = "block";
       });
