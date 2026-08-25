@@ -123,6 +123,10 @@ main{max-width:560px;margin:0 auto;padding:calc(72px + env(safe-area-inset-top))
 .task .tv b{font-weight:400;color:var(--gold)}
 .task-x{flex:none;color:var(--dim);font-size:17px;line-height:1;padding:3px 2px 3px 6px}
 .easy{border-left:3px solid var(--mint)}
+.task.pinned{background:var(--panel-2);border-color:var(--line)}
+.pinb{font-style:normal;font-family:var(--f-hud);font-size:9.5px;color:var(--gold);
+  border:1px solid var(--gold-dim);border-radius:3px;padding:0 4px;margin-left:7px;vertical-align:1px}
+.task-up{flex:none;color:var(--muted);font-size:15px;line-height:1;padding:4px 3px 4px 7px}
 
 /* ===== フォーム ===== */
 .form{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px;display:flex;flex-direction:column;gap:11px}
@@ -430,6 +434,7 @@ textarea.ta{height:112px;resize:none;font-size:16px}
     <section class="sec" id="sec-task" style="display:none">
       <div class="sec-h">TASK</div>
       <div class="tasks" id="tasks"></div>
+      <div class="note">上の2つが、画面下のボタンになります。↑ で入れ替えられます。掃除以外の用事でもかまいません。</div>
     </section>
 
     <section class="sec">
@@ -437,7 +442,7 @@ textarea.ta{height:112px;resize:none;font-size:16px}
       <div class="form hide" id="form-box">
         <div>
           <label>なにをする？</label>
-          <input type="text" id="f-name" placeholder="例：洗面台の鏡をふく" maxlength="26" style="margin-top:6px">
+          <input type="text" id="f-name" placeholder="例：鏡をふく／メールを1件返す" maxlength="26" style="margin-top:6px">
         </div>
         <div>
           <label>だいたいの所要時間</label>
@@ -1555,30 +1560,49 @@ function render(){
     $("tap2-v").textContent = second.sec ? "⏱ 1〜15分から選ぶ" : ("+" + second.v + " EXP / +" + second.v + " G");
   }
 
-  // タスク一覧：常設2つはドックにあるので、自分で足した3つ目以降だけ並べる
-  var extra = S.tasks.slice(2);
-  $("sec-task").style.display = extra.length ? "flex" : "none";
+  // タスク一覧：上の2つが画面下のボタンになる
+  $("sec-task").style.display = "flex";
   var box = $("tasks"); box.innerHTML = "";
-  extra.forEach(function(t, i){
+  S.tasks.forEach(function(t, i){
     var row = document.createElement("div");
-    row.className = "task" + (t.v <= 2 ? " easy" : "");
+    row.className = "task" + (t.v <= 2 ? " easy" : "") + (i < 2 ? " pinned" : "");
     var b = document.createElement("button");
     b.className = "tn";
     b.style.cssText = "flex:1;min-width:0;text-align:left;background:none;border:none;padding:0";
     b.innerHTML = "<span></span><i></i>";
     b.firstChild.textContent = t.n;
+    if(i < 2){
+      var pb = document.createElement("em");
+      pb.className = "pinb";
+      pb.textContent = i === 0 ? "大ボタン" : "小ボタン";
+      b.firstChild.appendChild(pb);
+    }
     b.querySelector("i").textContent = t.sec ? "タイマー（1〜15分から選ぶ）" : "タップで完了";
     b.addEventListener("click", function(ev){ t.sec ? runTimer(t) : tapGain(t, ev); });
     var v = document.createElement("div");
     v.className = "tv";
     v.innerHTML = t.sec ? '<b style="color:var(--mint)">⏱</b>' : ("+" + t.v + " <b>+" + t.v + "G</b>");
+    var up = document.createElement("button");
+    up.className = "task-up"; up.textContent = "↑";
+    up.setAttribute("aria-label", t.n + " を大ボタンにする");
+    up.style.visibility = i === 0 ? "hidden" : "visible";
+    up.addEventListener("click", function(){
+      var idx = -1;
+      for(var k = 0; k < S.tasks.length; k++) if(S.tasks[k].id === t.id){ idx = k; break; }
+      if(idx <= 0) return;
+      var moved = S.tasks.splice(idx, 1)[0];
+      S.tasks.unshift(moved);
+      save(); render();
+      toast(moved.n + " を大ボタンにしました");
+    });
     var x = document.createElement("button");
     x.className = "task-x"; x.textContent = "×"; x.setAttribute("aria-label", t.n + " を削除");
     x.addEventListener("click", function(){
+      if(S.tasks.length <= 1){ toast("タスクは1つ以上必要です"); return; }
       S.tasks = S.tasks.filter(function(o){ return o.id !== t.id; });
       save(); render();
     });
-    row.appendChild(b); row.appendChild(v); row.appendChild(x);
+    row.appendChild(b); row.appendChild(v); row.appendChild(up); row.appendChild(x);
     box.appendChild(row);
   });
 
