@@ -220,7 +220,27 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .hpline .num{font-family:var(--f-hud);font-size:11px;color:var(--dim);width:70px;text-align:right;flex:none;font-variant-numeric:tabular-nums}
 .hp-e{background:linear-gradient(90deg,#7A2620,var(--blood))}
 .hp-p{background:linear-gradient(90deg,var(--mint-dim),var(--mint))}
-.bt-log{flex:0 1 auto;min-height:132px;max-height:34vh;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;display:flex;flex-direction:column;gap:5px;font-size:13.5px;overflow-y:auto}
+.ki{flex:1;display:flex;gap:4px}
+.ki i{flex:1;height:10px;border:1px solid var(--line);border-radius:3px;background:#0B0E16;transition:background .2s ease,border-color .2s ease}
+.ki i.on{background:linear-gradient(180deg,#8C7BFF,#5B4BD6);border-color:#6B5BE0;box-shadow:0 0 6px rgba(140,123,255,.5)}
+.cmds{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cmd{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 8px 8px;text-align:center;
+  transition:transform .1s ease,border-color .12s ease,background .12s ease}
+.cmd:first-child{border-color:var(--gold-dim);background:var(--gold-bg)}
+.cmd:first-child b{color:var(--gold)}
+.cmd:nth-child(2){border-color:var(--mint-dim)}
+.cmd:nth-child(2) b{color:var(--mint)}
+.cmd:last-child{grid-column:1 / -1;border-color:#4B3E86;background:#1B1733}
+.cmd:last-child b{color:var(--violet)}
+.cmd b{display:block;font-size:14.5px;font-weight:700}
+.cmd span{display:block;font-family:var(--f-hud);font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:.04em}
+.cmd:active{transform:scale(.96)}
+.cmd.ready{box-shadow:0 0 0 1px rgba(140,123,255,.35)}
+.cmd[disabled]{opacity:.3;cursor:default;box-shadow:none}
+.sub-btns .btn{flex:1;padding:9px 4px;font-size:11.5px}
+.sub-btns .btn.on{border-color:var(--mint);color:var(--mint)}
+.bt-log .pick{color:var(--mint)}
+.bt-log{flex:0 1 auto;min-height:104px;max-height:26vh;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;display:flex;flex-direction:column;gap:5px;font-size:13.5px;overflow-y:auto}
 .bt-log div{animation:slide .2s ease}
 .bt-log .dmg{color:var(--gold)} .bt-log .hurt{color:var(--blood)} .bt-log .crit{color:var(--ember);font-weight:700}
 .bt-log .sys{color:var(--dim);font-size:12px}
@@ -422,53 +442,53 @@ var WEIGHTS = [ { k:"軽い", m:1 }, { k:"ふつう", m:1.2 }, { k:"重い", m:1
 var AREAS = [
   { id:"a1", n:"玄関の霧", sub:"AREA 1", d:"扉のそばに、ぬるい霧がたまっている。ここが塵界の入口。",
     e:[
-      { id:"e1", n:"ほこりの精",     s:"塵", lv:1, hp:20,  atk:6, def:0, g:6,
+      { id:"e1", n:"ほこりの精",     s:"塵", lv:1, hp:15,  atk:5, def:0, g:6,
         st:"ほこりの精は、光の粒になって消えた。玄関の空気が、すこしだけ動いた気がする。" },
-      { id:"e2", n:"空き缶スライム", s:"缶", lv:2, hp:26,  atk:7, def:1, g:12,
+      { id:"e2", n:"空き缶スライム", s:"缶", lv:2, hp:24,  atk:6, def:1, g:12,
         st:"つぶれた缶が転がっていく。「捨てる」という行為に、こんなに力があるとは思わなかった。" },
-      { id:"e3", n:"靴箱のヌシ",     s:"靴", lv:3, hp:49,  atk:10, def:3, g:35, boss:true,
+      { id:"e3", n:"靴箱のヌシ",     s:"靴", lv:3, hp:51,  atk:10, def:3, g:35, boss:true,
         st:"ヌシは去り、玄関に道ができた。ここは、部屋のいちばん外側。外に出られるということは、帰ってこられるということだ。" }
     ] },
   { id:"a2", n:"机上遺跡", sub:"AREA 2", d:"かつて何かをしていた場所。書類と充電ケーブルの地層が積もっている。",
     e:[
-      { id:"e4", n:"積読ゴーレム",   s:"積", lv:4, hp:57,  atk:11, def:5, g:22,
+      { id:"e4", n:"積読ゴーレム",   s:"積", lv:4, hp:59,  atk:11, def:5, g:22,
         st:"崩れた本の山から、読みかけの一冊が出てきた。積むことは罪ではない。埋もれさせることが、そうだっただけ。" },
-      { id:"e5", n:"書類のミミック", s:"紙", lv:5, hp:78,  atk:15, def:5, g:26,
+      { id:"e5", n:"書類のミミック", s:"紙", lv:5, hp:66,  atk:13, def:4, g:26,
         st:"大事な紙が1枚、ただの紙の山にまぎれていた。分けられた瞬間、それは価値を取り戻した。" },
-      { id:"e6", n:"絡まりコードの蛇", s:"線", lv:6, hp:85,  atk:17, def:7, g:30,
+      { id:"e6", n:"絡まりコードの蛇", s:"線", lv:6, hp:71,  atk:14, def:6, g:30,
         st:"ほどけたケーブルは、ただのケーブルだった。絡まっていたのは、線ではなく順番だった。" },
-      { id:"e7", n:"万年筆騎士",     s:"筆", lv:7, hp:130,  atk:19, def:9, g:80, boss:true,
+      { id:"e7", n:"万年筆騎士",     s:"筆", lv:7, hp:140,  atk:21, def:9, g:80, boss:true,
         st:"騎士は膝をつき、机の天板があらわれた。ここでまた、何かを始めていい。机とはそういう場所だ。" }
     ] },
   { id:"a3", n:"洗濯迷宮", sub:"AREA 3", d:"乾いたものと乾いていないものが、区別なく積まれた回廊。",
     e:[
-      { id:"e8",  n:"靴下の亡霊",     s:"足", lv:8,  hp:116,  atk:23, def:10, g:42,
+      { id:"e8",  n:"靴下の亡霊",     s:"足", lv:8,  hp:97,  atk:19, def:8, g:42,
         st:"片方だけの靴下が、ようやく相方を見つけた。揃うと、ただの布に戻った。" },
-      { id:"e9",  n:"洗濯物ヒュドラ", s:"洗", lv:9,  hp:141,  atk:24, def:11, g:50,
+      { id:"e9",  n:"洗濯物ヒュドラ", s:"洗", lv:9,  hp:118,  atk:20, def:9, g:50,
         st:"畳むそばから増えるように見えていたのは、終わりを決めていなかったからだ。今日はここまで、と決めた瞬間に首は落ちた。" },
-      { id:"e10", n:"生乾きのゴースト", s:"湿", lv:10, hp:160,  atk:28, def:12, g:58,
+      { id:"e10", n:"生乾きのゴースト", s:"湿", lv:10, hp:166,  atk:29, def:12, g:58,
         st:"におい、という亡霊。実体がないから戦えないと思っていたが、風を通すだけでよかった。" },
-      { id:"e11", n:"乾燥機の番人",   s:"乾", lv:12, hp:230,  atk:31, def:14, g:170, boss:true,
+      { id:"e11", n:"乾燥機の番人",   s:"乾", lv:12, hp:239,  atk:32, def:14, g:170, boss:true,
         st:"番人が扉を開ける。あたたかい布の山。ここまで来ると、部屋の中の「循環」が動きはじめたのがわかる。" }
     ] },
   { id:"a4", n:"台所の深淵", sub:"AREA 4", d:"いちばん見たくない場所。だからこそ、いちばん効く場所。",
     e:[
-      { id:"e12", n:"皿の塔",       s:"皿", lv:13, hp:223,  atk:32, def:16, g:90,
+      { id:"e12", n:"皿の塔",       s:"皿", lv:13, hp:187,  atk:27, def:13, g:90,
         st:"塔が崩れ、シンクの底が見えた。底があると分かっているものは、もう深淵ではない。" },
-      { id:"e13", n:"排水口のヌメリ", s:"水", lv:14, hp:232,  atk:35, def:16, g:100,
+      { id:"e13", n:"排水口のヌメリ", s:"水", lv:14, hp:195,  atk:29, def:13, g:100,
         st:"手袋ごしの、ひとつまみの勇気。ぬめりは流れ、水は音を立てて落ちていった。" },
-      { id:"e14", n:"期限切れリッチ", s:"腐", lv:15, hp:268,  atk:38, def:19, g:115,
+      { id:"e14", n:"期限切れリッチ", s:"腐", lv:15, hp:247,  atk:35, def:17, g:115,
         st:"日付だけが残った箱たち。捨てるとは、過去の自分を責めることではなく、許すことだった。" },
-      { id:"e15", n:"冷蔵庫竜",     s:"冷", lv:17, hp:362,  atk:44, def:23, g:320, boss:true,
+      { id:"e15", n:"冷蔵庫竜",     s:"冷", lv:17, hp:376,  atk:46, def:23, g:320, boss:true,
         st:"竜は静かになり、庫内の灯りが白く戻った。あなたはもう、自分の部屋で食べるものを選べる。" }
     ] },
   { id:"a5", n:"床下の混沌", sub:"FINAL", d:"部屋の底。ここを抜ければ、床は床に戻る。",
     e:[
-      { id:"e16", n:"綿ぼこりの群れ", s:"綿", lv:18, hp:342,  atk:52, def:26, g:170,
+      { id:"e16", n:"綿ぼこりの群れ", s:"綿", lv:18, hp:356,  atk:54, def:26, g:170,
         st:"群れは吸い込まれ、床板の木目があらわれた。この部屋には、ちゃんと模様があった。" },
-      { id:"e17", n:"ケーブル大蛇",   s:"電", lv:19, hp:357,  atk:52, def:28, g:185,
+      { id:"e17", n:"ケーブル大蛇",   s:"電", lv:19, hp:328,  atk:48, def:26, g:185,
         st:"床を這っていた大蛇は、壁ぎわに沿って眠りについた。通り道ができた。" },
-      { id:"e18", n:"忘却の段ボール", s:"箱", lv:20, hp:383,  atk:55, def:28, g:200,
+      { id:"e18", n:"忘却の段ボール", s:"箱", lv:20, hp:398,  atk:57, def:28, g:200,
         st:"開けてみれば、要るものは3つだけだった。忘れていたということは、要らなかったということでもある。" },
       { id:"e19", n:"混沌王カオス",   s:"混", lv:22, hp:580,  atk:62, def:30, g:700, boss:true,
         st:"混沌王は最後にこう言った。「私は、あなたが立ち止まった日の集まりだ」。——そして床が、床に戻った。\n部屋は、また散らかる。けれどあなたはもう、ゴミを1個すてるところから始められることを知っている。" }
@@ -557,8 +577,8 @@ function dailyBoss(){
     n: DAILY_PRE[n % DAILY_PRE.length] + DAILY_CORE[(n*3) % DAILY_CORE.length],
     s: DAILY_SIG[(n*7) % DAILY_SIG.length],
     lv: S.lv,
-    hp:  Math.max(12, Math.round(p.atk * 7.1)),
-    atk: Math.max(2,  Math.round(p.hp / 9 + p.def * 0.6)),
+    hp:  Math.max(12, Math.round(p.atk * 6.5)),
+    atk: Math.max(2,  Math.round(p.hp / 8 + p.def * 0.6)),
     def: edef,
     g:   Math.max(3,  Math.round(p.atk * 1.5)),
     st:  "今日の魔物は消えた。明日にはまた別の顔で現れる。——それでも、今日のぶんは確かに片づいた。"
@@ -811,9 +831,23 @@ function runTimer(task){
 }
 
 /* ============ 戦闘 ============ */
+/* ============ 戦闘（コマンド式） ============ */
+var KI = { MAX:5, START:2, REGEN:1, PICK:2, HEAL:0.08, TAMERU:2.4, OOSOUJI:3.6, GUARD:0.3 };
+var PICK_REWARD_LIMIT = 3;   // 1回の戦闘で現実の報酬が入る「ゴミを拾う」の回数
+
+var CMDS = [
+  { k:"hataku",  n:"はたく",     ki:0, d:"通常の攻撃" },
+  { k:"pick",    n:"ゴミを拾う", ki:0, d:"気力+2・HP回復" },
+  { k:"tameru",  n:"ためる",     ki:1, d:"次の一撃2.4倍・まもり無視" },
+  { k:"hunbaru", n:"ふんばる",   ki:1, d:"受けるダメージ7割減" },
+  { k:"oosouji", n:"大掃除",     ki:5, d:"特大の一撃・まもり無視" }
+];
+
 function battle(e){
   var P = stats();
-  var php = P.hp, ehp = e.hp, turn = 0, over = false, speed = 620;
+  var php = P.hp, ehp = e.hp, ki = KI.START, charged = false, turn = 0;
+  var over = false, auto = false, autoLoop = null, picks = 0, busy = false;
+
   var ov = document.createElement("div");
   ov.className = "ov";
   ov.innerHTML =
@@ -823,12 +857,18 @@ function battle(e){
         '<div class="bt-sig' + (e.boss ? " boss" : "") + '"></div>' +
         '<div class="bt-name"></div>' +
       '</div>' +
-      '<div style="display:flex;flex-direction:column;gap:7px">' +
+      '<div style="display:flex;flex-direction:column;gap:6px">' +
         '<div class="hpline"><span class="who">てき</span><div class="bar" style="flex:1"><i class="hp-e"></i></div><span class="num e-num"></span></div>' +
         '<div class="hpline"><span class="who">じぶん</span><div class="bar" style="flex:1"><i class="hp-p"></i></div><span class="num p-num"></span></div>' +
+        '<div class="hpline"><span class="who">気力</span><div class="ki" id="ki"></div><span class="num ki-num"></span></div>' +
       '</div>' +
       '<div class="bt-log"></div>' +
-      '<div class="ov-btns"><button class="btn btn-q" data-a="fast">はやく</button><button class="btn btn-q" data-a="close">にげる</button></div>' +
+      '<div class="cmds" id="cmds"></div>' +
+      '<div class="ov-btns sub-btns">' +
+        '<button class="btn btn-q" data-a="auto">おまかせ</button>' +
+        '<button class="btn btn-q" data-a="timer">⏱ タイマー</button>' +
+        '<button class="btn btn-q" data-a="close">にげる</button>' +
+      '</div>' +
     '</div>';
   ov.querySelector(".bt-sig").textContent = e.s;
   ov.querySelector(".bt-name").textContent = e.n;
@@ -837,78 +877,211 @@ function battle(e){
   var sig = ov.querySelector(".bt-sig"), logEl = ov.querySelector(".bt-log");
   var eFill = ov.querySelector(".hp-e"), pFill = ov.querySelector(".hp-p");
   var eNum = ov.querySelector(".e-num"), pNum = ov.querySelector(".p-num");
-  var btns = ov.querySelector(".ov-btns");
+  var kiBox = ov.querySelector("#ki"), kiNum = ov.querySelector(".ki-num");
+  var cmdBox = ov.querySelector("#cmds"), subBtns = ov.querySelector(".sub-btns");
+
+  for(var z = 0; z < KI.MAX; z++) kiBox.appendChild(document.createElement("i"));
 
   function paint(){
     eFill.style.width = Math.max(0, ehp/e.hp*100) + "%";
     pFill.style.width = Math.max(0, php/P.hp*100) + "%";
-    eNum.textContent = Math.max(0,ehp) + " / " + e.hp;
-    pNum.textContent = Math.max(0,php) + " / " + P.hp;
+    eNum.textContent = Math.max(0, ehp) + " / " + e.hp;
+    pNum.textContent = Math.max(0, php) + " / " + P.hp;
+    kiNum.textContent = ki + " / " + KI.MAX;
+    var pips = kiBox.children;
+    for(var i = 0; i < pips.length; i++) pips[i].className = i < ki ? "on" : "";
+    var btns = cmdBox.children;
+    for(var j = 0; j < btns.length; j++){
+      var need = parseInt(btns[j].getAttribute("data-ki"), 10);
+      btns[j].disabled = over || busy || need > ki;
+      btns[j].classList.toggle("ready", need > 0 && need <= ki);
+    }
   }
   function say(text, cls){
     var d = document.createElement("div");
     if(cls) d.className = cls;
     d.textContent = text;
-    logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+    logEl.appendChild(d);
+    while(logEl.children.length > 40) logEl.removeChild(logEl.firstChild);
+    logEl.scrollTop = logEl.scrollHeight;
   }
-  paint();
+  function shake(){ sig.classList.add("hit"); setTimeout(function(){ sig.classList.remove("hit"); }, 280); }
+  function rnd(){ return 0.85 + Math.random()*0.30; }
+
+  // コマンドボタン
+  CMDS.forEach(function(c){
+    var b = document.createElement("button");
+    b.className = "cmd";
+    b.setAttribute("data-ki", c.ki);
+    b.innerHTML = '<b></b><span></span>';
+    b.querySelector("b").textContent = c.n;
+    b.querySelector("span").textContent = c.ki ? ("気力 " + c.ki) : c.d;
+    b.addEventListener("click", function(){ if(!over && !busy) act(c.k); });
+    cmdBox.appendChild(b);
+  });
+
   say("Lv" + e.lv + " " + e.n + " があらわれた。", "sys");
+  paint();
 
-  function roll(a, d, cr, cm){
-    var r = 0.85 + Math.random()*0.30, c = Math.random() < cr;
-    return { v: Math.max(1, Math.round((a - d) * r * (c ? cm : 1))), c:c };
+  // ===== 1ターン =====
+  function act(k){
+    busy = true;
+    var guard = false;
+    if(k === "hataku"){
+      var dmg;
+      if(charged){
+        var cc = Math.random() < 0.10;
+        dmg = Math.max(1, Math.round(P.atk * KI.TAMERU * rnd() * (cc ? 1.6 : 1)));
+        say((cc ? "会心！ " : "") + "ためた一撃！ " + e.n + " に " + dmg + " のダメージ", cc ? "crit" : "dmg");
+        charged = false;
+      } else {
+        var c2 = Math.random() < 0.10;
+        dmg = Math.max(1, Math.round((P.atk - e.def*0.85) * rnd() * (c2 ? 1.6 : 1)));
+        say((c2 ? "会心の一撃！ " : "") + e.n + " に " + dmg + " のダメージ", c2 ? "crit" : "dmg");
+      }
+      ehp -= dmg; shake();
+    } else if(k === "oosouji"){
+      ki -= KI.MAX;
+      var big = Math.max(1, Math.round(P.atk * KI.OOSOUJI * rnd()));
+      ehp -= big; shake();
+      say("大掃除！ " + e.n + " に " + big + " のダメージ", "crit");
+    } else if(k === "tameru"){
+      ki -= 1; charged = true;
+      say("力をためた。次の一撃が重くなる。", "sys");
+    } else if(k === "hunbaru"){
+      ki -= 1; guard = true;
+      say("ふんばった。次の攻撃をこらえる。", "sys");
+    } else if(k === "pick"){
+      ki = Math.min(KI.MAX, ki + KI.PICK);
+      var heal = Math.round(P.hp * KI.HEAL);
+      php = Math.min(P.hp, php + heal);
+      picks++;
+      if(picks <= PICK_REWARD_LIMIT){
+        gain("ゴミを拾う（戦闘中）", 1, null);
+        say("ゴミを1個ひろった。気力+2 ／ HP+" + heal + " ／ EXP+1", "pick");
+      } else {
+        say("ゴミを1個ひろった。気力+2 ／ HP+" + heal, "pick");
+      }
+    }
+    paint();
+    if(ehp <= 0){ busy = false; return end(true); }
+    setTimeout(function(){ enemyTurn(guard); }, 420);
   }
 
-  var loop = setInterval(step, speed);
-  function step(){
+  function enemyTurn(guard){
     if(over) return;
+    var c = Math.random() < 0.06;
+    var dmg = Math.max(1, Math.round((e.atk - P.def*0.60) * rnd() * (c ? 1.5 : 1) * (guard ? KI.GUARD : 1)));
+    php -= dmg;
+    say(e.n + " の攻撃。" + dmg + " のダメージを受けた" + (guard ? "（こらえた）" : ""), "hurt");
+    ki = Math.min(KI.MAX, ki + KI.REGEN);
     turn++;
-    var mine = roll(P.atk, e.def*0.85, 0.10, 1.6);
-    ehp -= mine.v; paint();
-    sig.classList.add("hit"); setTimeout(function(){ sig.classList.remove("hit"); }, 280);
-    say((mine.c ? "会心の一撃！ " : "") + e.n + " に " + mine.v + " のダメージ", mine.c ? "crit" : "dmg");
-    if(ehp <= 0){ return end(true); }
-    var his = roll(e.atk, P.def*0.60, 0.06, 1.5);
-    php -= his.v; paint();
-    say(e.n + " の攻撃。" + his.v + " のダメージを受けた", "hurt");
-    if(php <= 0){ return end(false); }
-    if(turn > 60) end(false);
+    busy = false;
+    paint();
+    if(php <= 0) return end(false);
+    if(turn > 60) return end(false);
+    if(auto) setTimeout(function(){ if(auto && !over) act(decide()); }, 380);
   }
 
+  // ===== おまかせ =====
+  function decide(){
+    if(charged) return "hataku";
+    var incoming = Math.max(1, e.atk - P.def*0.6);
+    var normal = Math.max(1, P.atk - e.def*0.85);
+    if(php <= incoming*1.6 && ki >= 1) return "hunbaru";
+    if(php <= P.hp*0.45) return "pick";
+    if(ki >= KI.MAX && ehp > P.atk*KI.OOSOUJI*0.7) return "oosouji";
+    if(ki >= 1 && normal < P.atk*0.55) return "tameru";
+    return "hataku";
+  }
+
+  // ===== タイマー（掃除しているあいだ、敵が弱る）=====
+  function battleTimer(){
+    var task = null;
+    for(var i = 0; i < S.tasks.length; i++) if(S.tasks[i].sec){ task = S.tasks[i]; break; }
+    if(!task) task = { n:"タイマー5分", v:8, sec:300 };
+    var total = task.sec, left = total, paused = false, tid = null;
+
+    var tv = document.createElement("div");
+    tv.className = "ov tm"; tv.style.zIndex = 75;
+    tv.innerHTML =
+      '<div class="ov-in tm-in">' +
+        '<div class="tm-title"></div>' +
+        '<div class="ring">' +
+          '<svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"></circle>' +
+          '<circle class="prog" cx="50" cy="50" r="45" stroke-dasharray="282.7" stroke-dashoffset="0"></circle></svg>' +
+          '<div class="cx"><div class="t">0:00</div><div class="s"></div></div>' +
+        '</div>' +
+        '<div class="tm-note">スマホを置いて、実際に片づけてください。<br>' +
+        'あなたが片づけたぶんだけ、<b style="color:var(--blood)">' + e.n + '</b> は弱っていきます。<br>' +
+        'この間、あなたのHPは減りません。</div>' +
+        '<div class="ov-btns" style="width:100%">' +
+          '<button class="btn btn-q" data-a="pause">一時停止</button>' +
+          '<button class="btn" data-a="stop">ここでやめる</button>' +
+        '</div>' +
+      '</div>';
+    tv.querySelector(".tm-title").textContent = task.n;
+    tv.querySelector(".cx .s").textContent = "完走で 敵HP -25%";
+    document.body.appendChild(tv);
+    var tEl = tv.querySelector(".ring .t"), prog = tv.querySelector(".prog");
+    var pb = tv.querySelector('[data-a="pause"]');
+    function paintT(){
+      var m = Math.floor(left/60), sec = left % 60;
+      tEl.textContent = m + ":" + String(sec).padStart(2, "0");
+      prog.style.strokeDashoffset = (282.7 * (1 - left/total)).toFixed(1);
+    }
+    paintT();
+    function finish(done){
+      clearInterval(tid); tv.remove();
+      var ratio = (total - left) / total;
+      var cut = Math.round(e.hp * 0.25 * ratio);
+      var amt = done ? task.v : Math.max(0, Math.round(task.v * ratio));
+      if(cut > 0){
+        ehp -= cut; ki = KI.MAX; shake();
+        say("部屋が片づいた。" + e.n + " は " + cut + " 弱った。気力が満ちた。", "pick");
+      } else {
+        say("まだ何も片づいていない。", "sys");
+      }
+      if(amt > 0) gain(task.n + (done ? "" : "（途中まで）"), amt, null);
+      paint();
+      if(ehp <= 0) end(true);
+    }
+    pb.addEventListener("click", function(){ paused = !paused; pb.textContent = paused ? "再開する" : "一時停止"; });
+    tv.querySelector('[data-a="stop"]').addEventListener("click", function(){ finish(false); });
+    tid = setInterval(function(){
+      if(paused) return;
+      left -= 1; paintT();
+      if(left <= 0) finish(true);
+    }, 1000);
+  }
+
+  // ===== 決着 =====
   function end(win){
-    over = true; clearInterval(loop);
+    over = true; auto = false;
+    if(autoLoop){ clearTimeout(autoLoop); autoLoop = null; }
     var first = win && (e.daily ? (S.dailyDone !== today())
                        : e.deep ? (e.deep >= S.depth)
                        : !S.cleared[e.id]);
     if(win){
       if(e.daily){
         if(first){
-          S.gold += e.g;
-          S.dailyDone = today();
-          S.dailyCount = (S.dailyCount || 0) + 1;
-          pushLog("今日の魔物：" + e.n, "+" + e.g, false);
-          S.last = null;
-          save();
+          S.gold += e.g; S.dailyDone = today(); S.dailyCount = (S.dailyCount || 0) + 1;
+          pushLog("今日の魔物：" + e.n, "+" + e.g, false); S.last = null; save();
         }
       } else if(e.deep){
         if(first){
-          S.gold += e.g;
-          S.depth = e.deep + 1;
+          S.gold += e.g; S.depth = e.deep + 1;
           S.maxDepth = Math.max(S.maxDepth || 0, e.deep);
-          pushLog("深層 B" + e.deep + "F 突破", "+" + e.g, false);
-          S.last = null;
-          save();
+          pushLog("深層 B" + e.deep + "F 突破", "+" + e.g, false); S.last = null; save();
         }
       } else if(first){
-        S.cleared[e.id] = true;
-        S.gold += e.g;
-        pushLog("撃破：" + e.n, "+" + e.g, false);
-        S.last = null;
-        save();
+        S.cleared[e.id] = true; S.gold += e.g;
+        pushLog("撃破：" + e.n, "+" + e.g, false); S.last = null; save();
       }
       buzz([20,60,20]);
     } else buzz(200);
 
+    cmdBox.innerHTML = "";
     var box = document.createElement("div");
     box.className = "result " + (win ? "win" : "lose");
     box.innerHTML = '<div class="big">' + (win ? "VICTORY" : "DEFEAT") + '</div><div class="sub"></div>';
@@ -918,35 +1091,48 @@ function battle(e){
           : e.deep
           ? (first ? "B" + e.deep + "F 突破！  +" + e.g + " G　次は B" + (e.deep+1) + "F へ" : "すでに越えた階層です（報酬は初回のみ）")
           : (first ? e.n + " を倒した！  +" + e.g + " G" : e.n + " をもう一度倒した（報酬は初回のみ）"))
-      : (e.daily
-          ? "今日の魔物には届かなかった。何度でも挑めます。"
-          : e.deep
-          ? "ここが今の限界。鍛えるか、部屋を片づけてレベルを上げてから戻ってきてください。"
-          : "力が足りなかった。部屋をすこし片づければ、それがそのまま強さになる。");
+      : (e.daily ? "今日の魔物には届かなかった。何度でも挑めます。"
+         : e.deep ? "ここが今の限界。鍛えるか、部屋を片づけてレベルを上げてから戻ってきてください。"
+         : "力が足りなかった。部屋をすこし片づければ、それがそのまま強さになる。");
     ov.querySelector(".ov-in").insertBefore(box, logEl);
 
-    if(win && first){
+    if(win && first && !e.deep && !e.daily){
       var st = document.createElement("div");
       st.className = "story"; st.textContent = e.st;
-      ov.querySelector(".ov-in").insertBefore(st, btns);
-      var nx = (e.deep || e.daily) ? true : nextTarget();
-      if(!nx){
+      ov.querySelector(".ov-in").insertBefore(st, subBtns);
+      if(!nextTarget()){
         var fin = document.createElement("div");
         fin.className = "story"; fin.style.borderLeftColor = "var(--gold)";
-        fin.textContent = "——塵界、踏破。すべての魔物を倒した。あとは、あなたの部屋の話だ。";
-        ov.querySelector(".ov-in").insertBefore(fin, btns);
+        fin.textContent = "——塵界、踏破。すべての魔物を倒した。だが塵はまた積もる。この先は、終わりのない深層。";
+        ov.querySelector(".ov-in").insertBefore(fin, subBtns);
       }
+    } else if(win && first && (e.deep || e.daily)){
+      var st2 = document.createElement("div");
+      st2.className = "story"; st2.textContent = e.st;
+      ov.querySelector(".ov-in").insertBefore(st2, subBtns);
     }
-    btns.innerHTML = '<button class="btn" data-a="close">とじる</button>';
-    btns.querySelector('[data-a="close"]').addEventListener("click", close);
+    subBtns.innerHTML = '<button class="btn" data-a="close">とじる</button>';
     render();
   }
 
-  function close(){ over = true; clearInterval(loop); ov.remove(); render(); }
-  btns.addEventListener("click", function(ev){
-    var a = ev.target.getAttribute("data-a");
+  function close(){
+    over = true; auto = false;
+    if(autoLoop){ clearTimeout(autoLoop); autoLoop = null; }
+    ov.remove(); render();
+  }
+
+  subBtns.addEventListener("click", function(ev){
+    var b = ev.target.closest ? ev.target.closest("button") : ev.target;
+    if(!b) return;
+    var a = b.getAttribute("data-a");
     if(a === "close") close();
-    if(a === "fast"){ clearInterval(loop); speed = speed > 200 ? 140 : 620; loop = setInterval(step, speed); }
+    if(a === "timer" && !over && !busy) battleTimer();
+    if(a === "auto" && !over){
+      auto = !auto;
+      b.textContent = auto ? "手動にもどす" : "おまかせ";
+      b.classList.toggle("on", auto);
+      if(auto && !busy) act(decide());
+    }
   });
 }
 
