@@ -157,6 +157,12 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .area-h span{font-family:var(--f-hud);font-size:11px;color:var(--dim);letter-spacing:.08em}
 .area-h p{margin:4px 0 0;font-size:11.5px;color:var(--muted);line-height:1.6}
 .area.locked{opacity:.5}
+.area-h .t{align-items:baseline}
+.area-h em{font-style:normal;margin-left:auto;font-family:var(--f-hud);font-size:11px;color:var(--dim);letter-spacing:.05em}
+.area.done .area-h em{color:var(--mint)}
+.abar{height:3px;margin-top:9px;background:#0B0E16;border-radius:99px;overflow:hidden}
+.abar i{display:block;height:100%;width:0;background:var(--mint);border-radius:99px;transition:width .5s ease}
+.area.done{border-color:var(--mint-dim)}
 .enemies{display:flex;flex-direction:column}
 .en{display:flex;align-items:center;gap:11px;padding:10px 13px;width:100%;text-align:left;transition:background .12s ease}
 .en + .en{border-top:1px solid var(--line-2)}
@@ -1572,10 +1578,20 @@ function renderDungeon(){
     el.className = "area" + (open ? "" : " locked");
     var h = document.createElement("div");
     h.className = "area-h";
-    h.innerHTML = '<div class="t"><b></b><span></span></div><p></p>';
+    h.innerHTML = '<div class="t"><b></b><span></span><em class="prog"></em></div><p></p>' +
+                  '<div class="abar"><i></i></div>';
     h.querySelector("b").textContent = a.n;
     h.querySelector("span").textContent = a.sub;
     h.querySelector("p").textContent = open ? a.d : "前のエリアのボスを倒すと開放される。";
+    var done = a.e.filter(function(x){ return S.cleared[x.id]; }).length;
+    var pe = h.querySelector(".prog"), pb = h.querySelector(".abar i");
+    if(open){
+      pe.textContent = done + " / " + a.e.length;
+      pb.style.width = (done / a.e.length * 100) + "%";
+      if(done === a.e.length){ el.classList.add("done"); pe.textContent = "踏破"; }
+    } else {
+      h.querySelector(".abar").style.display = "none";
+    }
     el.appendChild(h);
     if(open){
       var list = document.createElement("div"); list.className = "enemies";
