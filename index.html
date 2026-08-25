@@ -50,7 +50,7 @@ input{font:inherit}
 .xp-wrap{flex:1;min-width:0}
 .xp-meta{display:flex;justify-content:space-between;font-family:var(--f-hud);font-size:11px;color:var(--muted);letter-spacing:.05em}
 .bar{height:8px;margin-top:4px;background:#0B0E16;border:1px solid var(--line);border-radius:99px;overflow:hidden}
-.bar>i{display:block;height:100%;width:0;border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.bar>i{display:block;height:100%;width:0;border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1}
 .xp-fill{background:linear-gradient(90deg,var(--mint-dim),var(--mint))}
 .gold{font-family:var(--f-hud);flex:none;text-align:right;color:var(--gold);font-size:19px;line-height:1.1;font-variant-numeric:tabular-nums}
 .gold small{display:block;font-size:10px;color:var(--muted);letter-spacing:.13em}
@@ -216,6 +216,43 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .bt-sig{width:92px;height:92px;margin:10px auto 8px;display:grid;place-items:center;border:1px solid var(--line);border-radius:14px;background:#0E121C;font-family:var(--f-hud);font-size:46px;color:var(--muted)}
 .bt-sig.boss{border-color:var(--gold-dim);color:var(--gold);background:var(--gold-bg)}
 .bt-sig.hit{animation:shake .28s ease}
+.bt-sig{position:relative}
+.dmg-pop{position:absolute;left:50%;top:6px;transform:translateX(-50%);pointer-events:none;
+  font-family:var(--f-hud);font-size:30px;color:var(--gold);text-shadow:0 2px 10px rgba(0,0,0,.85);
+  animation:dmgUp .85s cubic-bezier(.2,.7,.3,1) forwards;z-index:2}
+.dmg-pop.crit{color:var(--ember);font-size:38px}
+.dmg-pop.heal{color:var(--mint)}
+@keyframes dmgUp{
+  0%{opacity:0;transform:translate(-50%,10px) scale(.7)}
+  18%{opacity:1;transform:translate(-50%,-6px) scale(1.15)}
+  100%{opacity:0;transform:translate(-50%,-62px) scale(1)}
+}
+/* 被弾したときの画面の揺れ */
+.ov.hurt-flash{animation:hurtFlash .32s ease}
+@keyframes hurtFlash{
+  0%{background:linear-gradient(180deg,#0B0E16,#0A0C12)}
+  25%{background:linear-gradient(180deg,#241014,#1A0C10)}
+  100%{background:linear-gradient(180deg,#0B0E16,#0A0C12)}
+}
+/* HPバーが削れるときの残像 */
+.bar{position:relative}
+.bar>u{position:absolute;left:0;top:0;height:100%;background:rgba(232,87,76,.45);border-radius:99px;
+  transition:width .55s ease .18s;display:block}
+/* 気力が満ちたときの合図 */
+.ki i.on.flash{animation:kiFlash .5s ease}
+@keyframes kiFlash{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+.ki.full i.on{box-shadow:0 0 10px rgba(140,123,255,.8)}
+/* 戦利品の登場 */
+.loot{animation:lootIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes lootIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.loot.r2{box-shadow:0 0 22px rgba(240,193,75,.22)}
+.loot.r3{box-shadow:0 0 26px rgba(140,123,255,.3)}
+/* 結果表示 */
+.result .big{animation:bigIn .5s cubic-bezier(.2,.9,.3,1)}
+@keyframes bigIn{from{opacity:0;letter-spacing:.6em;transform:scale(1.2)}to{opacity:1;letter-spacing:.1em;transform:none}}
+/* タブの切り替え */
+.view{animation:viewIn .26s ease}
+@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
 .bt-name{font-size:18px;font-weight:700}
 .hpline{display:flex;align-items:center;gap:9px}
@@ -277,6 +314,7 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 
 /* 演出 */
 .pop{position:fixed;z-index:70;pointer-events:none;font-family:var(--f-hud);font-size:19px;color:var(--mint);text-shadow:0 2px 8px rgba(0,0,0,.8);animation:rise .95s cubic-bezier(.2,.7,.3,1) forwards}
+.pop.big{font-size:30px;color:var(--gold)}
 @keyframes rise{0%{opacity:0;transform:translate(-50%,0) scale(.8)}15%{opacity:1;transform:translate(-50%,-14px) scale(1.08)}100%{opacity:0;transform:translate(-50%,-92px) scale(1)}}
 .toast{position:fixed;z-index:80;left:50%;transform:translateX(-50%);bottom:calc(var(--dock-h, 200px) + 12px);background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:10px 14px;font-size:13px;max-width:90vw;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:toast 2.6s ease forwards}
 @keyframes toast{0%{opacity:0;transform:translate(-50%,10px)}8%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-6px)}}
@@ -457,53 +495,53 @@ var WEIGHTS = [ { k:"軽い", m:1 }, { k:"ふつう", m:1.2 }, { k:"重い", m:1
 var AREAS = [
   { id:"a1", n:"玄関の霧", sub:"AREA 1", d:"扉のそばに、ぬるい霧がたまっている。ここが塵界の入口。",
     e:[
-      { id:"e1", n:"ほこりの精",     s:"塵", lv:1, hp:15,  atk:5, def:0, g:6,
+      { id:"e1", n:"ほこりの精",     s:"塵", lv:1, hp:19,  atk:6, def:0, g:6,
         st:"ほこりの精は、光の粒になって消えた。玄関の空気が、すこしだけ動いた気がする。" },
-      { id:"e2", n:"空き缶スライム", s:"缶", lv:2, hp:24,  atk:6, def:1, g:12,
+      { id:"e2", n:"空き缶スライム", s:"缶", lv:2, hp:30,  atk:7, def:1, g:12,
         st:"つぶれた缶が転がっていく。「捨てる」という行為に、こんなに力があるとは思わなかった。" },
-      { id:"e3", n:"靴箱のヌシ",     s:"靴", lv:3, hp:51,  atk:10, def:3, g:35, boss:true,
+      { id:"e3", n:"靴箱のヌシ",     s:"靴", lv:3, hp:49,  atk:10, def:3, g:35, boss:true,
         st:"ヌシは去り、玄関に道ができた。ここは、部屋のいちばん外側。外に出られるということは、帰ってこられるということだ。" }
     ] },
   { id:"a2", n:"机上遺跡", sub:"AREA 2", d:"かつて何かをしていた場所。書類と充電ケーブルの地層が積もっている。",
     e:[
       { id:"e4", n:"積読ゴーレム",   s:"積", lv:4, hp:59,  atk:11, def:5, g:22,
         st:"崩れた本の山から、読みかけの一冊が出てきた。積むことは罪ではない。埋もれさせることが、そうだっただけ。" },
-      { id:"e5", n:"書類のミミック", s:"紙", lv:5, hp:66,  atk:13, def:4, g:26,
+      { id:"e5", n:"書類のミミック", s:"紙", lv:5, hp:77,  atk:15, def:5, g:26,
         st:"大事な紙が1枚、ただの紙の山にまぎれていた。分けられた瞬間、それは価値を取り戻した。" },
-      { id:"e6", n:"絡まりコードの蛇", s:"線", lv:6, hp:71,  atk:14, def:6, g:30,
+      { id:"e6", n:"絡まりコードの蛇", s:"線", lv:6, hp:85,  atk:17, def:7, g:30,
         st:"ほどけたケーブルは、ただのケーブルだった。絡まっていたのは、線ではなく順番だった。" },
-      { id:"e7", n:"万年筆騎士",     s:"筆", lv:7, hp:140,  atk:21, def:9, g:80, boss:true,
+      { id:"e7", n:"万年筆騎士",     s:"筆", lv:7, hp:129,  atk:19, def:8, g:80, boss:true,
         st:"騎士は膝をつき、机の天板があらわれた。ここでまた、何かを始めていい。机とはそういう場所だ。" }
     ] },
   { id:"a3", n:"洗濯迷宮", sub:"AREA 3", d:"乾いたものと乾いていないものが、区別なく積まれた回廊。",
     e:[
-      { id:"e8",  n:"靴下の亡霊",     s:"足", lv:8,  hp:97,  atk:19, def:8, g:42,
+      { id:"e8",  n:"靴下の亡霊",     s:"足", lv:8,  hp:116,  atk:23, def:10, g:42,
         st:"片方だけの靴下が、ようやく相方を見つけた。揃うと、ただの布に戻った。" },
-      { id:"e9",  n:"洗濯物ヒュドラ", s:"洗", lv:9,  hp:118,  atk:20, def:9, g:50,
+      { id:"e9",  n:"洗濯物ヒュドラ", s:"洗", lv:9,  hp:142,  atk:24, def:11, g:50,
         st:"畳むそばから増えるように見えていたのは、終わりを決めていなかったからだ。今日はここまで、と決めた瞬間に首は落ちた。" },
-      { id:"e10", n:"生乾きのゴースト", s:"湿", lv:10, hp:166,  atk:29, def:12, g:58,
+      { id:"e10", n:"生乾きのゴースト", s:"湿", lv:10, hp:159,  atk:28, def:12, g:58,
         st:"におい、という亡霊。実体がないから戦えないと思っていたが、風を通すだけでよかった。" },
-      { id:"e11", n:"乾燥機の番人",   s:"乾", lv:12, hp:239,  atk:32, def:14, g:170, boss:true,
+      { id:"e11", n:"乾燥機の番人",   s:"乾", lv:12, hp:229,  atk:31, def:13, g:170, boss:true,
         st:"番人が扉を開ける。あたたかい布の山。ここまで来ると、部屋の中の「循環」が動きはじめたのがわかる。" }
     ] },
   { id:"a4", n:"台所の深淵", sub:"AREA 4", d:"いちばん見たくない場所。だからこそ、いちばん効く場所。",
     e:[
-      { id:"e12", n:"皿の塔",       s:"皿", lv:13, hp:187,  atk:27, def:13, g:90,
+      { id:"e12", n:"皿の塔",       s:"皿", lv:13, hp:224,  atk:32, def:16, g:90,
         st:"塔が崩れ、シンクの底が見えた。底があると分かっているものは、もう深淵ではない。" },
-      { id:"e13", n:"排水口のヌメリ", s:"水", lv:14, hp:195,  atk:29, def:13, g:100,
+      { id:"e13", n:"排水口のヌメリ", s:"水", lv:14, hp:234,  atk:35, def:16, g:100,
         st:"手袋ごしの、ひとつまみの勇気。ぬめりは流れ、水は音を立てて落ちていった。" },
-      { id:"e14", n:"期限切れリッチ", s:"腐", lv:15, hp:247,  atk:35, def:17, g:115,
+      { id:"e14", n:"期限切れリッチ", s:"腐", lv:15, hp:267,  atk:38, def:18, g:115,
         st:"日付だけが残った箱たち。捨てるとは、過去の自分を責めることではなく、許すことだった。" },
-      { id:"e15", n:"冷蔵庫竜",     s:"冷", lv:17, hp:376,  atk:46, def:23, g:320, boss:true,
+      { id:"e15", n:"冷蔵庫竜",     s:"冷", lv:17, hp:331,  atk:40, def:20, g:320, boss:true,
         st:"竜は静かになり、庫内の灯りが白く戻った。あなたはもう、自分の部屋で食べるものを選べる。" }
     ] },
   { id:"a5", n:"床下の混沌", sub:"FINAL", d:"部屋の底。ここを抜ければ、床は床に戻る。",
     e:[
-      { id:"e16", n:"綿ぼこりの群れ", s:"綿", lv:18, hp:356,  atk:54, def:26, g:170,
+      { id:"e16", n:"綿ぼこりの群れ", s:"綿", lv:18, hp:342,  atk:52, def:25, g:170,
         st:"群れは吸い込まれ、床板の木目があらわれた。この部屋には、ちゃんと模様があった。" },
-      { id:"e17", n:"ケーブル大蛇",   s:"電", lv:19, hp:328,  atk:48, def:26, g:185,
+      { id:"e17", n:"ケーブル大蛇",   s:"電", lv:19, hp:354,  atk:52, def:28, g:185,
         st:"床を這っていた大蛇は、壁ぎわに沿って眠りについた。通り道ができた。" },
-      { id:"e18", n:"忘却の段ボール", s:"箱", lv:20, hp:398,  atk:57, def:28, g:200,
+      { id:"e18", n:"忘却の段ボール", s:"箱", lv:20, hp:382,  atk:55, def:27, g:200,
         st:"開けてみれば、要るものは3つだけだった。忘れていたということは、要らなかったということでもある。" },
       { id:"e19", n:"混沌王カオス",   s:"混", lv:22, hp:580,  atk:62, def:30, g:700, boss:true,
         st:"混沌王は最後にこう言った。「私は、あなたが立ち止まった日の集まりだ」。——そして床が、床に戻った。\n部屋は、また散らかる。けれどあなたはもう、ゴミを1個すてるところから始められることを知っている。" }
@@ -556,9 +594,9 @@ function deepEnemy(f){
     n: (lord ? "層主・" : DEEP_PRE[(f*3) % DEEP_PRE.length]) + DEEP_CORE[(f*7) % DEEP_CORE.length],
     s: DEEP_SIG[(f*11) % DEEP_SIG.length],
     lv: 22 + f,
-    hp:  Math.round(560 * Math.pow(1.045, f-1) * (lord ? 1.25 : 1)),
-    atk: Math.round(58  * Math.pow(1.028, f-1) * (lord ? 1.10 : 1)),
-    def: Math.round(28  * Math.pow(1.020, f-1)),
+    hp:  Math.round(582 * Math.pow(1.035, f-1) * (lord ? 1.25 : 1)),
+    atk: Math.round(60  * Math.pow(1.020, f-1) * (lord ? 1.10 : 1)),
+    def: Math.round(29  * Math.pow(1.015, f-1)),
     g:   Math.round(100 * Math.pow(1.050, f-1) * (lord ? 2.5 : 1)),
     st:  DEEP_WORD[(f-1) % DEEP_WORD.length]
   };
@@ -592,7 +630,7 @@ function dailyBoss(){
     n: DAILY_PRE[n % DAILY_PRE.length] + DAILY_CORE[(n*3) % DAILY_CORE.length],
     s: DAILY_SIG[(n*7) % DAILY_SIG.length],
     lv: S.lv,
-    hp:  Math.max(12, Math.round(p.atk * 6.5)),
+    hp:  Math.max(12, Math.round(p.atk * 6.0)),
     atk: Math.max(2,  Math.round(p.hp / 8 + p.def * 0.6)),
     def: edef,
     g:   Math.max(3,  Math.round(p.atk * 1.5)),
@@ -709,32 +747,44 @@ function fresh(){
 }
 var S = load() || fresh();
 // v3: タスクを2つに整理する（以前の10個は削除）
-var migrated = false;
-if(S.v !== 3 && S.v !== 4){ S.tasks = fresh().tasks; migrated = true; }
-if(S.v !== 4){ S.v = 4; migrated = true; }
-if(!S.tasks || !S.tasks.length) S.tasks = fresh().tasks;
-if(!S.equip) S.equip = { weapon:null, armor:null, acc:null };
-if(!S.items){
-  // v4: 買った装備を1点ものに移行する
-  S.items = [];
-  var _eq = { weapon:null, armor:null, acc:null };
-  (S.owned || []).forEach(function(key){
-    var pr = key.split(":"), slot = pr[0], id = pr[1];
-    var it = mkItem(slot, id, 0, true);
-    if(!it) return;
-    S.items.push(it);
-    if(S.equip && S.equip[slot] === id) _eq[slot] = it.i;
+// 古い保存データを今の形にそろえる。読み込み時と、バックアップ復元時の両方で通す
+function migrate(st){
+  var changed = false;
+  if(st.v !== 3 && st.v !== 4){ st.tasks = fresh().tasks; changed = true; }
+  if(st.v !== 4){ st.v = 4; changed = true; }
+  if(!st.tasks || !st.tasks.length){ st.tasks = fresh().tasks; changed = true; }
+  if(!st.equip) st.equip = { weapon:null, armor:null, acc:null };
+  if(!st.items){
+    st.items = [];
+    var eq = { weapon:null, armor:null, acc:null };
+    (st.owned || []).forEach(function(key){
+      var pr = key.split(":"), slot = pr[0], id = pr[1];
+      var it = mkItem(slot, id, 0, true);
+      if(!it) return;
+      st.items.push(it);
+      if(st.equip && st.equip[slot] === id) eq[slot] = it.i;
+    });
+    st.equip = eq;
+    delete st.owned;
+    changed = true;
+  }
+  // 装備しているものが持ち物に無ければ外す
+  ["weapon","armor","acc"].forEach(function(slot){
+    var id = st.equip[slot];
+    if(id && !st.items.some(function(x){ return x.i === id; })){ st.equip[slot] = null; changed = true; }
   });
-  S.equip = _eq;
-  delete S.owned;
-  migrated = true;
+  if(!st.cleared) st.cleared = {};
+  if(!st.depth) st.depth = 1;
+  if(!st.maxDepth) st.maxDepth = 0;
+  if(!st.train) st.train = { atk:0, def:0, hp:0 };
+  if(!st.dailyCount) st.dailyCount = 0;
+  if(!st.log) st.log = [];
+  if(typeof st.total !== "number") st.total = 0;
+  if(typeof st.dayCount !== "number") st.dayCount = 0;
+  if(typeof st.streak !== "number") st.streak = 0;
+  return changed;
 }
-if(!S.cleared) S.cleared = {};
-if(!S.depth) S.depth = 1;
-if(!S.maxDepth) S.maxDepth = 0;
-if(!S.train) S.train = { atk:0, def:0, hp:0 };
-if(!S.dailyCount) S.dailyCount = 0;
-if(!S.log) S.log = [];
+var migrated = migrate(S);
 
 function rollDay(){ var t = today(); if(S.day !== t){ S.day = t; S.dayCount = 0; } }
 rollDay();
@@ -797,9 +847,27 @@ function gain(label, amount, ev){
   while(S.xp >= need(S.lv)){ S.xp -= need(S.lv); S.lv += 1; }
   S.last = { label:label, amount:amount };
   pushLog(label, "+" + amount, false);
-  save(); render(); pop("+" + amount, ev);
+  save(); render(); pop("+" + amount, ev, amount >= 3 && label.indexOf("会心") >= 0);
   if(S.lv > before) levelUp(S.lv, before);
   checkQuest();
+}
+// タップしたときの当たり（たまに多くもらえる）
+function tapGain(t, ev){
+  var r = Math.random();
+  if(r < 0.03){
+    gain(t.n, t.v, ev);
+    S.gold += 20;
+    pushLog("塵の中から何かを見つけた", "+20", false);
+    save(); render();
+    toast("✦ 塵の中から何かを見つけた。+20 G");
+    buzz([20,50,20]);
+  } else if(r < 0.15){
+    gain(t.n + "（会心）", Math.max(3, t.v * 3), ev);
+    toast("会心の一手！ いつもより多く進んだ。");
+    buzz([18,40,18]);
+  } else {
+    gain(t.n, t.v, ev);
+  }
 }
 function undo(){
   var L = S.last; if(!L) return;
@@ -829,9 +897,9 @@ function pushLog(text, delta, spend){
 }
 
 /* ============ 演出 ============ */
-function pop(text, ev){
+function pop(text, ev, big){
   var el = document.createElement("div");
-  el.className = "pop"; el.textContent = text;
+  el.className = "pop" + (big ? " big" : ""); el.textContent = text;
   var x = window.innerWidth/2, y = window.innerHeight - 170;
   if(ev && ev.currentTarget){ var r = ev.currentTarget.getBoundingClientRect(); x = r.left + r.width/2; y = r.top; }
   el.style.left = x+"px"; el.style.top = y+"px";
@@ -940,13 +1008,13 @@ function runTimer(task){
 
 /* ============ 戦闘 ============ */
 /* ============ 戦闘（コマンド式） ============ */
-var KI = { MAX:5, START:2, REGEN:1, PICK:2, HEAL:0.08, TAMERU:2.4, OOSOUJI:3.6 };
+var KI = { MAX:5, START:1, REGEN:0, PICK:2, HEAL:0.08, TAMERU:2.0, OOSOUJI:2.6 };
 var PICK_REWARD_LIMIT = 3;   // 1回の戦闘で現実の報酬が入る「ゴミを拾う」の回数
 
 var CMDS = [
   { k:"hataku",  n:"はたく",     ki:0, d:"通常の攻撃" },
   { k:"pick",    n:"ゴミを拾う", ki:0, d:"気力+2・HP回復・戦利品↑" },
-  { k:"tameru",  n:"ためる",     ki:1, d:"次の一撃2.4倍・まもり無視" },
+  { k:"tameru",  n:"ためる",     ki:1, d:"次の一撃2倍・まもり無視" },
   { k:"oosouji", n:"大掃除",     ki:5, d:"特大の一撃・まもり無視" }
 ];
 
@@ -965,8 +1033,8 @@ function battle(e){
         '<div class="bt-name"></div>' +
       '</div>' +
       '<div style="display:flex;flex-direction:column;gap:6px">' +
-        '<div class="hpline"><span class="who">てき</span><div class="bar" style="flex:1"><i class="hp-e"></i></div><span class="num e-num"></span></div>' +
-        '<div class="hpline"><span class="who">じぶん</span><div class="bar" style="flex:1"><i class="hp-p"></i></div><span class="num p-num"></span></div>' +
+        '<div class="hpline"><span class="who">てき</span><div class="bar" style="flex:1"><u class="gh-e"></u><i class="hp-e"></i></div><span class="num e-num"></span></div>' +
+        '<div class="hpline"><span class="who">じぶん</span><div class="bar" style="flex:1"><u class="gh-p"></u><i class="hp-p"></i></div><span class="num p-num"></span></div>' +
         '<div class="hpline"><span class="who">気力</span><div class="ki" id="ki"></div><span class="num ki-num"></span></div>' +
       '</div>' +
       '<div class="bt-log"></div>' +
@@ -983,6 +1051,9 @@ function battle(e){
 
   var sig = ov.querySelector(".bt-sig"), logEl = ov.querySelector(".bt-log");
   var eFill = ov.querySelector(".hp-e"), pFill = ov.querySelector(".hp-p");
+  var eGh = ov.querySelector(".gh-e"), pGh = ov.querySelector(".gh-p");
+  eGh.style.width = "100%"; pGh.style.width = "100%";
+  var lastKi = KI.START;
   var eNum = ov.querySelector(".e-num"), pNum = ov.querySelector(".p-num");
   var kiBox = ov.querySelector("#ki"), kiNum = ov.querySelector(".ki-num");
   var cmdBox = ov.querySelector("#cmds"), subBtns = ov.querySelector(".sub-btns");
@@ -990,13 +1061,20 @@ function battle(e){
   for(var z = 0; z < KI.MAX; z++) kiBox.appendChild(document.createElement("i"));
 
   function paint(){
-    eFill.style.width = Math.max(0, ehp/e.hp*100) + "%";
-    pFill.style.width = Math.max(0, php/P.hp*100) + "%";
+    var ep = Math.max(0, ehp/e.hp*100), pp = Math.max(0, php/P.hp*100);
+    eFill.style.width = ep + "%";
+    pFill.style.width = pp + "%";
+    requestAnimationFrame(function(){ eGh.style.width = ep + "%"; pGh.style.width = pp + "%"; });
     eNum.textContent = Math.max(0, ehp) + " / " + e.hp;
     pNum.textContent = Math.max(0, php) + " / " + P.hp;
     kiNum.textContent = ki + " / " + KI.MAX;
-    var pips = kiBox.children;
-    for(var i = 0; i < pips.length; i++) pips[i].className = i < ki ? "on" : "";
+    var pips = kiBox.children, gained = ki > lastKi;
+    for(var i = 0; i < pips.length; i++){
+      pips[i].className = i < ki ? "on" : "";
+      if(gained && i < ki && i >= lastKi) pips[i].className = "on flash";
+    }
+    kiBox.classList.toggle("full", ki >= KI.MAX);
+    lastKi = ki;
     var btns = cmdBox.children;
     for(var j = 0; j < btns.length; j++){
       var need = parseInt(btns[j].getAttribute("data-ki"), 10);
@@ -1013,6 +1091,17 @@ function battle(e){
     logEl.scrollTop = logEl.scrollHeight;
   }
   function shake(){ sig.classList.add("hit"); setTimeout(function(){ sig.classList.remove("hit"); }, 280); }
+  function dmgPop(text, cls){
+    var d = document.createElement("div");
+    d.className = "dmg-pop" + (cls ? " " + cls : "");
+    d.textContent = text;
+    sig.appendChild(d);
+    setTimeout(function(){ d.remove(); }, 900);
+  }
+  function hurtFlash(){
+    ov.classList.add("hurt-flash");
+    setTimeout(function(){ ov.classList.remove("hurt-flash"); }, 340);
+  }
   function rnd(){ return 0.85 + Math.random()*0.30; }
 
   // コマンドボタン
@@ -1039,17 +1128,19 @@ function battle(e){
         var cc = Math.random() < 0.10;
         dmg = Math.max(1, Math.round(P.atk * KI.TAMERU * rnd() * (cc ? 1.6 : 1)));
         say((cc ? "会心！ " : "") + "ためた一撃！ " + e.n + " に " + dmg + " のダメージ", cc ? "crit" : "dmg");
+        dmgPop(dmg, cc ? "crit" : "");
         charged = false;
       } else {
         var c2 = Math.random() < 0.10;
         dmg = Math.max(1, Math.round((P.atk - e.def*0.85) * rnd() * (c2 ? 1.6 : 1)));
         say((c2 ? "会心の一撃！ " : "") + e.n + " に " + dmg + " のダメージ", c2 ? "crit" : "dmg");
+        dmgPop(dmg, c2 ? "crit" : "");
       }
       ehp -= dmg; shake();
     } else if(k === "oosouji"){
       ki -= KI.MAX;
       var big = Math.max(1, Math.round(P.atk * KI.OOSOUJI * rnd()));
-      ehp -= big; shake();
+      ehp -= big; shake(); dmgPop(big, "crit");
       say("大掃除！ " + e.n + " に " + big + " のダメージ", "crit");
     } else if(k === "tameru"){
       ki -= 1; charged = true;
@@ -1058,6 +1149,7 @@ function battle(e){
       ki = Math.min(KI.MAX, ki + KI.PICK);
       var heal = Math.round(P.hp * KI.HEAL);
       php = Math.min(P.hp, php + heal);
+      dmgPop("+" + heal, "heal");
       picks++;
       if(picks <= PICK_REWARD_LIMIT){
         gain("ゴミを拾う（戦闘中）", 1, null);
@@ -1077,8 +1169,8 @@ function battle(e){
     var c = Math.random() < 0.06;
     var dmg = Math.max(1, Math.round((e.atk - P.def*0.60) * rnd() * (c ? 1.5 : 1)));
     php -= dmg;
+    hurtFlash();
     say(e.n + " の攻撃。" + dmg + " のダメージを受けた", "hurt");
-    ki = Math.min(KI.MAX, ki + KI.REGEN);
     turn++;
     busy = false;
     paint();
@@ -1090,10 +1182,20 @@ function battle(e){
   // ===== おまかせ =====
   function decide(){
     if(charged) return "hataku";
-    var normal = Math.max(1, P.atk - e.def*0.85);
-    if(php <= P.hp*0.45) return "pick";
-    if(ki >= KI.MAX && ehp > P.atk*KI.OOSOUJI*0.7) return "oosouji";
-    if(ki >= 1 && normal < P.atk*0.55) return "tameru";
+    var normal   = Math.max(1, P.atk - e.def*0.85);
+    var charge   = P.atk * KI.TAMERU;
+    var big      = P.atk * KI.OOSOUJI;
+    var incoming = Math.max(1, e.atk - P.def*0.60);
+    var heal     = Math.round(P.hp * KI.HEAL);
+    if(normal >= ehp) return "hataku";                                  // 今すぐ倒せる
+    if(ki >= KI.MAX && big >= ehp) return "oosouji";
+    if(ki >= 1 && charge >= ehp) return "tameru";
+    if(php <= P.hp*0.45 && heal > incoming*0.8 && ehp > normal*3) return "pick";
+    if(normal < P.atk*0.45){                                            // 硬い相手
+      if(ki >= KI.MAX && ehp > big) return "oosouji";
+      if(ki >= 1) return "tameru";
+      if(ehp > normal*4) return "pick";
+    }
     return "hataku";
   }
 
@@ -1236,7 +1338,7 @@ function battle(e){
     }
     if(dropInfo){
       var dv = document.createElement("div");
-      dv.className = "loot";
+      dv.className = "loot r" + dropInfo.r;
       dv.innerHTML = '<div class="lt">戦利品</div><b></b><span></span>' + ((dropInfo.sold || dropInfo.swapped) ? '<em></em>' : '');
       dv.querySelector("b").textContent = dropInfo.name;
       dv.querySelector("b").style.color = RARITY[dropInfo.r].col;
@@ -1334,7 +1436,7 @@ function render(){
     b.innerHTML = "<span></span><i></i>";
     b.firstChild.textContent = t.n;
     b.querySelector("i").textContent = t.sec ? "⏱ " + (t.sec>=60 ? (t.sec/60)+"分" : t.sec+"秒") + "タイマー" : "タップで完了";
-    b.addEventListener("click", function(ev){ t.sec ? runTimer(t) : gain(t.n, t.v, ev); });
+    b.addEventListener("click", function(ev){ t.sec ? runTimer(t) : tapGain(t, ev); });
     var v = document.createElement("div");
     v.className = "tv"; v.innerHTML = "+" + t.v + " <b>+" + t.v + "G</b>";
     var x = document.createElement("button");
@@ -1480,6 +1582,7 @@ function renderDungeon(){
   }
 }
 
+var gearOpen = { weapon:false, armor:false, acc:false };
 function renderGear(st){
   var t = st.t || { atk:0, def:0, hp:0 };
   $("s-hp").textContent = st.hp;   $("s-hp-b").textContent  = (st.b.hp + t.hp*10)  ? "+" + (st.b.hp + t.hp*10)  : "";
@@ -1521,12 +1624,15 @@ function renderGear(st){
   slots.forEach(function(pair){
     var slot = pair[0], box = $(pair[1]);
     box.innerHTML = "";
-    var list = S.items.filter(function(x){ return x.s === slot; })
-                      .sort(function(a, b){ return itemScore(b) - itemScore(a); });
-    if(!list.length){
+    var all = S.items.filter(function(x){ return x.s === slot; })
+                     .sort(function(a, b){ return itemScore(b) - itemScore(a); });
+    if(!all.length){
       box.innerHTML = '<div class="empty">まだ持っていません。魔物を倒すか、店で買ってください。</div>';
       return;
     }
+    var LIMIT = 8;
+    var open = !!gearOpen[slot];
+    var list = open ? all : all.slice(0, LIMIT);
     list.forEach(function(it){
       var eq = S.equip[slot] === it.i;
       var row = document.createElement("div");
@@ -1564,6 +1670,14 @@ function renderGear(st){
       }
       box.appendChild(row);
     });
+    if(all.length > LIMIT){
+      var more = document.createElement("button");
+      more.className = "task";
+      more.style.cssText = "justify-content:center;color:var(--muted);font-size:12.5px";
+      more.textContent = open ? "− 上位8件だけ表示する" : "＋ 残り " + (all.length - LIMIT) + " 件を表示";
+      more.addEventListener("click", function(){ gearOpen[slot] = !open; render(); });
+      box.appendChild(more);
+    }
   });
 
   // 持ち物の残り
@@ -1607,7 +1721,7 @@ function renderGear(st){
 /* ============ 入力 ============ */
 $("tap").addEventListener("click", function(ev){
   var t = S.tasks[0]; if(!t) return;
-  t.sec ? runTimer(t) : gain(t.n, t.v, ev);
+  t.sec ? runTimer(t) : tapGain(t, ev);
 });
 $("form-toggle").addEventListener("click", function(){
   var open = $("form-box").classList.toggle("hide");
@@ -1741,12 +1855,9 @@ function openBackup(){
     if(!d) return;
     ask("Lv" + d.lv + " ／ " + (d.gold||0) + "G の記録に戻します。いまの記録は消えます。", "復元する", function(){
       S = d;
-      if(!S.items) S.items = [];
-      if(!S.equip) S.equip = { weapon:null, armor:null, acc:null };
-      if(!S.cleared) S.cleared = {};
-      if(!S.log) S.log = [];
-      if(!S.tasks || !S.tasks.length) S.tasks = fresh().tasks;
+      migrate(S);          // 古い形式でも今の形にそろえてから使う
       S.last = null;
+      rollDay();
       save(); render(); ov.remove();
       toast("Lv" + S.lv + " の記録に戻しました");
     });
@@ -1756,7 +1867,7 @@ function openBackup(){
 $("backup").addEventListener("click", openBackup);
 $("tap2").addEventListener("click", function(ev){
   var t = S.tasks[1]; if(!t) return;
-  t.sec ? runTimer(t) : gain(t.n, t.v, ev);
+  t.sec ? runTimer(t) : tapGain(t, ev);
 });
 $("undo").addEventListener("click", undo);
 $("reset").addEventListener("click", function(){
