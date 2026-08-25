@@ -317,6 +317,14 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .ov-btns .btn{flex:1;text-align:center;padding:13px}
 
 /* タイマー */
+.pick-h{font-size:17px;font-weight:700;text-align:center}
+.picks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 8px 11px;text-align:center;
+  transition:transform .1s ease,border-color .12s ease,background .12s ease}
+.pick.on{border-color:var(--mint);background:#141F1B}
+.pick:active{transform:scale(.96)}
+.pick b{display:block;font-size:17px;font-weight:700}
+.pick span{display:block;font-family:var(--f-hud);font-size:10.5px;color:var(--mint);margin-top:3px}
 .tm{align-items:center;justify-content:center;text-align:center}
 .tm-in{padding:20px;display:flex;flex-direction:column;align-items:center;gap:18px;max-width:340px;margin:auto}
 .ring{position:relative;width:212px;height:212px}
@@ -498,7 +506,7 @@ var GOAL = 3;
 // 画面を短く保つため、常設は2つだけ。増やしたいものは下の作成フォームから追加する。
 var DEFAULT_TASKS = [
   { id:"t1", n:"ゴミを1個すてる", v:1 },
-  { id:"t7", n:"タイマー5分",     v:8, sec:300 }
+  { id:"t7", n:"タイマー",       v:8, sec:300 }
 ];
 
 var MINS = [
@@ -772,6 +780,10 @@ function migrate(st){
   if(st.v !== 3 && st.v !== 4){ st.tasks = fresh().tasks; changed = true; }
   if(st.v !== 4){ st.v = 4; changed = true; }
   if(!st.tasks || !st.tasks.length){ st.tasks = fresh().tasks; changed = true; }
+  // 既定のタイマータスクは時間を選ぶ形になったので名前を短くする
+  (st.tasks || []).forEach(function(t){
+    if(t.id === "t7" && t.n === "タイマー5分"){ t.n = "タイマー"; changed = true; }
+  });
   if(!st.equip) st.equip = { weapon:null, armor:null, acc:null };
   if(!st.items){
     st.items = [];
@@ -978,8 +990,42 @@ function levelUp(lv, before){
 
 /* ============ タイマー ============ */
 var timer = null;
+// 何分やるかを選ぶ画面。戦闘の中からも使う
+function pickMinutes(title, defSec, isMain, note, cb){
+  var ov = document.createElement("div");
+  ov.className = "ov" + (isMain ? " ov-main" : "");
+  if(!isMain) ov.style.zIndex = 76;
+  ov.innerHTML =
+    '<div class="ov-in" style="justify-content:center">' +
+      '<div class="pick-h"></div>' +
+      '<div class="note" style="text-align:center"></div>' +
+      '<div class="picks"></div>' +
+      '<div class="ov-btns"><button class="btn btn-q" data-a="cancel">やめる</button></div>' +
+    '</div>';
+  ov.querySelector(".pick-h").textContent = title;
+  ov.querySelector(".note").textContent = note;
+  var box = ov.querySelector(".picks");
+  MINS.forEach(function(m){
+    var b = document.createElement("button");
+    b.className = "pick" + (m.sec === defSec ? " on" : "");
+    b.innerHTML = '<b></b><span></span>';
+    b.querySelector("b").textContent = m.k;
+    b.querySelector("span").textContent = "+" + m.b + " EXP / +" + m.b + " G";
+    b.addEventListener("click", function(){ ov.remove(); cb(m); });
+    box.appendChild(b);
+  });
+  ov.querySelector('[data-a="cancel"]').addEventListener("click", function(){ ov.remove(); });
+  document.body.appendChild(ov);
+}
+
 function runTimer(task){
   if(document.querySelector(".ov-main")) return;
+  pickMinutes(task.n + "：何分やる？", task.sec, true,
+    "短いほうが始めやすい。1分でも、やらないよりずっといい。",
+    function(m){ startTimer({ n: task.n, v: m.b, sec: m.sec }); });
+}
+
+function startTimer(task){
   var total = task.sec, left = total, paused = false;
   var ov = document.createElement("div");
   ov.className = "ov tm ov-main";
@@ -1240,9 +1286,13 @@ function battle(e){
 
   // ===== タイマー（掃除しているあいだ、敵が弱る）=====
   function battleTimer(){
-    var task = null;
-    for(var i = 0; i < S.tasks.length; i++) if(S.tasks[i].sec){ task = S.tasks[i]; break; }
-    if(!task) task = { n:"タイマー5分", v:8, sec:300 };
+    var def = null;
+    for(var i = 0; i < S.tasks.length; i++) if(S.tasks[i].sec){ def = S.tasks[i]; break; }
+    pickMinutes("片づける時間をえらぶ", def ? def.sec : 300, false,
+      "その時間ぶん、" + e.n + " が弱ります。",
+      function(m){ battleTimerRun({ n:"タイマー" + m.k, v:m.b, sec:m.sec }); });
+  }
+  function battleTimerRun(task){
     var total = task.sec, left = total, paused = false, tid = null;
 
     var tv = document.createElement("div");
@@ -1468,13 +1518,13 @@ function render(){
   var head = S.tasks[0];
   if(head){
     $("tap-n").textContent = head.n;
-    $("tap-v").textContent = (head.sec ? "⏱ " : "") + "+" + head.v + " EXP / +" + head.v + " G";
+    $("tap-v").textContent = head.sec ? "⏱ 1〜15分から選ぶ" : ("+" + head.v + " EXP / +" + head.v + " G");
   }
   var second = S.tasks[1];
   $("tap2").style.display = second ? "block" : "none";
   if(second){
     $("tap2-n").textContent = second.n;
-    $("tap2-v").textContent = (second.sec ? "⏱ " : "") + "+" + second.v + " EXP / +" + second.v + " G";
+    $("tap2-v").textContent = second.sec ? "⏱ 1〜15分から選ぶ" : ("+" + second.v + " EXP / +" + second.v + " G");
   }
 
   // タスク一覧：常設2つはドックにあるので、自分で足した3つ目以降だけ並べる
@@ -1489,10 +1539,11 @@ function render(){
     b.style.cssText = "flex:1;min-width:0;text-align:left;background:none;border:none;padding:0";
     b.innerHTML = "<span></span><i></i>";
     b.firstChild.textContent = t.n;
-    b.querySelector("i").textContent = t.sec ? "⏱ " + (t.sec>=60 ? (t.sec/60)+"分" : t.sec+"秒") + "タイマー" : "タップで完了";
+    b.querySelector("i").textContent = t.sec ? "⏱ タイマー（1〜15分から選ぶ）" : "タップで完了";
     b.addEventListener("click", function(ev){ t.sec ? runTimer(t) : tapGain(t, ev); });
     var v = document.createElement("div");
-    v.className = "tv"; v.innerHTML = "+" + t.v + " <b>+" + t.v + "G</b>";
+    v.className = "tv";
+    v.innerHTML = t.sec ? "⏱" : ("+" + t.v + " <b>+" + t.v + "G</b>");
     var x = document.createElement("button");
     x.className = "task-x"; x.textContent = "×"; x.setAttribute("aria-label", t.n + " を削除");
     x.addEventListener("click", function(){
@@ -1984,6 +2035,23 @@ $("f-add").addEventListener("click", function(){
   save(); render(); toast("タスクを追加しました");
 });
 paintForm();
+
+// オフラインでも動くようにする
+if("serviceWorker" in navigator && location.protocol === "https:"){   // 本番のみ
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      reg.addEventListener("updatefound", function(){
+        var nw = reg.installing;
+        if(!nw) return;
+        nw.addEventListener("statechange", function(){
+          if(nw.state === "installed" && navigator.serviceWorker.controller){
+            toast("新しい版を用意しました。次に開いたときから反映されます。");
+          }
+        });
+      });
+    }).catch(function(){});
+  });
+}
 
 if(!canStore) setTimeout(function(){ toast("※この環境では記録が保存されません"); }, 900);
 render();
