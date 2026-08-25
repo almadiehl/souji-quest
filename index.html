@@ -230,8 +230,8 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .cmd:first-child b{color:var(--gold)}
 .cmd:nth-child(2){border-color:var(--mint-dim)}
 .cmd:nth-child(2) b{color:var(--mint)}
-.cmd:last-child{grid-column:1 / -1;border-color:#4B3E86;background:#1B1733}
-.cmd:last-child b{color:var(--violet)}
+.cmd:nth-child(4){border-color:#4B3E86;background:#1B1733}
+.cmd:nth-child(4) b{color:var(--violet)}
 .cmd b{display:block;font-size:14.5px;font-weight:700}
 .cmd span{display:block;font-family:var(--f-hud);font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:.04em}
 .cmd:active{transform:scale(.96)}
@@ -832,14 +832,13 @@ function runTimer(task){
 
 /* ============ 戦闘 ============ */
 /* ============ 戦闘（コマンド式） ============ */
-var KI = { MAX:5, START:2, REGEN:1, PICK:2, HEAL:0.08, TAMERU:2.4, OOSOUJI:3.6, GUARD:0.3 };
+var KI = { MAX:5, START:2, REGEN:1, PICK:2, HEAL:0.08, TAMERU:2.4, OOSOUJI:3.6 };
 var PICK_REWARD_LIMIT = 3;   // 1回の戦闘で現実の報酬が入る「ゴミを拾う」の回数
 
 var CMDS = [
   { k:"hataku",  n:"はたく",     ki:0, d:"通常の攻撃" },
   { k:"pick",    n:"ゴミを拾う", ki:0, d:"気力+2・HP回復" },
   { k:"tameru",  n:"ためる",     ki:1, d:"次の一撃2.4倍・まもり無視" },
-  { k:"hunbaru", n:"ふんばる",   ki:1, d:"受けるダメージ7割減" },
   { k:"oosouji", n:"大掃除",     ki:5, d:"特大の一撃・まもり無視" }
 ];
 
@@ -926,7 +925,6 @@ function battle(e){
   // ===== 1ターン =====
   function act(k){
     busy = true;
-    var guard = false;
     if(k === "hataku"){
       var dmg;
       if(charged){
@@ -948,9 +946,6 @@ function battle(e){
     } else if(k === "tameru"){
       ki -= 1; charged = true;
       say("力をためた。次の一撃が重くなる。", "sys");
-    } else if(k === "hunbaru"){
-      ki -= 1; guard = true;
-      say("ふんばった。次の攻撃をこらえる。", "sys");
     } else if(k === "pick"){
       ki = Math.min(KI.MAX, ki + KI.PICK);
       var heal = Math.round(P.hp * KI.HEAL);
@@ -965,15 +960,15 @@ function battle(e){
     }
     paint();
     if(ehp <= 0){ busy = false; return end(true); }
-    setTimeout(function(){ enemyTurn(guard); }, 420);
+    setTimeout(enemyTurn, 420);
   }
 
-  function enemyTurn(guard){
+  function enemyTurn(){
     if(over) return;
     var c = Math.random() < 0.06;
-    var dmg = Math.max(1, Math.round((e.atk - P.def*0.60) * rnd() * (c ? 1.5 : 1) * (guard ? KI.GUARD : 1)));
+    var dmg = Math.max(1, Math.round((e.atk - P.def*0.60) * rnd() * (c ? 1.5 : 1)));
     php -= dmg;
-    say(e.n + " の攻撃。" + dmg + " のダメージを受けた" + (guard ? "（こらえた）" : ""), "hurt");
+    say(e.n + " の攻撃。" + dmg + " のダメージを受けた", "hurt");
     ki = Math.min(KI.MAX, ki + KI.REGEN);
     turn++;
     busy = false;
@@ -986,9 +981,7 @@ function battle(e){
   // ===== おまかせ =====
   function decide(){
     if(charged) return "hataku";
-    var incoming = Math.max(1, e.atk - P.def*0.6);
     var normal = Math.max(1, P.atk - e.def*0.85);
-    if(php <= incoming*1.6 && ki >= 1) return "hunbaru";
     if(php <= P.hp*0.45) return "pick";
     if(ki >= KI.MAX && ehp > P.atk*KI.OOSOUJI*0.7) return "oosouji";
     if(ki >= 1 && normal < P.atk*0.55) return "tameru";
