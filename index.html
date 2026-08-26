@@ -1581,11 +1581,38 @@ function openStory(){
     cEl.appendChild(b);
     return b;
   }
+  // 選んだことに対応する現実の片づけ。やるか消すまで、章をまたいでも残る
+  function paintPending(){
+    var pt = st.pending;
+    if(!pt) return;
+    kEl.style.display = "block";
+    kEl.innerHTML = '<em>この物語で決めたこと</em><b></b><span></span>' +
+                    '<u class="sty-skip">いまはやらない</u>';
+    kEl.querySelector("b").textContent = pt.n;
+    kEl.querySelector("span").textContent = "やってみる（" + Math.round(pt.sec / 60) + "分）";
+    kEl.onclick = function(ev){
+      if(ev.target.classList.contains("sty-skip")){
+        st.pending = null; save(); paint();       // 責めない。消すだけ
+        return;
+      }
+      ov.remove();
+      // 報酬は通常のタスクと同じ表（MINS）から引く。物語だけ得になる理由はない
+      var mv = MINS[0];
+      for(var mi = 0; mi < MINS.length; mi++) if(MINS[mi].sec <= pt.sec) mv = MINS[mi];
+      startTimer({ n: pt.n, v: mv.b, sec: pt.sec,
+        after: function(){
+          st.pending = null; save();
+          openStory();                            // 読みかけの章に戻す
+        } });
+    };
+  }
   function paint(){
     var node = STORY[st.at];
     if(!node) { st.at = "c1"; node = STORY.c1; }
     cEl.innerHTML = ""; kEl.style.display = "none";
     ov.querySelector(".sty-in").scrollTop = 0;
+
+    paintPending();   // 決めたことは、物語が終わっても消さない
 
     if(node.k === "end"){
       var fin = storyEnding();
@@ -1596,7 +1623,7 @@ function openStory(){
         st.end = fin.k; st.clears = (st.clears || 0) + 1; save();
       }
       btn("はじめから読み直す", "btn-q", function(){
-        S.story = { at:"c1", keep:0, go:0, clears:st.clears, end:null };
+        S.story = { at:"c1", keep:0, go:0, clears:st.clears, end:null, pending:st.pending || null };
         st = storyState(); save(); paint();
       });
       return;
@@ -1605,31 +1632,6 @@ function openStory(){
     lEl.textContent = node.k === "battle" ? "BATTLE" : (node.k === "rest" ? "REST" : "STORY");
     hEl.textContent = node.h;
     tEl.textContent = node.t;
-
-    // 直前の選択に対応する「現実の片づけ」。選んだことを、実際にやる
-    var pt = st.pending;
-    if(pt){
-      kEl.style.display = "block";
-      kEl.innerHTML = '<em>この物語で決めたこと</em><b></b><span></span>' +
-                      '<u class="sty-skip">いまはやらない</u>';
-      kEl.querySelector("b").textContent = pt.n;
-      kEl.querySelector("span").textContent = "やってみる（" + Math.round(pt.sec / 60) + "分）";
-      kEl.onclick = function(ev){
-        if(ev.target.classList.contains("sty-skip")){
-          st.pending = null; save(); paint();     // 責めない。消すだけ
-          return;
-        }
-        ov.remove();
-        // 報酬は通常のタスクと同じ表（MINS）から引く。物語だけ得になる理由はない
-        var mv = MINS[0];
-        for(var mi = 0; mi < MINS.length; mi++) if(MINS[mi].sec <= pt.sec) mv = MINS[mi];
-        startTimer({ n: pt.n, v: mv.b, sec: pt.sec,
-          after: function(){
-            st.pending = null; save();
-            openStory();                          // 読みかけの章に戻す
-          } });
-      };
-    }
 
     if(node.k === "battle"){
       var cleared = !!S.cleared["sty_" + st.at];
@@ -2618,8 +2620,27 @@ function render(){
 
   // いま：予定が合っているタスクだけを上に出す（無ければ何も出さない）
   var nowHit = S.tasks.filter(function(t){ return slotNow(t) || t.id === urged; }), nowBox = $("now-list");
-  $("sec-now").style.display = nowHit.length ? "flex" : "none";
+  // 物語で引き受けた片づけも、そうじタブから見えるようにする。
+  // ダンジョンタブの奥にしか無いと、アプリを閉じた時点で無かったことになる
+  var sp = (S.story && S.story.pending) ? S.story.pending : null;
+  $("sec-now").style.display = (nowHit.length || sp) ? "flex" : "none";
   nowBox.innerHTML = "";
+  if(sp){
+    var sr = document.createElement("button");
+    sr.className = "todo-row";
+    sr.innerHTML = '<span class="mk" style="background:var(--gold)"></span>' +
+      '<span class="tx"><b></b><em></em></span><span class="st" style="color:var(--gold)"></span>';
+    sr.querySelector("b").textContent = sp.n;
+    sr.querySelector("em").textContent = "物語で決めたこと";
+    sr.querySelector(".st").textContent = "⏱ " + Math.round(sp.sec / 60) + "分";
+    sr.addEventListener("click", function(){
+      var mv = MINS[0];
+      for(var mi = 0; mi < MINS.length; mi++) if(MINS[mi].sec <= sp.sec) mv = MINS[mi];
+      startTimer({ n: sp.n, v: mv.b, sec: sp.sec,
+        after: function(){ if(S.story) S.story.pending = null; save(); render(); } });
+    });
+    nowBox.appendChild(sr);
+  }
   nowHit.forEach(function(t){
     var r = document.createElement("button");
     r.className = "todo-row";
