@@ -6,6 +6,9 @@
 // index.html から実データを読むので、書き写した内容を検証する事故は起きない。
 
 const fs = require('fs');
+// 引数にファイルを渡すと、そちらの STORY を検証する。
+// 生成した章を index.html に入れる前に確かめるため。
+const target = process.argv[2];
 const src = fs.readFileSync(__dirname + '/../index.html', 'utf8');
 function grab(re){ const m = re.exec(src); if(!m) throw new Error('見つからない: ' + re); return m[0]; }
 eval([
@@ -14,6 +17,14 @@ eval([
   /var STORY_END = \[[\s\S]*?\n\];/,
   /var STORY_TIER = \[[^\]]*\];/
 ].map(grab).join('\n'));
+
+let ENTRY = 'c1';
+if(target){
+  const gen = fs.readFileSync(target, 'utf8');
+  eval(gen.replace(/^var STORY = /m, 'STORY = '));   // 差し替える
+  ENTRY = Object.keys(STORY).filter(k => k !== 'end')[0];
+  console.log('検証対象: ' + target + '（入口 ' + ENTRY + '）\n');
+}
 
 let ng = 0, ok = 0;
 function check(cond, msg){ if(cond) ok++; else { ng++; console.log('  NG ' + msg); } }
@@ -37,7 +48,7 @@ ids.forEach(id => {
 
 // ===== 到達性 =====
 console.log('■ 到達性');
-const seen = new Set(), stack = ['c1'];
+const seen = new Set(), stack = [ENTRY];
 while(stack.length){
   const id = stack.pop();
   if(seen.has(id) || !STORY[id]) continue;
@@ -91,7 +102,7 @@ const reachable = new Set();
   if(n.k === 'end'){ const d = keep - go; reachable.add(d <= -2 ? 0 : (d >= 2 ? 1 : 2)); return; }
   if(n.to) walk(n.to, keep, go, depth + 1);
   (n.c || []).forEach(c => walk(c.to, keep + (c.keep || 0), go + (c.go || 0), depth + 1));
-})('c1', 0, 0, 0);
+})(ENTRY, 0, 0, 0);
 [0, 1, 2].forEach(i =>
   check(reachable.has(i), '結末「' + STORY_END[i].h + '」に到達できる選び方が無い'));
 

@@ -159,11 +159,12 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
     <a href="#s4"><span class="n">4</span>実行環境の制約</a>
     <a href="#s5"><span class="n">5</span>保存データ</a>
     <a href="#s6"><span class="n">6</span>ゲーム設計</a>
-    <a href="#s7"><span class="n">7</span>画面構成</a>
-    <a href="#s8"><span class="n">8</span>バランスを変えるときの手順（必須）</a>
-    <a href="#s9"><span class="n">9</span>変更を出すときのチェックリスト</a>
-    <a href="#s10"><span class="n">10</span>既知の弱いところ・未解決</a>
-    <a href="#s11"><span class="n">11</span>用語</a>
+    <a href="#s7"><span class="n">6-A</span>API導入の設計（準備ずみ・未実行）</a>
+    <a href="#s8"><span class="n">7</span>画面構成</a>
+    <a href="#s9"><span class="n">8</span>バランスを変えるときの手順（必須）</a>
+    <a href="#s10"><span class="n">9</span>変更を出すときのチェックリスト</a>
+    <a href="#s11"><span class="n">10</span>既知の弱いところ・未解決</a>
+    <a href="#s12"><span class="n">11</span>用語</a>
   </nav>
   <main>
 <section id="s1"><h2><span class="no">1</span><span>これは何か</span></h2>
@@ -188,6 +189,7 @@ README.md
 tools/sim.js          戦闘バランスのシミュレータ ★変更前に必ず通す（§8）
 tools/test-slots.js   タスクの予定（曜日・時間帯）の判定テスト
 tools/test-story.js   物語モードのデータ検証（行き先・到達性・結末の偏り）
+tools/gen-story.js    物語の章をAPIで生成する（ビルド時・キーは環境変数のみ）
 docs/build-guide.js   攻略カタログの生成スクリプト
 docs/equipment-guide.html  生成物（ネタバレあり装備カタログ・9章）
 docs/build-spec.js    この文書を読み物のページに組む（出典は SPEC.md ひとつ）
@@ -296,11 +298,30 @@ g   = こう × 1.4 × days           // 報酬だけは日数ぶん伸びる</c
 <ul><li><strong>戦闘に負けても章は戻らない。</strong> 何度でも挑める（<code>onDone</code> は勝ったときだけ進める）</li><li><strong>報酬は初回のみ。</strong> 敵IDを <code>sty_&lt;章&gt;</code> にして既存の <code>S.cleared</code> に乗せてあるので、読み直しで稼げない</li><li><strong>選択に紐づく「現実の片づけ」。</strong> 選択肢を選ぶと、それに対応する現実の行動が 「この物語で決めたこと」として持ち越される。押すとタイマーが走り、<strong>終わると読みかけの章に戻る</strong>。 「いまはやらない」で消せる（責めない）。報酬は通常タスクと同じ <code>MINS</code> 表から引く</li><li><strong>持ち越しは、やるか消すかするまで残る。</strong> 章をまたいでも、終章に着いても、 読み直しても消えない。上書きされるのは、<strong>タスクを持つ別の選択肢を選んだときだけ</strong>。 タスクの無い選択肢（「先へ進む」など）を通っても消さない</li><li><strong>持ち越しはそうじタブの「いま」欄にも出る。</strong> ダンジョンタブの奥にしか無いと、 アプリを閉じた時点で無かったことになる。引き受けた片づけは、開いた最初の画面に置く</li><li><strong>画面の並びは 本文 → 行動 → 持ち越し。</strong> 持ち越しを本文と行動の間に置くと、 片づけの話のすぐ下に「たたかう」が来て唐突になる。主役はその章の行動なので、下に置く</li></ul>
 <div class="warn"><p><strong>タスクは章ではなく選択肢に付ける。</strong><br>最初は章に付けていたが、章のタスク（「手前の箱をひとつ開ける」）と選択肢（「ふたを開ける」）が<br>ほぼ同じことを言ってしまい、現実で片づけて戻ってきた利用者が同じ問いを二度受ける形になった。<br>さらにタイマー終了後に物語へ戻らず、ホーム画面に放り出されていた。<br><strong>決める → 実際にやる</strong> の順に直し、タイマーには <code>after</code> を持たせて章へ復帰させている。</p></div>
 <p>状態は <code>S.story = { at, keep, go, clears, end, pending }</code>。<code>pending</code> が持ち越し中のタスク。<br>結末に到達すると <code>clears</code> が増え、読み直せる。</p>
-</section><section id="s7"><h2><span class="no">7</span><span>画面構成</span></h2>
+</section><section id="s7"><h2><span class="no">6-A</span><span>API導入の設計（準備ずみ・未実行）</span></h2>
+<p>物語の章をAIに書かせるための配管。<strong>2026-08-26 時点でAPIキーは未設定で、一度も課金していない。</strong><br><code>tools/gen-story.js --mock</code> で、課金せずに組み立てと検証まで通ることは確認ずみ。</p>
+<h3>キーをどこに置くか</h3>
+<div class="tw"><table><thead><tr><th>方式</th><th>キー漏れ</th><th>オフライン</th><th>判定</th></tr></thead><tbody><tr><td><strong>ビルド時に生成して埋め込む</strong></td><td>なし</td><td>維持</td><td><strong>採用</strong></td></tr><tr><td>利用者が自分のキーを入力</td><td>端末内のみ</td><td>壊れる</td><td>第2段階として保留</td></tr><tr><td>プロキシサーバーを立てる</td><td>なし</td><td>壊れる</td><td>不採用（サーバーなしの前提が崩れる）</td></tr></tbody></table></div>
+<div class="warn"><p><strong>キーはアプリに入れない。</strong><br>GitHub Pages は公開リポジトリなので、<code>index.html</code> に書けば誰でも読める。<br>ビルド時方式なら生成は手元で終わり、アプリに残るのは<strong>文章だけ</strong>。<br>オフライン動作も実行時コストもそのまま。<code>gen-story.js</code> はキーを<br>環境変数 <code>OPENAI_API_KEY</code> からしか読まず、ファイルにも書き出さない。</p></div>
+<h3>役割分担（この線を越えさせない）</h3>
+<div class="tw"><table><thead><tr><th></th><th>誰が決めるか</th></tr></thead><tbody><tr><td>場所・章の型・敵の役割・のこす/てばなすの重み</td><td><strong>固定テーブル＋種つき乱数</strong>（<code>blueprint()</code>）</td></tr><tr><td>敵のHP・攻撃力・報酬</td><td><strong>コード</strong>（<code>storyEnemy()</code>。プロンプトに渡しもしない）</td></tr><tr><td>見出し・本文・勝利文・選択肢の文言</td><td><strong>AI</strong></td></tr></tbody></table></div>
+<p>骨格側で品質を担保している制約：出だしは必ず「探索」／「ひと息」は序盤に置かず連続もさせない／<br>同じ場所を連続させない／<strong>のこすとてばなすの合計を必ず一致させる</strong>（結末が偏らない）。<br>種を固定すれば同じ骨格が再現できるので、文章だけ引き直せる。</p>
+<h3>採用までの関門</h3>
+<ol><li><code>--mock</code> または本番生成 → 2. <code>validate()</code>（数値の混入・<strong>説教調の混入</strong>・章数・見出し長）</li></ol>
+<p>→ 3. <code>node tools/test-story.js &lt;生成ファイル&gt;</code>（本体と同じ133件の検証）→ 4. 目視 → 5. <code>index.html</code> へ</p>
+<p><strong>検証を通らないものは採用しない。</strong> 引き直しは種を変えるだけで、費用はほぼゼロ。</p>
+<h3>費用の想定</h3>
+<p>GPT-5 Mini（入力 $0.13/M・出力 $1.00/M）で、10章1回あたり入出力とも約1,500トークン。</p>
+<div class="tw"><table><thead><tr><th></th><th>概算</th></tr></thead><tbody><tr><td>10章を1回生成</td><td>約 $0.0017（1円未満）</td></tr><tr><td>100章</td><td>約 $0.017（3円弱）</td></tr><tr><td>1000章</td><td>約 $0.17（25円前後）</td></tr></tbody></table></div>
+<p><strong>ビルド時方式なら費用は事実上問題にならない。</strong> 20回引き直しても数円。<br>実行時方式に進む場合だけ、利用回数に比例するので上限設定が要る。</p>
+<h3>実行時API（第2段階・未着手）</h3>
+<p>写真から「次の一手」を1つだけ出す案。「そもそも始められない」に効くが、以下が前提になる。</p>
+<ul><li>利用者が自分のキーを設定画面から入れる方式（端末内保存）</li><li><strong>オフラインで壊れるので、必ず作り置きへ退避する経路が要る。</strong> 習慣のアプリが一度でも「開いたのに使えない」状態になると、そこで途切れる</li><li>README と本仕様書の「サーバーには何も送信しません」が事実でなくなるので書き換えが必要</li><li>iOSではホーム画面アプリとSafariでstorageが別（§4.1）なので、<strong>キーも2回入れることになる</strong></li></ul>
+</section><section id="s8"><h2><span class="no">7</span><span>画面構成</span></h2>
 <p>4タブ。ドックの2ボタンはユーザーが選べる。</p>
 <div class="tw"><table><thead><tr><th>タブ</th><th>中身</th></tr></thead><tbody><tr><td>そうじ</td><td>いま欄・タスク・今日の回数・積もった塵・タスク作成</td></tr><tr><td>ダンジョン</td><td>物語モード・エリア進行・今日の魔物・深層</td></tr><tr><td>そうび</td><td>装備の着脱・持ち物・店・鍛錬</td></tr><tr><td>きろく</td><td>通算・掃除した時間・撃破数・最長連続・30日グラフ・称号16種・過去のあなた</td></tr></tbody></table></div>
 <p>ドックの高さは <code>fitDock()</code> で実測して <code>--dock-h</code> に入れている。固定値で余白を取ると機種によって本文が隠れる（過去に発生）。</p>
-</section><section id="s8"><h2><span class="no">8</span><span>バランスを変えるときの手順（必須）</span></h2>
+</section><section id="s9"><h2><span class="no">8</span><span>バランスを変えるときの手順（必須）</span></h2>
 <div class="warn"><p><strong>戦闘の数値・気力の定数・装備の数値・敵のステータスを触るときは、必ず <code>tools/sim.js</code> を通す。例外なし。</strong></p></div>
 <pre class="code" data-lang="bash"><code>node tools/sim.js</code></pre>
 <p>シミュレータは装備表・気力の定数・敵データを <code>index.html</code> から直接読むので、実装とずれない。<br>ダメージ式とおまかせAIだけは手で写しているので、<code>decide()</code> や式を変えたら<strong>シミュレータ側も同時に直すこと</strong>。</p>
@@ -312,7 +333,7 @@ g   = こう × 1.4 × days           // 報酬だけは日数ぶん伸びる</c
 <p>深層は「鍛錬N回でB何Fで頭打ちになるか」で見る。現在: 鍛錬0回でB25F、10回でB30F、25回でB35F、50回でB40F、100回でB45F。<br>鍛錬費が <code>1.06^n</code> で伸びるため、B45Fには約56万Gかかる。無限モードとして意図的にこの形にしている。</p>
 <h3>過去にバランスを壊した3回（同じ轍を踏まないために）</h3>
 <ol><li><strong>装備の強さを実際より高く見積もってシミュレートした</strong> → 中盤の勝率が0〜1%になった。<code>tools/sim.js</code> の <code>TIMELINE</code>（そのレベルで現実的に買える装備）はこの反省から来ている。</li><li><strong>おまかせAIを直したら全部100%になった</strong> → 原因はAIではなく、気力の自然回復で大掃除がほぼ無コストになっていたこと。自然回復を廃止して再調整。</li><li><strong>積もった塵を「歯ごたえのある敵」として作った</strong> → 復帰初日に負ける設計になっていた（§6.5）。</li></ol>
-</section><section id="s9"><h2><span class="no">9</span><span>変更を出すときのチェックリスト</span></h2>
+</section><section id="s10"><h2><span class="no">9</span><span>変更を出すときのチェックリスト</span></h2>
 <pre class="code" data-lang="bash"><code># 1. 構文チェック
 node -e "const s=require('fs').readFileSync('index.html','utf8');new Function(s.match(/&lt;script&gt;([\s\S]*)&lt;\/script&gt;/)[1]);console.log('OK')"
 
@@ -324,6 +345,9 @@ node tools/test-slots.js
 
 # 2c. 物語モードの章や選択肢に触ったなら
 node tools/test-story.js
+
+# 2d. APIで章を生成したなら（index.html に入れる前に）
+node tools/test-story.js docs/generated-story-&lt;種&gt;.js
 
 # 3. 装備の数値に触ったなら
 node docs/build-guide.js
@@ -337,10 +361,10 @@ git add -A &amp;&amp; git commit &amp;&amp; git push origin main
 curl -s "https://almadiehl.github.io/souji-quest/index.html?cb=$RANDOM" | shasum -a256
 shasum -a256 index.html</code></pre>
 <div class="warn"><p><strong>確認は実機の iPhone Safari で、ホーム画面に追加した状態で行う。</strong><br>Mac の Chrome で確認しても iOS の挙動は分からない。過去にこれで誤判定して、保存が消えるバグを見逃した。</p></div>
-</section><section id="s10"><h2><span class="no">10</span><span>既知の弱いところ・未解決</span></h2>
+</section><section id="s11"><h2><span class="no">10</span><span>既知の弱いところ・未解決</span></h2>
 <p>レビューを受けるならこのあたりを見てほしい。</p>
 <ul><li><strong><code>index.html</code> が3601行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストは3本だけ。</strong> 予定の判定 <code>tools/test-slots.js</code>（24件）と 物語データ <code>tools/test-story.js</code>（123件）、それに <code>tools/sim.js</code>（数値）。 UIの動線には自動テストが無く、ブラウザでの手動操作頼み。 <strong>実際に遊ばないと出ない不具合を2回出している</strong>（物語のタスク動線）ので、 機能を足したら「途中でアプリを離れて戻る」経路を必ず手で通すこと。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong>物語モードは試作段階（§6.10）。</strong> 12章1本のみで、本文は静的データ。 ランタイム生成（無限に増える版）は未着手で、やる場合は先読み生成とオフライン退避が必須になる。 深層を闘技場として切り出す案も保留中——物語が進行の背骨になるなら深層は役割を失うが、 いまは唯一の終盤コンテンツなので、物語が育つ前に作り変えると遊ぶ場所が無くなる。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
-</section><section id="s11"><h2><span class="no">11</span><span>用語</span></h2>
+</section><section id="s12"><h2><span class="no">11</span><span>用語</span></h2>
 <div class="tw"><table><thead><tr><th>語</th><th>意味</th></tr></thead><tbody><tr><td>塵界（じんかい）</td><td>世界の名前。部屋そのもの</td></tr><tr><td>気力</td><td>2本目のゲージ。「ゴミを拾う」でのみ増える</td></tr><tr><td>潜行</td><td>深層に潜ること。ローグライク式の1回の遠征</td></tr><tr><td>加護</td><td>潜行のあいだだけ効く一時的な強化。20種</td></tr><tr><td>接辞</td><td>装備の追加効果。22種</td></tr><tr><td>塵の粉</td><td>装備を分解して得る素材。引き直しと格上げに使う</td></tr><tr><td>積もった塵</td><td>空けた日数から生まれる敵</td></tr><tr><td>層主</td><td>深層5階ごとのボス</td></tr><tr><td>いま欄</td><td>予定が合っているタスクを出す、そうじタブ最上部の枠</td></tr><tr><td>のこす／てばなす</td><td>物語モードの選択に付く重み。結末を決める</td></tr></tbody></table></div></section>
   </main>
 </div>

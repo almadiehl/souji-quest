@@ -1,2 +1,4 @@
 node_modules/
 .DS_Store
+docs/mock-story-*.js
+.env

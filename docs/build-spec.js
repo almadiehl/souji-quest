@@ -72,7 +72,7 @@ while(i < lines.length){
     const txt = L.replace(/^#+\s/, '');
     if(lv === 1){ i++; continue; }                     // 表題はマストヘッドに出す
     if(lv === 2){
-      const m = txt.match(/^(\d+)\.\s*(.+)$/);
+      const m = txt.match(/^(\d+(?:-[A-Z])?)\.\s*(.+)$/);   // 6-A のような枝番も拾う
       secNo++;
       const id = 's' + secNo;
       const num = m ? m[1] : '';
