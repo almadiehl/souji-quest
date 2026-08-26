@@ -147,8 +147,8 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
       この文書は、新しいセッションへの引き継ぎと、外部レビューに渡すための資料。</p>
     <div class="meta">
       <span>最終更新 2026-08-26</span>
-      <span>対象コミット 158a58e</span>
-      <span>単一HTML / 3,581行</span>
+      <span>対象コミット b04a9e8</span>
+      <span>単一HTML / 3,602行</span>
     </div>
   </header>
   <nav class="toc">
@@ -180,13 +180,14 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
 <div class="warn"><p><strong>GitHub Pages でなければならない理由</strong>（過去に事故った）<br>iOS Safari はクロスサイト iframe 内の localStorage を一時的なものとして扱うため、Artifact に埋め込んだ状態ではタスクキルで保存データが消える。<br>第一者オリジンで配信する必要がある。Artifact 版も並行して公開しているが、あれは閲覧用のミラーであって保存先ではない。</p></div>
 <p>デプロイ: <code>main</code> に push すると数十秒〜2分で反映。反映確認はハッシュ比較で行う（§9）。</p>
 </section><section id="s3"><h2><span class="no">3</span><span>ファイル構成</span></h2>
-<pre class="code"><code>index.html            アプリ全体（約3580行・175KB）HTML/CSS/JSすべて。外部ライブラリなし
+<pre class="code"><code>index.html            アプリ全体（約3601行・175KB）HTML/CSS/JSすべて。外部ライブラリなし
 sw.js                 Service Worker（オフライン対応・stale-while-revalidate）
 manifest.json         PWA マニフェスト
 icon-180.png / icon-512.png
 README.md
 tools/sim.js          戦闘バランスのシミュレータ ★変更前に必ず通す（§8）
 tools/test-slots.js   タスクの予定（曜日・時間帯）の判定テスト
+tools/test-story.js   物語モードのデータ検証（行き先・到達性・結末の偏り）
 docs/build-guide.js   攻略カタログの生成スクリプト
 docs/equipment-guide.html  生成物（ネタバレあり装備カタログ・9章）
 docs/build-spec.js    この文書を読み物のページに組む（出典は SPEC.md ひとつ）
@@ -292,7 +293,7 @@ g   = こう × 1.4 × days           // 報酬だけは日数ぶん伸びる</c
 <p>全12章・選択のある章5つ・戦闘3つ・結末3つ。選択には <code>keep</code>（のこす）と <code>go</code>（てばなす）の<br>重みがあり、最大値は6対6で対称。どちらかが有利になる設計にはしていない。</p>
 <div class="warn"><p><strong>敵の数値を物語データに書かない。</strong><br>章データが持つのは <code>tier</code>（1〜3）だけで、HP・攻撃・報酬は <code>storyEnemy()</code> が<br>「いまの自分」から逆算する。今日の魔物（§6.4）と同じ考え方なので、いつ読んでも手応えが変わらない。<br>将来この物語をAIに書かせる場合も、<strong>AIが触れてよいのは文章と <code>tier</code> の選択までで、数値は式が決める</strong>。<br>バランスを3回壊した経験（§8）から、ここは構造として分離してある。</p></div>
 <p>tier別の勝率（雑に殴るだけ・シミュレータで確認）：tier1 = 100% / tier2 = 94% / tier3 = 83%。<br><strong>物語は読み進めるものなので、難度で行き止まりにしない。</strong> 章ボスでも8割は勝てる。</p>
-<ul><li><strong>戦闘に負けても章は戻らない。</strong> 何度でも挑める（<code>onDone</code> は勝ったときだけ進める）</li><li><strong>報酬は初回のみ。</strong> 敵IDを <code>sty_&lt;章&gt;</code> にして既存の <code>S.cleared</code> に乗せてあるので、読み直しで稼げない</li><li><strong>選択に紐づく「現実の片づけ」。</strong> 選択肢を選ぶと、それに対応する現実の行動が 「この物語で決めたこと」として持ち越される。押すとタイマーが走り、<strong>終わると読みかけの章に戻る</strong>。 「いまはやらない」で消せる（責めない）。報酬は通常タスクと同じ <code>MINS</code> 表から引く</li><li><strong>持ち越しは、やるか消すかするまで残る。</strong> 章をまたいでも消えない。 上書きされるのは、<strong>タスクを持つ別の選択肢を選んだときだけ</strong>。 タスクの無い選択肢（「先へ進む」など）を通っても消さない</li><li><strong>画面の並びは 本文 → 行動 → 持ち越し。</strong> 持ち越しを本文と行動の間に置くと、 片づけの話のすぐ下に「たたかう」が来て唐突になる。主役はその章の行動なので、下に置く</li></ul>
+<ul><li><strong>戦闘に負けても章は戻らない。</strong> 何度でも挑める（<code>onDone</code> は勝ったときだけ進める）</li><li><strong>報酬は初回のみ。</strong> 敵IDを <code>sty_&lt;章&gt;</code> にして既存の <code>S.cleared</code> に乗せてあるので、読み直しで稼げない</li><li><strong>選択に紐づく「現実の片づけ」。</strong> 選択肢を選ぶと、それに対応する現実の行動が 「この物語で決めたこと」として持ち越される。押すとタイマーが走り、<strong>終わると読みかけの章に戻る</strong>。 「いまはやらない」で消せる（責めない）。報酬は通常タスクと同じ <code>MINS</code> 表から引く</li><li><strong>持ち越しは、やるか消すかするまで残る。</strong> 章をまたいでも、終章に着いても、 読み直しても消えない。上書きされるのは、<strong>タスクを持つ別の選択肢を選んだときだけ</strong>。 タスクの無い選択肢（「先へ進む」など）を通っても消さない</li><li><strong>持ち越しはそうじタブの「いま」欄にも出る。</strong> ダンジョンタブの奥にしか無いと、 アプリを閉じた時点で無かったことになる。引き受けた片づけは、開いた最初の画面に置く</li><li><strong>画面の並びは 本文 → 行動 → 持ち越し。</strong> 持ち越しを本文と行動の間に置くと、 片づけの話のすぐ下に「たたかう」が来て唐突になる。主役はその章の行動なので、下に置く</li></ul>
 <div class="warn"><p><strong>タスクは章ではなく選択肢に付ける。</strong><br>最初は章に付けていたが、章のタスク（「手前の箱をひとつ開ける」）と選択肢（「ふたを開ける」）が<br>ほぼ同じことを言ってしまい、現実で片づけて戻ってきた利用者が同じ問いを二度受ける形になった。<br>さらにタイマー終了後に物語へ戻らず、ホーム画面に放り出されていた。<br><strong>決める → 実際にやる</strong> の順に直し、タイマーには <code>after</code> を持たせて章へ復帰させている。</p></div>
 <p>状態は <code>S.story = { at, keep, go, clears, end, pending }</code>。<code>pending</code> が持ち越し中のタスク。<br>結末に到達すると <code>clears</code> が増え、読み直せる。</p>
 </section><section id="s7"><h2><span class="no">7</span><span>画面構成</span></h2>
@@ -321,6 +322,9 @@ node tools/sim.js
 # 2b. タスクの予定の判定に触ったなら
 node tools/test-slots.js
 
+# 2c. 物語モードの章や選択肢に触ったなら
+node tools/test-story.js
+
 # 3. 装備の数値に触ったなら
 node docs/build-guide.js
 
@@ -335,7 +339,7 @@ shasum -a256 index.html</code></pre>
 <div class="warn"><p><strong>確認は実機の iPhone Safari で、ホーム画面に追加した状態で行う。</strong><br>Mac の Chrome で確認しても iOS の挙動は分からない。過去にこれで誤判定して、保存が消えるバグを見逃した。</p></div>
 </section><section id="s10"><h2><span class="no">10</span><span>既知の弱いところ・未解決</span></h2>
 <p>レビューを受けるならこのあたりを見てほしい。</p>
-<ul><li><strong><code>index.html</code> が3580行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストがほぼ無い。</strong> 予定の判定だけ <code>tools/test-slots.js</code> がある（24件）。それ以外は シミュレータ（数値）とブラウザでの手動操作（挙動）頼みで、回帰テストは無い。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong>物語モードは試作段階（§6.10）。</strong> 12章1本のみで、本文は静的データ。 ランタイム生成（無限に増える版）は未着手で、やる場合は先読み生成とオフライン退避が必須になる。 深層を闘技場として切り出す案も保留中——物語が進行の背骨になるなら深層は役割を失うが、 いまは唯一の終盤コンテンツなので、物語が育つ前に作り変えると遊ぶ場所が無くなる。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
+<ul><li><strong><code>index.html</code> が3601行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストは3本だけ。</strong> 予定の判定 <code>tools/test-slots.js</code>（24件）と 物語データ <code>tools/test-story.js</code>（123件）、それに <code>tools/sim.js</code>（数値）。 UIの動線には自動テストが無く、ブラウザでの手動操作頼み。 <strong>実際に遊ばないと出ない不具合を2回出している</strong>（物語のタスク動線）ので、 機能を足したら「途中でアプリを離れて戻る」経路を必ず手で通すこと。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong>物語モードは試作段階（§6.10）。</strong> 12章1本のみで、本文は静的データ。 ランタイム生成（無限に増える版）は未着手で、やる場合は先読み生成とオフライン退避が必須になる。 深層を闘技場として切り出す案も保留中——物語が進行の背骨になるなら深層は役割を失うが、 いまは唯一の終盤コンテンツなので、物語が育つ前に作り変えると遊ぶ場所が無くなる。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
 </section><section id="s11"><h2><span class="no">11</span><span>用語</span></h2>
 <div class="tw"><table><thead><tr><th>語</th><th>意味</th></tr></thead><tbody><tr><td>塵界（じんかい）</td><td>世界の名前。部屋そのもの</td></tr><tr><td>気力</td><td>2本目のゲージ。「ゴミを拾う」でのみ増える</td></tr><tr><td>潜行</td><td>深層に潜ること。ローグライク式の1回の遠征</td></tr><tr><td>加護</td><td>潜行のあいだだけ効く一時的な強化。20種</td></tr><tr><td>接辞</td><td>装備の追加効果。22種</td></tr><tr><td>塵の粉</td><td>装備を分解して得る素材。引き直しと格上げに使う</td></tr><tr><td>積もった塵</td><td>空けた日数から生まれる敵</td></tr><tr><td>層主</td><td>深層5階ごとのボス</td></tr><tr><td>いま欄</td><td>予定が合っているタスクを出す、そうじタブ最上部の枠</td></tr><tr><td>のこす／てばなす</td><td>物語モードの選択に付く重み。結末を決める</td></tr></tbody></table></div></section>
   </main>
