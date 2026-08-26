@@ -143,8 +143,8 @@ main{max-width:560px;margin:0 auto;padding:calc(72px + env(safe-area-inset-top))
 .sty-c{display:flex;flex-direction:column;gap:9px}
 .sty-c .btn{text-align:left;line-height:1.6;padding:13px 15px;height:auto;white-space:normal}
 .sty-task{
-  background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);
-  padding:11px 13px;cursor:pointer;
+  background:transparent;border:1px dashed var(--line);border-radius:var(--r);
+  padding:11px 13px;cursor:pointer;margin-top:2px;
 }
 .sty-task em{display:block;font-style:normal;font-family:var(--f-hud);font-size:10px;
   letter-spacing:.16em;color:var(--dim);margin-bottom:3px}
@@ -1563,8 +1563,8 @@ function openStory(){
   ov.innerHTML = '<div class="ov-in sty-in">' +
       '<div class="sty-head"><span class="lbl"></span><b class="sty-h"></b></div>' +
       '<div class="sty-t"></div>' +
-      '<div class="sty-task" style="display:none"></div>' +
       '<div class="sty-c"></div>' +
+      '<div class="sty-task" style="display:none"></div>' +
       '<div class="ov-btns"><button class="btn btn-q" data-a="close">とじる</button></div>' +
     '</div>';
   var hEl = ov.querySelector(".sty-h"), lEl = ov.querySelector(".lbl");
@@ -1610,7 +1610,7 @@ function openStory(){
     var pt = st.pending;
     if(pt){
       kEl.style.display = "block";
-      kEl.innerHTML = '<em>さっき決めたこと</em><b></b><span></span>' +
+      kEl.innerHTML = '<em>この物語で決めたこと</em><b></b><span></span>' +
                       '<u class="sty-skip">いまはやらない</u>';
       kEl.querySelector("b").textContent = pt.n;
       kEl.querySelector("span").textContent = "やってみる（" + Math.round(pt.sec / 60) + "分）";
@@ -1651,7 +1651,7 @@ function openStory(){
         st.keep += (c.keep || 0);
         st.go   += (c.go   || 0);
         st.at    = c.to;
-        st.pending = c.task ? { n:c.task.n, sec:c.task.sec } : null;
+        if(c.task) st.pending = { n:c.task.n, sec:c.task.sec };   // 無い選択肢では消さない
         save(); paint();
       });
     });
