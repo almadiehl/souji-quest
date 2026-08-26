@@ -148,7 +148,7 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
     <div class="meta">
       <span>最終更新 2026-08-26</span>
       <span>対象コミット c4cdb06</span>
-      <span>単一HTML / 3,290行</span>
+      <span>単一HTML / 3,557行</span>
     </div>
   </header>
   <nav class="toc">
@@ -180,7 +180,7 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
 <div class="warn"><p><strong>GitHub Pages でなければならない理由</strong>（過去に事故った）<br>iOS Safari はクロスサイト iframe 内の localStorage を一時的なものとして扱うため、Artifact に埋め込んだ状態ではタスクキルで保存データが消える。<br>第一者オリジンで配信する必要がある。Artifact 版も並行して公開しているが、あれは閲覧用のミラーであって保存先ではない。</p></div>
 <p>デプロイ: <code>main</code> に push すると数十秒〜2分で反映。反映確認はハッシュ比較で行う（§9）。</p>
 </section><section id="s3"><h2><span class="no">3</span><span>ファイル構成</span></h2>
-<pre class="code"><code>index.html            アプリ全体（約3289行・163KB）HTML/CSS/JSすべて。外部ライブラリなし
+<pre class="code"><code>index.html            アプリ全体（約3556行・175KB）HTML/CSS/JSすべて。外部ライブラリなし
 sw.js                 Service Worker（オフライン対応・stale-while-revalidate）
 manifest.json         PWA マニフェスト
 icon-180.png / icon-512.png
@@ -287,9 +287,16 @@ g   = こう × 1.4 × days           // 報酬だけは日数ぶん伸びる</c
 <ul><li><strong>「Appを開く」の一覧にホーム画面のWebアプリは出てこない。</strong> このアクションは使えない。</li><li><strong><code>webapp://ホスト/パス</code> は動く。</strong> パスは無視されるという報告があったが、 少なくともこの構成では正しくアプリが開いた。開くだけならこれで足りる。</li></ul>
 <p>なお、ホーム画面のアイコンが「独立したWebアプリ」か「ただのブックマーク」かは、<br><strong>開いたときにアドレスバーが出るか</strong>で見分けられる。出るならSafari扱いなので<br><code>https://</code> でよく、パラメータもそのまま効く。</p>
 <p>URLパラメータ自体は残してある。Safariで開いたときの動作確認に使えるほか、<br>将来 Apple が <code>webapp://</code> のパス処理を直せばそのまま効くようになるため。</p>
+<h3>物語モード「のこすもの」（試作）</h3>
+<p>ダンジョンタブの独立したボタンから読む、ゲームブック形式の章立て。第一部（19体）とは別モード。<br>第一部が「捨てる」話なのに対し、こちらは<strong>「のこすものを選ぶ」</strong>話。選択が主役の形式なので、<br>テーマ自体を「選ぶこと」に置いている。</p>
+<p>全12章・選択のある章5つ・戦闘3つ・結末3つ。選択には <code>keep</code>（のこす）と <code>go</code>（てばなす）の<br>重みがあり、最大値は6対6で対称。どちらかが有利になる設計にはしていない。</p>
+<div class="warn"><p><strong>敵の数値を物語データに書かない。</strong><br>章データが持つのは <code>tier</code>（1〜3）だけで、HP・攻撃・報酬は <code>storyEnemy()</code> が<br>「いまの自分」から逆算する。今日の魔物（§6.4）と同じ考え方なので、いつ読んでも手応えが変わらない。<br>将来この物語をAIに書かせる場合も、<strong>AIが触れてよいのは文章と <code>tier</code> の選択までで、数値は式が決める</strong>。<br>バランスを3回壊した経験（§8）から、ここは構造として分離してある。</p></div>
+<p>tier別の勝率（雑に殴るだけ・シミュレータで確認）：tier1 = 100% / tier2 = 94% / tier3 = 83%。<br><strong>物語は読み進めるものなので、難度で行き止まりにしない。</strong> 章ボスでも8割は勝てる。</p>
+<ul><li><strong>戦闘に負けても章は戻らない。</strong> 何度でも挑める（<code>onDone</code> は勝ったときだけ進める）</li><li><strong>報酬は初回のみ。</strong> 敵IDを <code>sty_&lt;章&gt;</code> にして既存の <code>S.cleared</code> に乗せてあるので、読み直しで稼げない</li><li><strong>章に紐づく「現実の片づけ」。</strong> 一部の章はタイマー付きのタスクを提示する。 物語の中の行為と、実際に手を動かすことを繋ぐのがこのモードの狙い</li></ul>
+<p>状態は <code>S.story = { at, keep, go, clears, end }</code>。結末に到達すると <code>clears</code> が増え、読み直せる。</p>
 </section><section id="s7"><h2><span class="no">7</span><span>画面構成</span></h2>
 <p>4タブ。ドックの2ボタンはユーザーが選べる。</p>
-<div class="tw"><table><thead><tr><th>タブ</th><th>中身</th></tr></thead><tbody><tr><td>そうじ</td><td>いま欄・タスク・今日の回数・積もった塵・タスク作成</td></tr><tr><td>ダンジョン</td><td>エリア進行・今日の魔物・深層</td></tr><tr><td>そうび</td><td>装備の着脱・持ち物・店・鍛錬</td></tr><tr><td>きろく</td><td>通算・掃除した時間・撃破数・最長連続・30日グラフ・称号16種・過去のあなた</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>タブ</th><th>中身</th></tr></thead><tbody><tr><td>そうじ</td><td>いま欄・タスク・今日の回数・積もった塵・タスク作成</td></tr><tr><td>ダンジョン</td><td>物語モード・エリア進行・今日の魔物・深層</td></tr><tr><td>そうび</td><td>装備の着脱・持ち物・店・鍛錬</td></tr><tr><td>きろく</td><td>通算・掃除した時間・撃破数・最長連続・30日グラフ・称号16種・過去のあなた</td></tr></tbody></table></div>
 <p>ドックの高さは <code>fitDock()</code> で実測して <code>--dock-h</code> に入れている。固定値で余白を取ると機種によって本文が隠れる（過去に発生）。</p>
 </section><section id="s8"><h2><span class="no">8</span><span>バランスを変えるときの手順（必須）</span></h2>
 <div class="warn"><p><strong>戦闘の数値・気力の定数・装備の数値・敵のステータスを触るときは、必ず <code>tools/sim.js</code> を通す。例外なし。</strong></p></div>
@@ -327,8 +334,8 @@ shasum -a256 index.html</code></pre>
 <div class="warn"><p><strong>確認は実機の iPhone Safari で、ホーム画面に追加した状態で行う。</strong><br>Mac の Chrome で確認しても iOS の挙動は分からない。過去にこれで誤判定して、保存が消えるバグを見逃した。</p></div>
 </section><section id="s10"><h2><span class="no">10</span><span>既知の弱いところ・未解決</span></h2>
 <p>レビューを受けるならこのあたりを見てほしい。</p>
-<ul><li><strong><code>index.html</code> が3289行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストがほぼ無い。</strong> 予定の判定だけ <code>tools/test-slots.js</code> がある（24件）。それ以外は シミュレータ（数値）とブラウザでの手動操作（挙動）頼みで、回帰テストは無い。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
+<ul><li><strong><code>index.html</code> が3556行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストがほぼ無い。</strong> 予定の判定だけ <code>tools/test-slots.js</code> がある（24件）。それ以外は シミュレータ（数値）とブラウザでの手動操作（挙動）頼みで、回帰テストは無い。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong>物語モードは試作段階（§6.10）。</strong> 12章1本のみで、本文は静的データ。 ランタイム生成（無限に増える版）は未着手で、やる場合は先読み生成とオフライン退避が必須になる。 深層を闘技場として切り出す案も保留中——物語が進行の背骨になるなら深層は役割を失うが、 いまは唯一の終盤コンテンツなので、物語が育つ前に作り変えると遊ぶ場所が無くなる。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
 </section><section id="s11"><h2><span class="no">11</span><span>用語</span></h2>
-<div class="tw"><table><thead><tr><th>語</th><th>意味</th></tr></thead><tbody><tr><td>塵界（じんかい）</td><td>世界の名前。部屋そのもの</td></tr><tr><td>気力</td><td>2本目のゲージ。「ゴミを拾う」でのみ増える</td></tr><tr><td>潜行</td><td>深層に潜ること。ローグライク式の1回の遠征</td></tr><tr><td>加護</td><td>潜行のあいだだけ効く一時的な強化。20種</td></tr><tr><td>接辞</td><td>装備の追加効果。22種</td></tr><tr><td>塵の粉</td><td>装備を分解して得る素材。引き直しと格上げに使う</td></tr><tr><td>積もった塵</td><td>空けた日数から生まれる敵</td></tr><tr><td>層主</td><td>深層5階ごとのボス</td></tr><tr><td>いま欄</td><td>予定が合っているタスクを出す、そうじタブ最上部の枠</td></tr></tbody></table></div></section>
+<div class="tw"><table><thead><tr><th>語</th><th>意味</th></tr></thead><tbody><tr><td>塵界（じんかい）</td><td>世界の名前。部屋そのもの</td></tr><tr><td>気力</td><td>2本目のゲージ。「ゴミを拾う」でのみ増える</td></tr><tr><td>潜行</td><td>深層に潜ること。ローグライク式の1回の遠征</td></tr><tr><td>加護</td><td>潜行のあいだだけ効く一時的な強化。20種</td></tr><tr><td>接辞</td><td>装備の追加効果。22種</td></tr><tr><td>塵の粉</td><td>装備を分解して得る素材。引き直しと格上げに使う</td></tr><tr><td>積もった塵</td><td>空けた日数から生まれる敵</td></tr><tr><td>層主</td><td>深層5階ごとのボス</td></tr><tr><td>いま欄</td><td>予定が合っているタスクを出す、そうじタブ最上部の枠</td></tr><tr><td>のこす／てばなす</td><td>物語モードの選択に付く重み。結末を決める</td></tr></tbody></table></div></section>
   </main>
 </div>

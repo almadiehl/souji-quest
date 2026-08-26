@@ -131,6 +131,25 @@ main{max-width:560px;margin:0 auto;padding:calc(72px + env(safe-area-inset-top))
 .pinb{font-style:normal;font-family:var(--f-hud);font-size:9.5px;color:var(--gold);
   border:1px solid var(--gold-dim);border-radius:3px;padding:0 4px;margin-left:7px;vertical-align:1px}
 .task-up{flex:none;color:var(--muted);font-size:15px;line-height:1;padding:4px 3px 4px 7px}
+/* ===== 物語モード ===== */
+.sty-in{gap:16px}
+.sty-head{display:flex;flex-direction:column;gap:5px;align-items:center;text-align:center}
+.sty-head .lbl{font-family:var(--f-hud);font-size:10.5px;letter-spacing:.3em;color:var(--dim)}
+.sty-head b{font-size:19px;font-weight:700;line-height:1.4}
+.sty-t{
+  white-space:pre-line;line-height:2.05;font-size:14.5px;color:var(--text);
+  border-left:2px solid var(--gold-dim);padding:2px 0 2px 14px;
+}
+.sty-c{display:flex;flex-direction:column;gap:9px}
+.sty-c .btn{text-align:left;line-height:1.6;padding:13px 15px;height:auto;white-space:normal}
+.sty-task{
+  background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);
+  padding:11px 13px;cursor:pointer;
+}
+.sty-task em{display:block;font-style:normal;font-family:var(--f-hud);font-size:10px;
+  letter-spacing:.16em;color:var(--dim);margin-bottom:3px}
+.sty-task b{display:block;font-size:14px;font-weight:700;line-height:1.5}
+.sty-task span{display:block;margin-top:5px;font-family:var(--f-hud);font-size:11px;color:var(--mint)}
 .task-when{flex:none;font-family:var(--f-hud);font-size:10px;color:var(--dim);line-height:1.2;
   padding:4px 5px;border:1px solid var(--line);border-radius:4px;letter-spacing:.04em;white-space:nowrap}
 .task-when.on{color:var(--mint);border-color:var(--mint-dim)}
@@ -580,6 +599,13 @@ textarea.ta{height:112px;resize:none;font-size:16px}
       <div class="sec-h">塵界（じんかい）</div>
       <div class="story" id="intro"></div>
       <div class="note">戦闘に負けても失うものはありません。勝てないときは、部屋をすこし片づけて強くなってから戻ってきてください。</div>
+    </section>
+    <section class="sec">
+      <button class="todo-row" id="story-card" style="width:100%">
+        <span class="mk" style="background:var(--gold)"></span>
+        <span class="tx"><b id="sty-n"></b><em id="sty-note"></em></span>
+        <span class="st" id="sty-s" style="color:var(--gold)">よむ</span>
+      </button>
     </section>
     <div id="areas" style="display:flex;flex-direction:column;gap:14px"></div>
   </div>
@@ -1387,6 +1413,229 @@ function openSchedule(cur, cb){
   document.body.appendChild(ov);
 }
 
+/* ===== 物語モード（試作）「のこすもの」=====
+   第一部が「捨てる」話なら、こちらは「のこすものを選ぶ」話。
+   選択には keep（のこす）と go（てばなす）の重みがあり、結末が変わる。
+   どの結末も肯定で終える。選び方を責める分岐は作らない（原則3）。
+
+   敵の数値はここには一切書かない。tier だけ指定し、strength は
+   storyEnemy() が「いまの自分」から逆算する。今日の魔物と同じ考え方。 */
+var STORY_NAME = "のこすもの";
+var STORY_SUB  = "PART II";
+var STORY = {
+c1:{ k:"read", h:"奥の扉", t:
+"押入れのいちばん奥、季節はずれの毛布をどけたところに、扉があった。\n"+
+"こんなものが、この部屋にあっただろうか。\n"+
+"把手は冷たいのに、埃がついていない。つい最近、誰かが触れたように見える。",
+  c:[ {t:"灯りをつけてから入る", to:"c2"},
+      {t:"そのまま入る",         to:"c2"} ] },
+
+c2:{ k:"read", h:"箱の間", t:
+"扉の向こうは、箱でできた部屋だった。\n"+
+"天井まで積まれた段ボールに、ラベルは一枚も貼られていない。\n"+
+"中身を知っているのは、これを積んだ人だけだ。つまり、あなたしかいない。\n"+
+"——ひとつの箱が、かたかたと鳴った。",
+  task:{ n:"手前の箱をひとつ開ける", sec:180 },
+  c:[ {t:"ふたを開ける",         to:"c3", go:1  },
+      {t:"積み直して奥へ進む",   to:"c3", keep:1} ] },
+
+c3:{ k:"battle", h:"ラベルのない箱", tier:1, sig:"箱", en:"ラベルのない箱", t:
+"鳴っていた箱が、ひとりでに膨らんだ。\n"+
+"中身が何なのか、最後まで思い出せないまま、それは立ち上がった。",
+  win:"箱は開き、去年の夏に探していたものが出てきた。\n探していたことすら、忘れていた。",
+  to:"c4" },
+
+c4:{ k:"read", h:"写真の廊下", t:
+"廊下の壁が、一面の写真で埋まっている。\n"+
+"どれも悪い写真ではない。ただ、この十年、一度も見返していない。\n"+
+"全部を持っていくことはできない。廊下は、先へ行くほど狭くなる。",
+  c:[ {t:"一枚だけ選ぶ",         to:"c5a", go:2  },
+      {t:"全部はがして抱える",   to:"c5b", keep:2} ] },
+
+c5a:{ k:"read", h:"身軽な道", t:
+"一枚だけを胸に入れて歩くと、廊下は思ったより短かった。\n"+
+"選ばなかった写真が消えたわけではない。ただ、壁に残っただけだ。\n"+
+"——見返さないものを、手放したことにはならない。そこに在ることを、知っていればいい。",
+  c:[ {t:"先へ進む", to:"c6"} ] },
+
+c5b:{ k:"read", h:"重い道", t:
+"抱えた写真は、歩くたびに数枚ずつ落ちた。\n"+
+"拾って、また落として、拾った。\n"+
+"落ちた一枚ずつを見て、はじめて気づく。どれがどれだか、分かっていなかった。\n"+
+"——ぜんぶ持つことは、ぜんぶ大事にすることではなかった。",
+  c:[ {t:"先へ進む", to:"c6"} ] },
+
+c6:{ k:"battle", h:"まだ使えるもの", tier:2, sig:"未", en:"まだ使えるもの", t:
+"それは壊れていなかった。どこも悪くなかった。\n"+
+"ただ、あなたはもう二年、それを使っていない。",
+  win:"「まだ使える」と「これから使う」は、違う言葉だった。\nそれだけのことに、ずいぶん長くかかった。",
+  to:"c7" },
+
+c7:{ k:"read", h:"贈りものの部屋", t:
+"棚に、包装のままのものが並んでいる。\n"+
+"どれも人からもらったもので、どれも使っていない。\n"+
+"捨てれば、くれた人を捨てるような気がして、ずっとここに置いてある。",
+  task:{ n:"もらい物をひとつ、使ってみる", sec:300 },
+  c:[ {t:"礼を言って、棚に戻す",       to:"c8", keep:2},
+      {t:"礼を言って、持っていかない", to:"c8", go:2  } ] },
+
+c8:{ k:"rest", h:"灯りの間", t:
+"小さな部屋に、明かりがひとつ灯っている。\n"+
+"ここまでで、ずいぶん埃をかぶった。座って、息を整える。\n"+
+"——急ぐ旅ではなかった。",
+  c:[ {t:"先へ進む", to:"c9"} ] },
+
+c9:{ k:"read", h:"いつかの部屋", t:
+"部屋の真ん中に、まだ新しいものが積んである。\n"+
+"どれも「いつか使う」と思って買ったものだ。\n"+
+"壁に大きな暦がかかっている。日付は、どこにも書かれていない。",
+  c:[ {t:"暦に日付を書く",   to:"c10", keep:1},
+      {t:"暦を壁から外す",   to:"c10", go:1  } ] },
+
+c10:{ k:"battle", h:"いつかの主", tier:3, sig:"憶", en:"いつかの主", t:
+"積まれたものの上に、誰かが座っている。\n"+
+"よく知っている顔なのに、どうしても思い出せない。\n"+
+"「まだ決めなくていい」と、それは言った。「まだ、あとでいい」",
+  win:"主は静かになり、暦の一枚目がめくれた。\n"+
+      "「いつか」は日付ではなく、決めないという決断につけた名前だった。",
+  to:"end" },
+
+end:{ k:"end", h:"扉の外" }
+};
+// 結末は3つ。どれも肯定で終わる
+var STORY_END = [
+  { k:"go",   h:"軽い部屋", t:
+"扉を出ると、押入れはただの押入れに戻っていた。\n"+
+"持って出たものは、両手で足りる量だった。\n"+
+"——少ないことは、寂しいことではない。ぜんぶ、選んだものだった。" },
+  { k:"keep", h:"選んだ部屋", t:
+"扉を出ると、押入れはただの押入れに戻っていた。\n"+
+"持って出たものは多かったが、もう「なんとなく」ではない。\n"+
+"ひとつずつ、置く場所を決めた。——のこすと決めたものは、荷物ではない。" },
+  { k:"even", h:"まだ途中の部屋", t:
+"扉を出ると、押入れはただの押入れに戻っていた。\n"+
+"決められたものと、決められなかったものが、半分ずつ。\n"+
+"——それでいい。今日ぜんぶ決める必要は、どこにもなかった。" }
+];
+
+// 敵の数値は物語データに書かない。tier だけ見て「いまの自分」から逆算する。
+// シミュレータで確認ずみ：tier1 100% / tier2 94% / tier3 83%（雑に殴るだけの場合）
+// 物語は読み進めるものなので、難度で行き止まりにしない。
+var STORY_TIER = [null, { hp:5.0, atk:0.95 }, { hp:5.8, atk:1.03 }, { hp:6.2, atk:1.03 }];
+function storyEnemy(id, node){
+  var p = stats(), t = STORY_TIER[node.tier] || STORY_TIER[1];
+  return {
+    id: "sty_" + id, story: true, boss: node.tier >= 3,
+    n: node.en, s: node.sig, lv: S.lv,
+    hp:  Math.max(16, Math.round(p.atk * t.hp)),
+    atk: Math.max(2,  Math.round((p.hp / 8 + p.def * 0.6) * t.atk)),
+    def: Math.max(0,  Math.round(p.atk * 0.20)),
+    g:   Math.max(5,  Math.round(p.atk * (0.6 + 0.5 * node.tier))),
+    st:  node.win
+  };
+}
+function storyState(){
+  if(!S.story) S.story = { at:"c1", keep:0, go:0, clears:0, end:null };
+  return S.story;
+}
+function storyEnding(){
+  var st = storyState(), d = st.keep - st.go;
+  if(d <= -2) return STORY_END[0];
+  if(d >=  2) return STORY_END[1];
+  return STORY_END[2];
+}
+
+
+/* ===== 物語モードの読み手 ===== */
+function openStory(){
+  if(document.querySelector(".ov-main")) return;
+  var st = storyState();
+  var ov = document.createElement("div");
+  ov.className = "ov ov-main";
+  ov.innerHTML = '<div class="ov-in sty-in">' +
+      '<div class="sty-head"><span class="lbl"></span><b class="sty-h"></b></div>' +
+      '<div class="sty-t"></div>' +
+      '<div class="sty-task" style="display:none"></div>' +
+      '<div class="sty-c"></div>' +
+      '<div class="ov-btns"><button class="btn btn-q" data-a="close">とじる</button></div>' +
+    '</div>';
+  var hEl = ov.querySelector(".sty-h"), lEl = ov.querySelector(".lbl");
+  var tEl = ov.querySelector(".sty-t"), cEl = ov.querySelector(".sty-c");
+  var kEl = ov.querySelector(".sty-task");
+  ov.querySelector('[data-a="close"]').addEventListener("click", function(){ ov.remove(); render(); });
+  document.body.appendChild(ov);
+
+  function btn(label, cls, fn){
+    var b = document.createElement("button");
+    b.className = "btn" + (cls ? " " + cls : "");
+    b.textContent = label;
+    b.addEventListener("click", fn);
+    cEl.appendChild(b);
+    return b;
+  }
+  function paint(){
+    var node = STORY[st.at];
+    if(!node) { st.at = "c1"; node = STORY.c1; }
+    cEl.innerHTML = ""; kEl.style.display = "none";
+    ov.querySelector(".sty-in").scrollTop = 0;
+
+    if(node.k === "end"){
+      var fin = storyEnding();
+      lEl.textContent = "FINALE";
+      hEl.textContent = fin.h;
+      tEl.textContent = fin.t;
+      if(!st.end){
+        st.end = fin.k; st.clears = (st.clears || 0) + 1; save();
+      }
+      btn("はじめから読み直す", "btn-q", function(){
+        S.story = { at:"c1", keep:0, go:0, clears:st.clears, end:null };
+        st = storyState(); save(); paint();
+      });
+      return;
+    }
+
+    lEl.textContent = node.k === "battle" ? "BATTLE" : (node.k === "rest" ? "REST" : "STORY");
+    hEl.textContent = node.h;
+    tEl.textContent = node.t;
+
+    // 章に結びついた「現実の片づけ」。押すとタイマーが動く
+    if(node.task){
+      kEl.style.display = "block";
+      kEl.innerHTML = '<em>この章の片づけ</em><b></b><span>やってみる</span>';
+      kEl.querySelector("b").textContent = node.task.n;
+      kEl.onclick = function(){
+        ov.remove();
+        startTimer({ n: node.task.n, v: 5, sec: node.task.sec });
+      };
+    }
+
+    if(node.k === "battle"){
+      var cleared = !!S.cleared["sty_" + st.at];
+      btn(cleared ? "もう一度たたかう" : "たたかう", "", function(){
+        var e = storyEnemy(st.at, node);
+        e.onDone = function(won){
+          if(!won) return;                 // 負けても物語は戻らない。何度でも挑める
+          st.at = node.to; save();
+          openStory();                     // 勝ったら続きを開く
+        };
+        ov.remove();
+        battle(e);
+      });
+      return;
+    }
+
+    (node.c || []).forEach(function(c){
+      btn(c.t, "btn-q", function(){
+        st.keep += (c.keep || 0);
+        st.go   += (c.go   || 0);
+        st.at    = c.to;
+        save(); paint();
+      });
+    });
+  }
+  paint();
+}
+
 function today(){ return dstr(shifted(0)); }
 function yesterday(){ return dstr(shifted(-1)); }
 
@@ -1396,7 +1645,8 @@ function fresh(){
     items:[], equip:newEquip(), cleared:{}, log:[], last:null, seen:false,
     depth:1, maxDepth:0, train:{ atk:0, def:0, hp:0 }, dailyDone:"", dailyCount:0,
     maxStreak:0, kills:0, timerSec:0, titles:{}, dust:0, dayStart:4,
-    dustDebt:0, ghosts:[] };
+    dustDebt:0, ghosts:[],
+    story:{ at:"c1", keep:0, go:0, clears:0, end:null } };
 }
 var S = load() || fresh();
 // v3: タスクを2つに整理する（以前の10個は削除）
@@ -1447,6 +1697,7 @@ function migrate(st){
   if(typeof st.dust !== "number") st.dust = 0;
   if(typeof st.dustDebt !== "number") st.dustDebt = 0;
   if(!st.ghosts) st.ghosts = [];
+  if(!st.story) st.story = { at:"c1", keep:0, go:0, clears:0, end:null };
   if(typeof st.dayStart !== "number"){
     st.dayStart = 4;
     // 区切りを変えた瞬間に連続日数が切れないよう、記録が未来日付になっていたら合わせる
@@ -1777,15 +2028,22 @@ function battle(e, run){
   var dmgMul = 1 + AF.sharp / 100;
   var takeMul = 1 - AF.tough / 100;
   // 宝を抱えた敵（たまに現れる）
-  if(!e.daily && Math.random() < (e.deep ? 0.18 : 0.12)){
-    e = { id:e.id, deep:e.deep, daily:e.daily, boss:e.boss, treasure:true,
-          n:"宝を抱えた" + e.n, s:e.s, lv:e.lv, st:e.st,
-          hp:Math.round(e.hp*1.3), atk:Math.round(e.atk*1.15), def:e.def, g:Math.round(e.g*2) };
+  // 物語の敵と過去の自分には出さない（前者は雰囲気が壊れ、後者は戦利品なしの約束が崩れる）
+  if(!e.daily && !e.story && e.ghost === undefined && Math.random() < (e.deep ? 0.18 : 0.12)){
+    var _t = {};                       // 元の項目をすべて引き継ぐ。作り直すと debt や nodrop が消える
+    for(var _k in e) _t[_k] = e[_k];
+    _t.treasure = true;
+    _t.n = "宝を抱えた" + e.n;
+    _t.hp = Math.round(e.hp * 1.3);
+    _t.atk = Math.round(e.atk * 1.15);
+    _t.g = Math.round(e.g * 2);
+    e = _t;
   }
   var php = run ? Math.min(run.hp, maxHp) : maxHp, ehp = e.hp, ki = kiStart, charged = false, turn = 0;
   var enduredUsed = false;
   var skipFirst = AF.swift > 0 && Math.random() < AF.swift / 100;
   var over = false, auto = false, autoLoop = null, picks = 0, busy = false;
+  var wonFlag = false;   // 物語モードが「勝ったか」を知るために使う
 
   var ov = document.createElement("div");
   ov.className = "ov ov-main";
@@ -2084,7 +2342,7 @@ function battle(e, run){
 
   // ===== 決着 =====
   function end(win){
-    over = true; auto = false;
+    over = true; auto = false; wonFlag = !!win;
     var dropInfo = null, uniqueInfo = null;
     if(autoLoop){ clearTimeout(autoLoop); autoLoop = null; }
     var first = win && (e.debt ? true
@@ -2252,6 +2510,7 @@ function battle(e, run){
     over = true; auto = false;
     if(autoLoop){ clearTimeout(autoLoop); autoLoop = null; }
     ov.remove(); render();
+    if(e.onDone) e.onDone(wonFlag);
   }
 
   subBtns.addEventListener("click", function(ev){
@@ -2500,6 +2759,13 @@ function render(){
 
 function renderDungeon(){
   $("intro").textContent = INTRO;
+  // 物語モード
+  var stt = storyState(), node = STORY[stt.at];
+  $("sty-n").textContent = STORY_NAME + "（試作）";
+  $("sty-s").textContent = stt.at === "c1" ? "はじめる" : (node && node.k === "end" ? "結末" : "つづき");
+  $("sty-note").textContent = STORY_SUB + "　" +
+    (stt.clears ? "読了 " + stt.clears + "回・" : "") +
+    (node ? node.h : "");
   var wrap = $("areas"); wrap.innerHTML = "";
   AREAS.forEach(function(a, i){
     var open = areaOpen(i);
@@ -2927,6 +3193,7 @@ $("form-toggle").addEventListener("click", function(){
   $("form-toggle").textContent = open ? "＋ 自分のタスクを作る" : "− とじる";
   if(!open) $("form-box").scrollIntoView({ block:"nearest" });
 });
+$("story-card").addEventListener("click", openStory);
 $("debt-card").addEventListener("click", function(){
   var de = debtEnemy();
   if(!de){ toast("いまは溜まっていません。"); return; }
