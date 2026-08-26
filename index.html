@@ -131,6 +131,11 @@ main{max-width:560px;margin:0 auto;padding:calc(72px + env(safe-area-inset-top))
 .pinb{font-style:normal;font-family:var(--f-hud);font-size:9.5px;color:var(--gold);
   border:1px solid var(--gold-dim);border-radius:3px;padding:0 4px;margin-left:7px;vertical-align:1px}
 .task-up{flex:none;color:var(--muted);font-size:15px;line-height:1;padding:4px 3px 4px 7px}
+.task-when{flex:none;font-family:var(--f-hud);font-size:10px;color:var(--dim);line-height:1.2;
+  padding:4px 5px;border:1px solid var(--line);border-radius:4px;letter-spacing:.04em;white-space:nowrap}
+.task-when.on{color:var(--mint);border-color:var(--mint-dim)}
+.wd-chips{display:flex;gap:5px;flex-wrap:wrap}
+.wd-chips .chip{padding:7px 0;width:38px;text-align:center}
 
 /* ===== フォーム ===== */
 .form{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px;display:flex;flex-direction:column;gap:11px}
@@ -467,6 +472,11 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 <main>
   <!-- ================= そうじ ================= -->
   <div class="view" id="v-clean">
+    <section class="sec" id="sec-now" style="display:none">
+      <div class="sec-h">いま</div>
+      <div class="todo" id="now-list"></div>
+    </section>
+
     <section class="sec">
       <div class="todo">
         <button class="todo-row" id="next-card">
@@ -526,6 +536,13 @@ textarea.ta{height:112px;resize:none;font-size:16px}
           <div class="chips" id="f-weight" style="margin-top:6px"></div>
         </div>
         <div class="chips"><button class="chip" id="f-timer">⏱ アプリ内タイマーを使う</button></div>
+        <div>
+          <label>いつやる？（任意）</label>
+          <div class="chips" style="margin-top:6px">
+            <button class="chip" id="f-when">指定なし</button>
+          </div>
+          <div class="note" style="margin-top:4px">決めると、その曜日・時間帯にいちばん上へ出ます。決めなくても大丈夫です。</div>
+        </div>
         <div class="form-foot">
           <div class="preview"><span id="f-prev">+2 EXP / <b>+2 G</b></span><em id="f-prev-note">目安からの自動計算</em></div>
           <button class="btn" id="f-add">追加する</button>
@@ -1287,6 +1304,89 @@ function shifted(offsetDays){
   if(offsetDays) d.setDate(d.getDate() + offsetDays);
   return d;
 }
+/* ===== タスクの予定（曜日・時間帯）=====
+   カレンダーは Web からは読めないので、予定は自分で持つ。
+   該当したタスクを「いま」として上に出すだけで、通知も催促もしない。 */
+var WD = ["日","月","火","水","木","金","土"];
+var HOURS = [
+  { k:"いつでも", h:null      },
+  { k:"朝",       h:[5,11]    },
+  { k:"昼",       h:[11,16]   },
+  { k:"夕方",     h:[16,19]   },
+  { k:"夜",       h:[19,24]   },
+  { k:"深夜",     h:[0,5]     }
+];
+function hourIdx(h){
+  if(!h) return 0;
+  for(var i=1;i<HOURS.length;i++) if(HOURS[i].h[0] === h[0] && HOURS[i].h[1] === h[1]) return i;
+  return 0;
+}
+function hasSlot(t){ return !!((t.w && t.w.length) || t.h); }
+// いまがその時間帯か。曜日は4時区切りに合わせ、時刻は実際の時計で見る
+function slotNow(t){
+  if(!hasSlot(t)) return false;
+  if(t.w && t.w.length && t.w.indexOf(shifted(0).getDay()) < 0) return false;
+  if(t.h){
+    var hr = new Date().getHours(), a = t.h[0], b = t.h[1];
+    if(a < b){ if(hr < a || hr >= b) return false; }
+    else      { if(hr < a && hr >= b) return false; }   // 日をまたぐ帯
+  }
+  return true;
+}
+function slotLabel(t){
+  if(!hasSlot(t)) return "";
+  var p = [];
+  if(t.w && t.w.length && t.w.length < 7) p.push(t.w.slice().sort().map(function(d){ return WD[d]; }).join(""));
+  if(t.h) p.push(HOURS[hourIdx(t.h)].k);
+  return p.join(" ") || "毎日";
+}
+// 予定を決める画面。cb(null) は「変更なし」、cb({w,h}) で確定
+function openSchedule(cur, cb){
+  if(document.querySelector(".ov-main")) return;
+  var w = (cur.w || []).slice(), hi = hourIdx(cur.h);
+  var ov = document.createElement("div");
+  ov.className = "ov ov-main";
+  ov.innerHTML =
+    '<div class="ov-in" style="justify-content:center">' +
+      '<div class="pick-h">いつやる？</div>' +
+      '<div class="note" style="text-align:center">決めた曜日・時間帯になると、そうじタブのいちばん上に出ます。<br>過ぎても何も言いません。</div>' +
+      '<div><label>曜日（選ばなければ毎日）</label><div class="wd-chips" id="sc-w" style="margin-top:6px"></div></div>' +
+      '<div><label>時間帯</label><div class="chips" id="sc-h" style="margin-top:6px"></div></div>' +
+      '<div class="ov-btns"><button class="btn" data-a="ok">決定する</button></div>' +
+      '<div class="ov-btns"><button class="btn btn-q" data-a="clear">予定を外す</button>' +
+      '<button class="btn btn-q" data-a="close">やめる</button></div>' +
+    '</div>';
+  var wBox = ov.querySelector("#sc-w"), hBox = ov.querySelector("#sc-h");
+  WD.forEach(function(n, d){
+    var b = document.createElement("button");
+    b.className = "chip"; b.textContent = n;
+    b.addEventListener("click", function(){
+      var k = w.indexOf(d);
+      if(k < 0) w.push(d); else w.splice(k, 1);
+      b.classList.toggle("on", w.indexOf(d) >= 0);
+    });
+    if(w.indexOf(d) >= 0) b.classList.add("on");
+    wBox.appendChild(b);
+  });
+  HOURS.forEach(function(o, i){
+    var b = document.createElement("button");
+    b.className = "chip" + (i === hi ? " on" : ""); b.textContent = o.k;
+    b.addEventListener("click", function(){
+      hi = i;
+      for(var k=0;k<hBox.children.length;k++) hBox.children[k].classList.toggle("on", k === i);
+    });
+    hBox.appendChild(b);
+  });
+  ov.querySelector('[data-a="ok"]').addEventListener("click", function(){
+    ov.remove(); cb({ w: w.slice(), h: HOURS[hi].h ? HOURS[hi].h.slice() : null });
+  });
+  ov.querySelector('[data-a="clear"]').addEventListener("click", function(){
+    ov.remove(); cb({ w: [], h: null });
+  });
+  ov.querySelector('[data-a="close"]').addEventListener("click", function(){ ov.remove(); cb(null); });
+  document.body.appendChild(ov);
+}
+
 function today(){ return dstr(shifted(0)); }
 function yesterday(){ return dstr(shifted(-1)); }
 
@@ -2184,6 +2284,7 @@ window.addEventListener("orientationchange", function(){ setTimeout(fitDock, 250
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitDock);
 var view = "clean";
 
+var urged = null;   // URL から呼ばれたタスク。保存はしない（その場かぎり）
 function render(){
   rollDay();
   var st = stats();
@@ -2232,6 +2333,23 @@ function render(){
     $("tap2-v").textContent = second.sec ? "⏱ 1〜15分から選ぶ" : ("+" + second.v + " EXP / +" + second.v + " G");
   }
 
+  // いま：予定が合っているタスクだけを上に出す（無ければ何も出さない）
+  var nowHit = S.tasks.filter(function(t){ return slotNow(t) || t.id === urged; }), nowBox = $("now-list");
+  $("sec-now").style.display = nowHit.length ? "flex" : "none";
+  nowBox.innerHTML = "";
+  nowHit.forEach(function(t){
+    var r = document.createElement("button");
+    r.className = "todo-row";
+    r.innerHTML = '<span class="mk" style="background:var(--mint)"></span>' +
+      '<span class="tx"><b></b><em></em></span><span class="st" style="color:var(--mint)"></span>';
+    r.querySelector("b").textContent = t.n;
+    r.querySelector("em").textContent = (t.id === urged && !slotNow(t))
+      ? "予定から呼び出されました" : (slotLabel(t) + "・いまの時間です");
+    r.querySelector(".st").textContent = t.sec ? "⏱" : "+" + t.v;
+    r.addEventListener("click", function(ev){ t.sec ? runTimer(t) : tapGain(t, ev); });
+    nowBox.appendChild(r);
+  });
+
   // タスク一覧：上の2つが画面下のボタンになる
   $("sec-task").style.display = "flex";
   var box = $("tasks"); box.innerHTML = "";
@@ -2254,6 +2372,22 @@ function render(){
     var v = document.createElement("div");
     v.className = "tv";
     v.innerHTML = t.sec ? '<b style="color:var(--mint)">⏱</b>' : ("+" + t.v + " <b>+" + t.v + "G</b>");
+    var wh = document.createElement("button");
+    wh.className = "task-when" + (hasSlot(t) ? " on" : "");
+    wh.textContent = hasSlot(t) ? slotLabel(t) : "いつ";
+    wh.setAttribute("aria-label", t.n + " の予定を決める");
+    wh.addEventListener("click", function(){
+      openSchedule(t, function(res){
+        if(!res) return;
+        var tt = null;
+        for(var k = 0; k < S.tasks.length; k++) if(S.tasks[k].id === t.id) tt = S.tasks[k];
+        if(!tt) return;
+        if(res.w && res.w.length) tt.w = res.w; else delete tt.w;
+        if(res.h) tt.h = res.h; else delete tt.h;
+        save(); render();
+        toast(hasSlot(tt) ? (tt.n + "：" + slotLabel(tt)) : (tt.n + " の予定を外しました"));
+      });
+    });
     var up = document.createElement("button");
     up.className = "task-up"; up.textContent = "↑";
     up.setAttribute("aria-label", t.n + " を大ボタンにする");
@@ -2274,7 +2408,7 @@ function render(){
       S.tasks = S.tasks.filter(function(o){ return o.id !== t.id; });
       save(); render();
     });
-    row.appendChild(b); row.appendChild(v); row.appendChild(up); row.appendChild(x);
+    row.appendChild(b); row.appendChild(v); row.appendChild(wh); row.appendChild(up); row.appendChild(x);
     box.appendChild(row);
   });
 
@@ -2999,6 +3133,53 @@ $("reset").addEventListener("click", function(){
   });
 });
 
+/* ===== 外から開く（iOSショートカット連携）=====
+   ?t=タスク名 … そのタスクを「いま」に出す
+   ?timer=10  … 10分のタイマーを始める
+   ?v=dungeon … そのタブを開く
+   URL では経験値もゴールドも入れない。自動化で強くなれてしまうと、
+   「掃除しないと強くなれない」というこのゲームの前提が崩れるため。 */
+function goView(v){
+  var b = document.querySelector('.nav button[data-v="' + v + '"]');
+  if(b) b.click();
+}
+function openFromUrl(){
+  if(!location.search) return;
+  var q;
+  try { q = new URLSearchParams(location.search); } catch(e){ return; }
+
+  var v = q.get("v");
+  if(v && ["clean","dungeon","gear","rec"].indexOf(v) >= 0) goView(v);
+
+  var name = (q.get("t") || "").trim();
+  var hit = null;
+  if(name){
+    for(var k = 0; k < S.tasks.length && !hit; k++)
+      if(S.tasks[k].id === name || S.tasks[k].n === name) hit = S.tasks[k];
+    for(var k2 = 0; k2 < S.tasks.length && !hit; k2++)
+      if(S.tasks[k2].n.indexOf(name) >= 0) hit = S.tasks[k2];
+  }
+
+  var mins = parseInt(q.get("timer"), 10);
+  if(mins > 0){
+    var sec = Math.min(900, Math.max(30, mins * 60));
+    var m = MINS[0];
+    for(var i = 0; i < MINS.length; i++) if(MINS[i].sec <= sec) m = MINS[i];
+    goView("clean");
+    startTimer({ n: (hit ? hit.n : (name || "タイマー")), v: m.b, sec: sec });
+  } else if(hit){
+    urged = hit.id;
+    goView("clean");
+    render();
+    toast("予定：" + hit.n);
+  } else if(name){
+    toast("「" + name + "」というタスクは見つかりませんでした");
+  }
+
+  // 開き直しで二重に走らないよう、パラメータは消しておく
+  try { history.replaceState(null, "", location.pathname); } catch(e){}
+}
+
 document.querySelectorAll(".nav button").forEach(function(b){
   b.addEventListener("click", function(){
     view = b.getAttribute("data-v");
@@ -3011,8 +3192,12 @@ document.querySelectorAll(".nav button").forEach(function(b){
 
 // タスク作成フォーム
 var fMin = 0, fW = 1, fTimer = false;
+var fWhen = { w:[], h:null };
 function paintForm(){
   var chipsM = $("f-min").children, chipsW = $("f-weight").children;
+  var wb = $("f-when");
+  wb.textContent = hasSlot(fWhen) ? slotLabel(fWhen) : "指定なし";
+  wb.classList.toggle("on", hasSlot(fWhen));
   for(var i=0;i<chipsM.length;i++) chipsM[i].classList.toggle("on", i === fMin);
   for(var j=0;j<chipsW.length;j++) chipsW[j].classList.toggle("on", j === fW);
   $("f-timer").classList.toggle("on", fTimer);
@@ -3032,14 +3217,22 @@ WEIGHTS.forEach(function(w, i){
   $("f-weight").appendChild(b);
 });
 $("f-timer").addEventListener("click", function(){ fTimer = !fTimer; paintForm(); });
+$("f-when").addEventListener("click", function(){
+  openSchedule(fWhen, function(res){ if(res) fWhen = { w:res.w, h:res.h }; paintForm(); });
+});
 $("f-add").addEventListener("click", function(){
   var n = $("f-name").value.trim();
   if(!n){ toast("なにをするか、ひとことで書いてください"); return; }
   var t = { id:"u"+Date.now(), n:n, v:calcExp() };
   if(fTimer) t.sec = MINS[fMin].sec;
+  if(fWhen.w && fWhen.w.length) t.w = fWhen.w.slice();
+  if(fWhen.h) t.h = fWhen.h.slice();
   S.tasks.push(t);
   $("f-name").value = "";
-  save(); render(); toast("タスクを追加しました");
+  var had = hasSlot(fWhen);
+  fWhen = { w:[], h:null };
+  save(); render(); paintForm();
+  toast(had ? ("タスクを追加しました（" + slotLabel(t) + "）") : "タスクを追加しました");
 });
 paintForm();
 
@@ -3060,8 +3253,20 @@ if("serviceWorker" in navigator && location.protocol === "https:"){   // 本番�
   });
 }
 
+// 時間帯をまたいだら「いま」を出しなおす。実時刻で見るので画面を消していても狂わない
+var nowSig = "";
+function watchSlots(){
+  var sig = S.tasks.filter(slotNow).map(function(t){ return t.id; }).join(",");
+  if(sig !== nowSig){ nowSig = sig; render(); }
+}
+setInterval(watchSlots, 60000);
+document.addEventListener("visibilitychange", function(){ if(!document.hidden) watchSlots(); });
+window.addEventListener("focus", watchSlots);
+
 if(!canStore) setTimeout(function(){ toast("※この環境では記録が保存されません"); }, 900);
 render();
+openFromUrl();
+nowSig = S.tasks.filter(slotNow).map(function(t){ return t.id; }).join(",");
 
 // はじめての起動：物語の導入
 if(!S.seen){
