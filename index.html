@@ -150,6 +150,8 @@ main{max-width:560px;margin:0 auto;padding:calc(72px + env(safe-area-inset-top))
   letter-spacing:.16em;color:var(--dim);margin-bottom:3px}
 .sty-task b{display:block;font-size:14px;font-weight:700;line-height:1.5}
 .sty-task span{display:block;margin-top:5px;font-family:var(--f-hud);font-size:11px;color:var(--mint)}
+.sty-task u{display:inline-block;margin-top:7px;text-decoration:none;font-size:11.5px;color:var(--dim);
+  border-bottom:1px solid var(--line);padding-bottom:1px}
 .task-when{flex:none;font-family:var(--f-hud);font-size:10px;color:var(--dim);line-height:1.2;
   padding:4px 5px;border:1px solid var(--line);border-radius:4px;letter-spacing:.04em;white-space:nowrap}
 .task-when.on{color:var(--mint);border-color:var(--mint-dim)}
@@ -1435,9 +1437,10 @@ c2:{ k:"read", h:"箱の間", t:
 "天井まで積まれた段ボールに、ラベルは一枚も貼られていない。\n"+
 "中身を知っているのは、これを積んだ人だけだ。つまり、あなたしかいない。\n"+
 "——ひとつの箱が、かたかたと鳴った。",
-  task:{ n:"手前の箱をひとつ開ける", sec:180 },
-  c:[ {t:"ふたを開ける",         to:"c3", go:1  },
-      {t:"積み直して奥へ進む",   to:"c3", keep:1} ] },
+  c:[ {t:"ふたを開ける",       to:"c3", go:1,
+       task:{ n:"手前の箱をひとつ開けて、中身を見る", sec:180 } },
+      {t:"積み直して奥へ進む", to:"c3", keep:1,
+       task:{ n:"積んであるものを、崩さないように整える", sec:180 } } ] },
 
 c3:{ k:"battle", h:"ラベルのない箱", tier:1, sig:"箱", en:"ラベルのない箱", t:
 "鳴っていた箱が、ひとりでに膨らんだ。\n"+
@@ -1449,8 +1452,10 @@ c4:{ k:"read", h:"写真の廊下", t:
 "廊下の壁が、一面の写真で埋まっている。\n"+
 "どれも悪い写真ではない。ただ、この十年、一度も見返していない。\n"+
 "全部を持っていくことはできない。廊下は、先へ行くほど狭くなる。",
-  c:[ {t:"一枚だけ選ぶ",         to:"c5a", go:2  },
-      {t:"全部はがして抱える",   to:"c5b", keep:2} ] },
+  c:[ {t:"一枚だけ選ぶ",       to:"c5a", go:2,
+       task:{ n:"紙を1枚だけ残して、あとはまとめる", sec:300 } },
+      {t:"全部はがして抱える", to:"c5b", keep:2,
+       task:{ n:"散らばっている紙を、1か所に集める", sec:300 } } ] },
 
 c5a:{ k:"read", h:"身軽な道", t:
 "一枚だけを胸に入れて歩くと、廊下は思ったより短かった。\n"+
@@ -1475,9 +1480,10 @@ c7:{ k:"read", h:"贈りものの部屋", t:
 "棚に、包装のままのものが並んでいる。\n"+
 "どれも人からもらったもので、どれも使っていない。\n"+
 "捨てれば、くれた人を捨てるような気がして、ずっとここに置いてある。",
-  task:{ n:"もらい物をひとつ、使ってみる", sec:300 },
-  c:[ {t:"礼を言って、棚に戻す",       to:"c8", keep:2},
-      {t:"礼を言って、持っていかない", to:"c8", go:2  } ] },
+  c:[ {t:"礼を言って、棚に戻す",       to:"c8", keep:2,
+       task:{ n:"使っていないもらい物を、ひとつ使ってみる", sec:300 } },
+      {t:"礼を言って、持っていかない", to:"c8", go:2,
+       task:{ n:"使わないと決めたものを、ひとつ手に取る", sec:180 } } ] },
 
 c8:{ k:"rest", h:"灯りの間", t:
 "小さな部屋に、明かりがひとつ灯っている。\n"+
@@ -1489,8 +1495,10 @@ c9:{ k:"read", h:"いつかの部屋", t:
 "部屋の真ん中に、まだ新しいものが積んである。\n"+
 "どれも「いつか使う」と思って買ったものだ。\n"+
 "壁に大きな暦がかかっている。日付は、どこにも書かれていない。",
-  c:[ {t:"暦に日付を書く",   to:"c10", keep:1},
-      {t:"暦を壁から外す",   to:"c10", go:1  } ] },
+  c:[ {t:"暦に日付を書く", to:"c10", keep:1,
+       task:{ n:"「いつか使う」ものに、使う日を1つ決める", sec:180 } },
+      {t:"暦を壁から外す", to:"c10", go:1,
+       task:{ n:"「いつか使う」もので、使わないものを1つ選ぶ", sec:180 } } ] },
 
 c10:{ k:"battle", h:"いつかの主", tier:3, sig:"憶", en:"いつかの主", t:
 "積まれたものの上に、誰かが座っている。\n"+
@@ -1535,7 +1543,7 @@ function storyEnemy(id, node){
   };
 }
 function storyState(){
-  if(!S.story) S.story = { at:"c1", keep:0, go:0, clears:0, end:null };
+  if(!S.story) S.story = { at:"c1", keep:0, go:0, clears:0, end:null, pending:null };
   return S.story;
 }
 function storyEnding(){
@@ -1598,14 +1606,28 @@ function openStory(){
     hEl.textContent = node.h;
     tEl.textContent = node.t;
 
-    // 章に結びついた「現実の片づけ」。押すとタイマーが動く
-    if(node.task){
+    // 直前の選択に対応する「現実の片づけ」。選んだことを、実際にやる
+    var pt = st.pending;
+    if(pt){
       kEl.style.display = "block";
-      kEl.innerHTML = '<em>この章の片づけ</em><b></b><span>やってみる</span>';
-      kEl.querySelector("b").textContent = node.task.n;
-      kEl.onclick = function(){
+      kEl.innerHTML = '<em>さっき決めたこと</em><b></b><span></span>' +
+                      '<u class="sty-skip">いまはやらない</u>';
+      kEl.querySelector("b").textContent = pt.n;
+      kEl.querySelector("span").textContent = "やってみる（" + Math.round(pt.sec / 60) + "分）";
+      kEl.onclick = function(ev){
+        if(ev.target.classList.contains("sty-skip")){
+          st.pending = null; save(); paint();     // 責めない。消すだけ
+          return;
+        }
         ov.remove();
-        startTimer({ n: node.task.n, v: 5, sec: node.task.sec });
+        // 報酬は通常のタスクと同じ表（MINS）から引く。物語だけ得になる理由はない
+        var mv = MINS[0];
+        for(var mi = 0; mi < MINS.length; mi++) if(MINS[mi].sec <= pt.sec) mv = MINS[mi];
+        startTimer({ n: pt.n, v: mv.b, sec: pt.sec,
+          after: function(){
+            st.pending = null; save();
+            openStory();                          // 読みかけの章に戻す
+          } });
       };
     }
 
@@ -1629,6 +1651,7 @@ function openStory(){
         st.keep += (c.keep || 0);
         st.go   += (c.go   || 0);
         st.at    = c.to;
+        st.pending = c.task ? { n:c.task.n, sec:c.task.sec } : null;
         save(); paint();
       });
     });
@@ -1646,7 +1669,7 @@ function fresh(){
     depth:1, maxDepth:0, train:{ atk:0, def:0, hp:0 }, dailyDone:"", dailyCount:0,
     maxStreak:0, kills:0, timerSec:0, titles:{}, dust:0, dayStart:4,
     dustDebt:0, ghosts:[],
-    story:{ at:"c1", keep:0, go:0, clears:0, end:null } };
+    story:{ at:"c1", keep:0, go:0, clears:0, end:null, pending:null } };
 }
 var S = load() || fresh();
 // v3: タスクを2つに整理する（以前の10個は削除）
@@ -1697,7 +1720,7 @@ function migrate(st){
   if(typeof st.dust !== "number") st.dust = 0;
   if(typeof st.dustDebt !== "number") st.dustDebt = 0;
   if(!st.ghosts) st.ghosts = [];
-  if(!st.story) st.story = { at:"c1", keep:0, go:0, clears:0, end:null };
+  if(!st.story) st.story = { at:"c1", keep:0, go:0, clears:0, end:null, pending:null };
   if(typeof st.dayStart !== "number"){
     st.dayStart = 4;
     // 区切りを変えた瞬間に連続日数が切れないよう、記録が未来日付になっていたら合わせる
@@ -1979,6 +2002,7 @@ function startTimer(task){
     if(done){ gain(task.n, task.v, null); toast("完走。" + task.n + " を最後までやりきった。"); buzz([20,50,20,50,30]); }
     else if(amt > 0){ gain(task.n + "（途中まで）", amt, null); toast("途中でも " + amt + " EXP。動いた分は消えません。"); }
     else { toast("また今度でいい。開いただけでも一歩。"); }
+    if(task.after) task.after(done, amt);   // 物語モードはここで読みかけの章に戻る
   }
 
   pauseBtn.addEventListener("click", function(){
