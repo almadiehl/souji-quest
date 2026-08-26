@@ -2570,9 +2570,17 @@ function fitDock(){
   var d = document.querySelector(".dock");
   if(!d) return;
   var h = Math.ceil(d.getBoundingClientRect().height);
-  if(h > 0) document.documentElement.style.setProperty("--dock-h", h + "px");
+  var vh = window.innerHeight || 0;
+  // 起動直後や背面から戻った直後は、画面の高さがまだ確定しておらず
+  // でたらめな高さを掴むことがある。一度おかしな値を採用すると、
+  // 全タブの下に巨大な余白が残り続けてスクロールが伸びる。
+  // 画面が測れないとき／画面の半分を超える値は採用しない（既定の200pxのまま）。
+  if(!vh || h <= 0 || h > vh * 0.5) return;
+  document.documentElement.style.setProperty("--dock-h", h + "px");
 }
 window.addEventListener("resize", fitDock);
+window.addEventListener("load", fitDock);
+document.addEventListener("visibilitychange", function(){ if(!document.hidden) fitDock(); });
 window.addEventListener("orientationchange", function(){ setTimeout(fitDock, 250); });
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitDock);
 var view = "clean";
