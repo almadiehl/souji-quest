@@ -39,12 +39,24 @@ const gearSections = SLOTS.map(s=>`
   ${gearTable(s)}`).join('');
 
 // ===== 接辞表 =====
-const affixRows=AFFIX.map(a=>{
+function rangeTxt(o, deep){
+  const lo = deep ? o.m2 : o.min, hi = deep ? o.x2 : o.max;
+  const sh = o.show || (o.minus ? '−' : '+');
+  return sh + Math.abs(lo) + '〜' + Math.abs(hi) + (o.u||'');
+}
+const affixRows=AFFIX.filter(a=>!a.pack).map(a=>{
   const slots=SLOTS.filter(s=>SLOT_AFFIX[s].includes(a.k)).map(s=>SLOT_JA[s]).join('・')||'—';
   const sign=a.minus?'−':'+';
   return `<tr><td class="nm">${esc(a.n)}<em class="sub">${esc(a.d)}</em></td>
     <td class="n">${sign}${a.min}〜${a.max}${a.u}<em class="t2">深 ${sign}${a.m2}〜${a.x2}${a.u}</em></td>
     <td class="w">${slots}</td></tr>`;
+}).join('');
+const packRows=AFFIX.filter(a=>a.pack).map(a=>{
+  const slots=SLOTS.filter(s=>SLOT_AFFIX[s].includes(a.k)).map(s=>SLOT_JA[s]).join('・')||'—';
+  const good=a.pack[0], bad=a.pack[1];
+  return `<tr><td class="nm">${esc(a.n)}<em class="sub">${slots}</em></td>
+    <td class="n">${esc(good.lab)} ${rangeTxt(good)}<em class="t2">深 ${rangeTxt(good,true)}</em></td>
+    <td class="n bad">${esc(bad.lab)} ${rangeTxt(bad)}<em class="badd">深 ${rangeTxt(bad,true)}</em></td></tr>`;
 }).join('');
 
 // ===== レア度 =====
@@ -113,6 +125,8 @@ td.nm em.sub{display:block;font-style:normal;font-size:11px;color:var(--muted);f
 td.st{font-family:var(--hud);font-size:12px;color:var(--mint);white-space:nowrap;letter-spacing:.02em}
 td.st b{color:var(--dim);font-weight:400;margin-right:1px}
 td.n em.t2{display:block;font-style:normal;font-size:11px;color:var(--ember);font-family:var(--hud)}
+td.n.bad{color:var(--blood)}
+td.n em.badd{display:block;font-style:normal;font-size:11px;color:var(--blood);opacity:.75;font-family:var(--hud)}
 td.w{color:var(--muted);font-size:11px;white-space:nowrap}
 td.t2{color:var(--ember)}
 td.afx{color:var(--violet);font-size:12px;line-height:1.6}
@@ -173,6 +187,12 @@ footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:v
 <thead><tr><th>名前 ／ 効果</th><th class="n">値幅</th><th>付きやすい</th></tr></thead>
 <tbody>${affixRows}</tbody></table></div>
 <div class="box v">8割はスロット固有の候補から、<b>2割は完全ランダム</b>で選ばれます。てぶくろに「鋭さ」が付くこともあります。</div>
+
+<h3>代償つきの接辞</h3>
+<p class="lead">良いことと悪いことがセット。<b>何を諦めるか</b>を決める接辞です。</p>
+<div class="tw"><table>
+<thead><tr><th>名前 ／ 出る場所</th><th class="n">得るもの</th><th class="n">代償</th></tr></thead>
+<tbody>${packRows}</tbody></table></div>
 
 <h2 id="cat"><span class="no">04</span>装備カタログ ${SLOTS.reduce((a,s)=>a+SHOP[s].length,0)}点</h2>
 <p class="lead">数値は<b>基準値</b>（並・個体差なし・強化なし）です。実際に拾うものはこれに倍率がかかります。</p>

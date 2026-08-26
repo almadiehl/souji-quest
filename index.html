@@ -255,6 +255,8 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .dp.eq{color:var(--dim)}
 .afx{font-family:var(--f-body);font-size:11px;color:var(--violet);letter-spacing:.02em}
 .afx.t2{color:var(--ember);font-weight:700}
+.afx .bad{font-style:normal;color:var(--blood)}
+.afx.t2 .bad{color:var(--blood)}
 .loot span{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 10px;margin-top:3px}
 .loot.uniq{box-shadow:0 0 26px rgba(255,122,89,.28)}
 .isheet{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
@@ -832,16 +834,35 @@ var AFFIX = [
   { k:"swift",   n:"速攻",     d:"先手をとる確率",     min:15, max:30, m2:35, x2:55, u:"%" },
   { k:"guard",   n:"守勢",     d:"半分以下で被ダメ",   min:5,  max:10, m2:12, x2:20, u:"%", minus:true },
   { k:"wrath",   n:"怒り",     d:"半分以下で与ダメ",   min:6,  max:12, m2:15, x2:25, u:"%" },
-  { k:"dustp",   n:"収集",     d:"分解で得る粉",      min:20, max:40, m2:50, x2:90, u:"%" }
+  { k:"dustp",   n:"収集",     d:"分解で得る粉",      min:20, max:40, m2:50, x2:90, u:"%" },
+  // ここから下は「良いこと」と「代償」がセットの接辞
+  { k:"reckless", n:"捨て身", pack:[
+      { k:"sharp", lab:"与ダメ", show:"+", min:15, max:25, m2:28, x2:40, u:"%" },
+      { k:"tough", lab:"被ダメ", show:"+", bad:true, min:-18, max:-10, m2:-26, x2:-16, u:"%" } ] },
+  { k:"heavy",    n:"重装",   pack:[
+      { k:"tough", lab:"被ダメ", show:"−", min:10, max:16, m2:18, x2:26, u:"%" },
+      { k:"sharp", lab:"与ダメ", show:"−", bad:true, min:-10, max:-6, m2:-16, x2:-10, u:"%" } ] },
+  { k:"light",    n:"軽装",   pack:[
+      { k:"swift", lab:"先手",   show:"+", min:25, max:40, m2:45, x2:65, u:"%" },
+      { k:"maxhp", lab:"最大HP", show:"−", bad:true, min:-18, max:-10, m2:-24, x2:-14, u:"%" } ] },
+  { k:"focus",    n:"一点集中", pack:[
+      { k:"oosouji", lab:"大掃除", show:"+", min:40, max:70, m2:80, x2:120, u:"%" },
+      { k:"normalp", lab:"通常攻撃", show:"−", bad:true, min:-30, max:-20, m2:-40, x2:-28, u:"%" } ] },
+  { k:"rush",     n:"前のめり", pack:[
+      { k:"first", lab:"最初の一撃", show:"+", min:50, max:90, m2:100, x2:150, u:"%" },
+      { k:"tough", lab:"被ダメ",     show:"+", bad:true, min:-14, max:-8, m2:-20, x2:-12, u:"%" } ] },
+  { k:"burn",     n:"燃焼",   pack:[
+      { k:"wrath", lab:"半分以下で与ダメ", show:"+", min:20, max:35, m2:40, x2:60, u:"%" },
+      { k:"heal",  lab:"拾うと回復",       show:"−", bad:true, min:-7, max:-4, m2:-10, x2:-6, u:"%" } ] }
 ];
 function affixDef(k){ for(var i=0;i<AFFIX.length;i++) if(AFFIX[i].k === k) return AFFIX[i]; return null; }
 // スロットごとに出やすい接辞が違う（狙って集められるようにする）
 var SLOT_AFFIX = {
-  weapon: ["crit","sharp","first","combo","wrath"],
-  armor:  ["tough","counter","endure","guard","heal"],
-  glove:  ["kipick","heal","find","dustp","combo"],
-  boots:  ["kistart","swift","crit","tough"],
-  acc:    ["gold","find","kistart","dustp","guard"]
+  weapon: ["crit","sharp","first","combo","wrath","reckless","focus","rush"],
+  armor:  ["tough","counter","endure","guard","heal","heavy"],
+  glove:  ["kipick","heal","find","dustp","combo","burn"],
+  boots:  ["kistart","swift","crit","tough","light"],
+  acc:    ["gold","find","kistart","dustp","guard","reckless"]
 };
 function rollAffixes(n, strong, slot, tier){
   var biased = SLOT_AFFIX[slot] || [];
@@ -862,6 +883,17 @@ function rollAffixes(n, strong, slot, tier){
     used[k] = 1;
     var a2 = affixDef(k); if(!a2) continue;
     var t = strong ? (0.55 + Math.random()*0.45) : Math.random();
+    if(a2.pack){
+      var parts = a2.pack.map(function(pp){
+        var lo2 = (tier === 2 && pp.m2 !== undefined) ? pp.m2 : pp.min;
+        var hi2 = (tier === 2 && pp.x2 !== undefined) ? pp.x2 : pp.max;
+        var vv = Math.round(lo2 + (hi2 - lo2) * t);
+        if(vv === 0) vv = (lo2 < 0 ? -1 : 1);
+        return { k:pp.k, v:vv };
+      });
+      out.push({ k:k, p:parts, t:(tier === 2 ? 2 : 1) });
+      continue;
+    }
     var lo = (tier === 2 && a2.m2 !== undefined) ? a2.m2 : a2.min;
     var hi = (tier === 2 && a2.x2 !== undefined) ? a2.x2 : a2.max;
     out.push({ k:k, v: Math.max(1, Math.round(lo + (hi - lo) * t)), t: (tier === 2 ? 2 : 1) });
@@ -871,10 +903,14 @@ function rollAffixes(n, strong, slot, tier){
 // 装備している3点の追加効果を合計する
 function affixTotals(){
   var t = { crit:0, kipick:0, heal:0, kistart:0, gold:0, find:0, tough:0, sharp:0,
-            first:0, combo:0, counter:0, endure:0, swift:0, guard:0, wrath:0, dustp:0 };
+            first:0, combo:0, counter:0, endure:0, swift:0, guard:0, wrath:0, dustp:0,
+            maxhp:0, normalp:0, oosouji:0 };
   SLOTS.forEach(function(slot){
     var g = findItem(S.equip[slot]);
-    if(g && g.af) g.af.forEach(function(a){ if(t[a.k] !== undefined) t[a.k] += a.v; });
+    if(g && g.af) g.af.forEach(function(a){
+      if(a.p){ a.p.forEach(function(pp){ if(t[pp.k] !== undefined) t[pp.k] += pp.v; }); }
+      else if(t[a.k] !== undefined) t[a.k] += a.v;
+    });
   });
   return t;
 }
@@ -919,9 +955,21 @@ function itemStatsHtml(it){
   if(iv(it,"hp"))  out.push('<span class="sv">HP+' + iv(it,"hp") + '</span>');
   if(it.af) it.af.forEach(function(a){
     var d = affixDef(a.k); if(!d) return;
-    out.push('<span class="afx' + (a.t === 2 ? " t2" : "") + '">◇' + d.d + " " + (d.minus ? "−" : "+") + a.v + d.u + '</span>');
+    out.push('<span class="afx' + (a.t === 2 ? " t2" : "") + '">' + affixText(a, d) + '</span>');
   });
   return out.join("");
+}
+// 接辞1つぶんの表示文字列
+function affixText(a, d){
+  if(a.p && d.pack){
+    var parts = a.p.map(function(pp, i){
+      var def = d.pack[i] || {};
+      var txt = def.lab + " " + (def.show || "+") + Math.abs(pp.v) + (def.u || "");
+      return def.bad ? '<i class="bad">' + txt + '</i>' : txt;
+    });
+    return "◇" + d.n + " " + parts.join(" ／ ");
+  }
+  return "◇" + d.d + " " + (d.minus ? "−" : "+") + a.v + (d.u || "");
 }
 function itemName(it){ var b = baseOf(it); return (it.u ? "" : RARITY[it.r].n) + (b ? b.n : "?") + ((it.up||0) ? " +" + it.up : ""); }
 function itemScore(it){
@@ -1495,8 +1543,9 @@ function battle(e, run){
    "first","combo","counter","endure","swift","guard","wrath"].forEach(function(k){
     if(BL[k]) AF[k] += BL[k];
   });
-  var maxHp = Math.round(P.hp * (1 + (BL.maxhp || 0) / 100));
-  var oosoujiMul = 1 + (BL.oosouji || 0) / 100;
+  var maxHp = Math.max(1, Math.round(P.hp * (1 + ((BL.maxhp || 0) + (AF.maxhp || 0)) / 100)));
+  var oosoujiMul = 1 + ((BL.oosouji || 0) + (AF.oosouji || 0)) / 100;
+  var normalMul = 1 + (AF.normalp || 0) / 100;
   var kiMax = KI.MAX + (BL.kimax || 0);
   var kiStart = Math.min(kiMax, KI.START + AF.kistart);
   var kiPick = KI.PICK + AF.kipick;
@@ -1637,7 +1686,7 @@ function battle(e, run){
         charged = false;
       } else {
         var c2 = Math.random() < critRate;
-        dmg = Math.max(1, Math.round((P.atk - e.def*0.85) * rnd() * (c2 ? 1.6 : 1) * dmgMul * bonus));
+        dmg = Math.max(1, Math.round((P.atk - e.def*0.85) * rnd() * (c2 ? 1.6 : 1) * dmgMul * bonus * normalMul));
         say((c2 ? "会心の一撃！ " : "") + e.n + " に " + dmg + " のダメージ", c2 ? "crit" : "dmg");
         dmgPop(dmg, c2 ? "crit" : "");
       }
@@ -1711,7 +1760,7 @@ function battle(e, run){
   // ===== おまかせ =====
   function decide(){
     if(charged) return "hataku";
-    var normal   = Math.max(1, (P.atk - e.def*0.85) * dmgMul);
+    var normal   = Math.max(1, (P.atk - e.def*0.85) * dmgMul * normalMul);
     var charge   = P.atk * KI.TAMERU * dmgMul;
     var big      = P.atk * KI.OOSOUJI * dmgMul * oosoujiMul;
     var incoming = Math.max(1, (e.atk - P.def*0.60) * takeMul);
@@ -2385,7 +2434,12 @@ function openItem(it, slot){
 var gearOpen = { weapon:false, armor:false, glove:false, boots:false, acc:false };
 function renderGear(st){
   var t = st.t || { atk:0, def:0, hp:0 };
-  $("s-hp").textContent = st.hp;   $("s-hp-b").textContent  = (st.b.hp + t.hp*10)  ? "(+" + (st.b.hp + t.hp*10)  + ")" : "";
+  var afh = affixTotals();
+  var shownHp = Math.max(1, Math.round(st.hp * (1 + (afh.maxhp || 0) / 100)));
+  $("s-hp").textContent = shownHp;
+  $("s-hp-b").textContent = (afh.maxhp ? (afh.maxhp > 0 ? "(+" + afh.maxhp + "%)" : "(" + afh.maxhp + "%)")
+                                       : ((st.b.hp + t.hp*10) ? "(+" + (st.b.hp + t.hp*10) + ")" : ""));
+  $("s-hp-b").style.color = (afh.maxhp < 0) ? "var(--blood)" : "var(--mint)";
   $("s-atk").textContent = st.atk; $("s-atk-b").textContent = (st.b.atk + t.atk*2)  ? "(+" + (st.b.atk + t.atk*2)  + ")" : "";
   $("s-def").textContent = st.def; $("s-def-b").textContent = (st.b.def + t.def*2)  ? "(+" + (st.b.def + t.def*2)  + ")" : "";
 
@@ -2472,7 +2526,7 @@ function renderGear(st){
         var d2 = affixDef(a.k); if(!d2) return;
         var ax = document.createElement("span");
         ax.className = "afx" + (a.t === 2 ? " t2" : "");
-        ax.textContent = "◇" + d2.d + " " + (d2.minus ? "−" : "+") + a.v + d2.u;
+        ax.innerHTML = affixText(a, d2);
         sp.appendChild(ax);
       });
       var acts = row.querySelector(".acts");
