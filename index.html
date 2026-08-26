@@ -327,6 +327,9 @@ textarea.ta{height:112px;resize:none;font-size:16px}
   transition:transform .09s ease,box-shadow .09s ease;text-align:center;
 }
 .tap:active{transform:translateY(4px);box-shadow:0 1px 0 #8A6E24,0 4px 10px rgba(0,0,0,.4)}
+/* 使い切った状態。押せなくはしない（タイマーへの入口として残す） */
+.tap.spent{background:linear-gradient(180deg,#3A3F4C,#2A2F3B);color:var(--muted);box-shadow:0 4px 0 #1B1F28,0 8px 16px rgba(0,0,0,.4)}
+.tap.spent span{color:var(--mint)}
 .tap b{display:block;font-size:16px;font-weight:900}
 .tap span{display:block;font-family:var(--f-hud);font-size:10.5px;margin-top:1px;color:#4A3708;letter-spacing:.06em}
 .tap2{margin-top:6px;padding:9px 12px 8px;background:linear-gradient(180deg,#212838,#191F2C);color:var(--text);
@@ -684,6 +687,10 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 /* ============ データ ============ */
 var KEY = "souji-quest-v2";
 var GOAL = 3;
+// 「すぐできる」で報酬が入るのは1日この回数まで。使い切ったらタイマーだけになる。
+// 画面のボタンと、戦闘中の「ゴミを拾う」で枠を共有する（片方だけ絞っても抜け道が移るだけ）。
+// 最小限の受け皿は残す：この回数だけで今日のノルマ(GOAL)は達成できる。
+var FREE_TAPS = 3;
 
 // 画面を短く保つため、常設は2つだけ。増やしたいものは下の作成フォームから追加する。
 var DEFAULT_TASKS = [
@@ -1687,7 +1694,7 @@ function fresh(){
     items:[], equip:newEquip(), cleared:{}, log:[], last:null, seen:false,
     depth:1, maxDepth:0, train:{ atk:0, def:0, hp:0 }, dailyDone:"", dailyCount:0,
     maxStreak:0, kills:0, timerSec:0, titles:{}, dust:0, dayStart:4,
-    dustDebt:0, ghosts:[],
+    dustDebt:0, ghosts:[], freeUsed:0,
     story:{ at:"c1", keep:0, go:0, clears:0, end:null, pending:null } };
 }
 var S = load() || fresh();
@@ -1738,6 +1745,7 @@ function migrate(st){
   if(!st.titles) st.titles = {};
   if(typeof st.dust !== "number") st.dust = 0;
   if(typeof st.dustDebt !== "number") st.dustDebt = 0;
+  if(typeof st.freeUsed !== "number") st.freeUsed = 0;
   if(!st.ghosts) st.ghosts = [];
   if(!st.story) st.story = { at:"c1", keep:0, go:0, clears:0, end:null, pending:null };
   if(typeof st.dayStart !== "number"){
@@ -1753,7 +1761,9 @@ function migrate(st){
 }
 var migrated = migrate(S);
 
-function rollDay(){ var t = today(); if(S.day !== t){ S.day = t; S.dayCount = 0; } }
+function rollDay(){ var t = today(); if(S.day !== t){ S.day = t; S.dayCount = 0; S.freeUsed = 0; } }
+function freeLeft(){ rollDay(); return Math.max(0, FREE_TAPS - (S.freeUsed || 0)); }
+function useFree(){ S.freeUsed = (S.freeUsed || 0) + 1; }
 rollDay();
 if(migrated) save();
 
@@ -1832,6 +1842,14 @@ function gain(label, amount, ev){
 }
 // タップしたときの当たり（たまに多くもらえる）
 function tapGain(t, ev){
+  if(freeLeft() <= 0){
+    // 責めない。できなかったことではなく、次にできることを出す
+    toast("今日の「すぐできる」は使い切り。ここからは時間を使ってください。");
+    runTimer({ n: t.n, sec: 300 });
+    return;
+  }
+  useFree();
+  var mark = function(){ if(S.last) S.last.free = true; save(); };
   var r = Math.random();
   if(r < 0.03){
     gain(t.n, t.v, ev);
@@ -1839,13 +1857,13 @@ function tapGain(t, ev){
     pushLog("塵の中から何かを見つけた", "+20", false);
     save(); render();
     toast("✦ 塵の中から何かを見つけた。+20 G");
-    buzz([20,50,20]);
+    buzz([20,50,20]); mark();
   } else if(r < 0.15){
     gain(t.n + "（会心）", Math.max(3, t.v * 3), ev);
     toast("会心の一手！ いつもより多く進んだ。");
-    buzz([18,40,18]);
+    buzz([18,40,18]); mark();
   } else {
-    gain(t.n, t.v, ev);
+    gain(t.n, t.v, ev); mark();
   }
 }
 function undo(){
@@ -1856,6 +1874,7 @@ function undo(){
   S.lv = 1; S.xp = t;
   while(S.xp >= need(S.lv)){ S.xp -= need(S.lv); S.lv += 1; }
   S.dayCount = Math.max(0, S.dayCount-1); S.total = Math.max(0, S.total-1);
+  if(L.free) S.freeUsed = Math.max(0, (S.freeUsed || 0) - 1);
   S.last = null; if(S.log.length) S.log.shift();
   save(); render(); toast("取り消しました");
 }
@@ -2234,8 +2253,13 @@ function battle(e, run){
       php = Math.min(maxHp, php + heal);
       dmgPop("+" + heal, "heal");
       picks++;
-      if(picks <= PICK_REWARD_LIMIT){
+      // 報酬は「1戦闘3回まで」かつ「1日の枠の残りがあるとき」。
+      // 気力とHPの回復は枠に関係なく効く（戦術としての拾うは殺さない）
+      if(picks <= PICK_REWARD_LIMIT && freeLeft() > 0){
+        useFree();
         gain("ゴミを拾う（戦闘中）", 1, null);
+        if(S.last) S.last.free = true;
+        save();
         say("ゴミを1個ひろった。気力+" + kiPick + " ／ HP+" + heal + " ／ EXP+1", "pick");
       } else {
         say("ゴミを1個ひろった。気力+" + kiPick + " ／ HP+" + heal, "pick");
@@ -2631,16 +2655,24 @@ function render(){
   $("q-note").textContent = "達成でボーナス +" + (5 + Math.max(0, S.streak-1)*2) + " G。ゴミ1個も1回に数えます。";
 
   // 常設の2つ＝ドックのボタン
+  var left = freeLeft();
+  function tapLabel(t){
+    if(t.sec) return "⏱ 1〜15分から選ぶ";
+    if(left <= 0) return "今日のぶんは使い切り ／ タップでタイマーへ";
+    return "+" + t.v + " EXP / +" + t.v + " G　（あと " + left + " 回）";
+  }
   var head = S.tasks[0];
   if(head){
     $("tap-n").textContent = head.n;
-    $("tap-v").textContent = head.sec ? "⏱ 1〜15分から選ぶ" : ("+" + head.v + " EXP / +" + head.v + " G");
+    $("tap-v").textContent = tapLabel(head);
   }
+  $("tap").classList.toggle("spent", !!head && !head.sec && left <= 0);
   var second = S.tasks[1];
   $("tap2").style.display = second ? "block" : "none";
   if(second){
     $("tap2-n").textContent = second.n;
-    $("tap2-v").textContent = second.sec ? "⏱ 1〜15分から選ぶ" : ("+" + second.v + " EXP / +" + second.v + " G");
+    $("tap2-v").textContent = tapLabel(second);
+    $("tap2").classList.toggle("spent", !second.sec && left <= 0);
   }
 
   // いま：予定が合っているタスクだけを上に出す（無ければ何も出さない）
@@ -2696,7 +2728,8 @@ function render(){
       pb.textContent = i === 0 ? "大ボタン" : "小ボタン";
       b.firstChild.appendChild(pb);
     }
-    b.querySelector("i").textContent = t.sec ? "タイマー（1〜15分から選ぶ）" : "タップで完了";
+    b.querySelector("i").textContent = t.sec ? "タイマー（1〜15分から選ぶ）"
+      : (left <= 0 ? "今日のぶんは使い切り → タイマーへ" : "タップで完了（あと " + left + " 回）");
     b.addEventListener("click", function(ev){ t.sec ? runTimer(t) : tapGain(t, ev); });
     var v = document.createElement("div");
     v.className = "tv";
