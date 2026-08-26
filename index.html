@@ -254,6 +254,7 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .dp.dn{color:#0E1118;background:var(--ember)}
 .dp.eq{color:var(--dim)}
 .afx{font-family:var(--f-body);font-size:11px;color:var(--violet);letter-spacing:.02em}
+.afx.t2{color:var(--ember);font-weight:700}
 .loot span{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 10px;margin-top:3px}
 .loot.uniq{box-shadow:0 0 26px rgba(255,122,89,.28)}
 .isheet{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
@@ -687,35 +688,50 @@ var SHOP = {
     { id:"w3", n:"ふきんの剣",      atk:9,  cost:200  },
     { id:"w4", n:"コロコロ・ランス", atk:14, cost:400  },
     { id:"w5", n:"高圧洗浄の槍",    atk:22, cost:800  },
-    { id:"w6", n:"断捨離の斧",      atk:34, cost:1500 }
+    { id:"w6", n:"断捨離の斧",      atk:34, cost:1500 },
+    { id:"w7", n:"虚無の箒",        atk:48, cost:3000,  deep:3  },
+    { id:"w8", n:"静寂の柄",        atk:66, cost:6000,  deep:8  },
+    { id:"w9", n:"塵払いの神器",     atk:90, cost:12000, deep:15 }
   ],
   armor: [
     { id:"a1", n:"ぼろ布のエプロン", def:2, cost:25  },
     { id:"a2", n:"エプロン",   def:4, hp:5,  cost:80  },
     { id:"a3", n:"作業着",     def:7, hp:12, cost:180 },
     { id:"a4", n:"防塵スーツ", def:12,hp:25, cost:380 },
-    { id:"a5", n:"除菌の鎧",   def:18,hp:45, cost:760 }
+    { id:"a5", n:"除菌の鎧",   def:18,hp:45, cost:760 },
+    { id:"a6", n:"無塵の衣",   def:25,hp:62, cost:1600, deep:3  },
+    { id:"a7", n:"静寂の外套", def:34,hp:85, cost:3200, deep:8  },
+    { id:"a8", n:"白亜の鎧",   def:46,hp:115,cost:6400, deep:15 }
   ],
   glove: [
     { id:"g1", n:"軍手",         def:1, hp:2,  cost:20  },
     { id:"g2", n:"ゴム手袋",     def:2, hp:4,  cost:70  },
     { id:"g3", n:"作業手袋",     def:4, hp:8,  cost:160 },
     { id:"g4", n:"防護グローブ", def:7, hp:14, cost:340 },
-    { id:"g5", n:"匠の手袋",     def:10,hp:22, cost:700 }
+    { id:"g5", n:"匠の手袋",     def:10,hp:22, cost:700 },
+    { id:"g6", n:"塵祓いの手",   def:14,hp:30, cost:1500, deep:3  },
+    { id:"g7", n:"静寂の指先",   def:19,hp:41, cost:3000, deep:8  },
+    { id:"g8", n:"白手の秘手",   def:26,hp:56, cost:6000, deep:15 }
   ],
   boots: [
     { id:"b1", n:"スリッパ",   def:1, hp:4,  cost:22  },
     { id:"b2", n:"サンダル",   def:2, hp:8,  cost:75  },
     { id:"b3", n:"作業靴",     def:3, hp:14, cost:170 },
     { id:"b4", n:"長靴",       def:5, hp:24, cost:360 },
-    { id:"b5", n:"無音の靴",   def:8, hp:38, cost:720 }
+    { id:"b5", n:"無音の靴",   def:8, hp:38, cost:720 },
+    { id:"b6", n:"風の履",     def:11,hp:52, cost:1500, deep:3  },
+    { id:"b7", n:"静寂の歩",   def:15,hp:71, cost:3000, deep:8  },
+    { id:"b8", n:"白路の靴",   def:20,hp:97, cost:6000, deep:15 }
   ],
   acc: [
     { id:"c1", n:"消臭タグ",         hp:8, cost:40   },
     { id:"c2", n:"掃除神のお守り",    atk:2, def:2, cost:120 },
     { id:"c3", n:"タイマーの懐中時計", atk:4, cost:260 },
     { id:"c4", n:"洗剤の指輪",       atk:6, def:4, cost:520 },
-    { id:"c5", n:"換気の羽根",       atk:8, def:8, hp:30, cost:1000 }
+    { id:"c5", n:"換気の羽根",       atk:8, def:8, hp:30, cost:1000 },
+    { id:"c6", n:"澄んだ空気",       atk:11,def:11,hp:41, cost:2000, deep:3  },
+    { id:"c7", n:"静寂の鈴",         atk:15,def:15,hp:56, cost:4000, deep:8  },
+    { id:"c8", n:"白光の護符",       atk:20,def:20,hp:76, cost:8000, deep:15 }
   ]
 };
 
@@ -801,25 +817,33 @@ var BAG_MAX = 80;
 
 // ===== 追加効果（接辞）=====
 var AFFIX = [
-  { k:"crit",    n:"会心",     d:"会心率",         min:2,  max:4,  u:"%" },
-  { k:"kipick",  n:"拾い上手", d:"拾うと気力",      min:1,  max:1,  u:""  },
-  { k:"heal",    n:"手当て",   d:"拾うとHP回復",    min:3,  max:5,  u:"%" },
-  { k:"kistart", n:"はじまり", d:"開始時の気力",    min:1,  max:1,  u:""  },
-  { k:"gold",    n:"金運",     d:"獲得ゴールド",    min:8,  max:15, u:"%" },
-  { k:"find",    n:"宝運",     d:"戦利品の出やすさ", min:10, max:20, u:"%" },
-  { k:"tough",   n:"頑丈",     d:"受けるダメージ",  min:2,  max:4,  u:"%", minus:true },
-  { k:"sharp",   n:"鋭さ",     d:"与えるダメージ",  min:2,  max:4,  u:"%" }
+  { k:"crit",    n:"会心",     d:"会心率",           min:2,  max:4,  m2:5,  x2:8,  u:"%" },
+  { k:"kipick",  n:"拾い上手", d:"拾うと気力",        min:1,  max:1,  m2:1,  x2:2,  u:""  },
+  { k:"heal",    n:"手当て",   d:"拾うとHP回復",      min:3,  max:5,  m2:6,  x2:10, u:"%" },
+  { k:"kistart", n:"はじまり", d:"開始時の気力",      min:1,  max:1,  m2:1,  x2:2,  u:""  },
+  { k:"gold",    n:"金運",     d:"獲得ゴールド",      min:8,  max:15, m2:18, x2:30, u:"%" },
+  { k:"find",    n:"宝運",     d:"戦利品の出やすさ",   min:10, max:20, m2:25, x2:40, u:"%" },
+  { k:"tough",   n:"頑丈",     d:"受けるダメージ",    min:2,  max:4,  m2:5,  x2:8,  u:"%", minus:true },
+  { k:"sharp",   n:"鋭さ",     d:"与えるダメージ",    min:2,  max:4,  m2:5,  x2:8,  u:"%" },
+  { k:"first",   n:"初撃",     d:"最初の一撃",        min:15, max:30, m2:35, x2:60, u:"%" },
+  { k:"combo",   n:"連撃",     d:"二度攻撃する確率",   min:8,  max:15, m2:18, x2:28, u:"%" },
+  { k:"counter", n:"反撃",     d:"受けたぶんを返す",   min:10, max:20, m2:25, x2:40, u:"%" },
+  { k:"endure",  n:"粘り",     d:"一度だけ耐える",     min:1,  max:1,  m2:1,  x2:1,  u:""  },
+  { k:"swift",   n:"速攻",     d:"先手をとる確率",     min:15, max:30, m2:35, x2:55, u:"%" },
+  { k:"guard",   n:"守勢",     d:"半分以下で被ダメ",   min:5,  max:10, m2:12, x2:20, u:"%", minus:true },
+  { k:"wrath",   n:"怒り",     d:"半分以下で与ダメ",   min:6,  max:12, m2:15, x2:25, u:"%" },
+  { k:"dustp",   n:"収集",     d:"分解で得る粉",      min:20, max:40, m2:50, x2:90, u:"%" }
 ];
 function affixDef(k){ for(var i=0;i<AFFIX.length;i++) if(AFFIX[i].k === k) return AFFIX[i]; return null; }
 // スロットごとに出やすい接辞が違う（狙って集められるようにする）
 var SLOT_AFFIX = {
-  weapon: ["crit","sharp","gold"],
-  armor:  ["tough","heal","find"],
-  glove:  ["kipick","heal","find"],
-  boots:  ["kistart","crit","tough"],
-  acc:    ["gold","find","kistart","heal"]
+  weapon: ["crit","sharp","first","combo","wrath"],
+  armor:  ["tough","counter","endure","guard","heal"],
+  glove:  ["kipick","heal","find","dustp","combo"],
+  boots:  ["kistart","swift","crit","tough"],
+  acc:    ["gold","find","kistart","dustp","guard"]
 };
-function rollAffixes(n, strong, slot){
+function rollAffixes(n, strong, slot, tier){
   var biased = SLOT_AFFIX[slot] || [];
   var out = [], used = {};
   for(var i=0;i<n;i++){
@@ -838,13 +862,16 @@ function rollAffixes(n, strong, slot){
     used[k] = 1;
     var a2 = affixDef(k); if(!a2) continue;
     var t = strong ? (0.55 + Math.random()*0.45) : Math.random();
-    out.push({ k:k, v: Math.round(a2.min + (a2.max - a2.min) * t) });
+    var lo = (tier === 2 && a2.m2 !== undefined) ? a2.m2 : a2.min;
+    var hi = (tier === 2 && a2.x2 !== undefined) ? a2.x2 : a2.max;
+    out.push({ k:k, v: Math.max(1, Math.round(lo + (hi - lo) * t)), t: (tier === 2 ? 2 : 1) });
   }
   return out;
 }
 // 装備している3点の追加効果を合計する
 function affixTotals(){
-  var t = { crit:0, kipick:0, heal:0, kistart:0, gold:0, find:0, tough:0, sharp:0 };
+  var t = { crit:0, kipick:0, heal:0, kistart:0, gold:0, find:0, tough:0, sharp:0,
+            first:0, combo:0, counter:0, endure:0, swift:0, guard:0, wrath:0, dustp:0 };
   SLOTS.forEach(function(slot){
     var g = findItem(S.equip[slot]);
     if(g && g.af) g.af.forEach(function(a){ if(t[a.k] !== undefined) t[a.k] += a.v; });
@@ -870,13 +897,13 @@ function findItem(iid){ if(!iid) return null; for(var i=0;i<S.items.length;i++) 
 // 強化（+N）を反映した実効値
 function iv(it, key){ if(!it) return 0; return Math.round((it[key] || 0) * (1 + 0.05 * (it.up || 0))); }
 
-function mkItem(slot, baseId, r, exact){
+function mkItem(slot, baseId, r, exact, tier){
   var b = shopBase(slot, baseId); if(!b) return null;
   var mul = RARITY[r].mul;
   function roll(v){ if(!v) return 0; return Math.max(1, Math.round(v * (exact ? 1 : (0.88 + Math.random()*0.24)) * mul)); }
   var it = { i:newIid(), s:slot, b:baseId, r:r, atk:roll(b.atk), def:roll(b.def), hp:roll(b.hp), up:0 };
   var n = exact ? 0 : RARITY[r].af;
-  if(n) it.af = rollAffixes(n, r >= 2, slot);
+  if(n) it.af = rollAffixes(n, r >= 2, slot, tier);
   return it;
 }
 function mkUnique(key){
@@ -892,7 +919,7 @@ function itemStatsHtml(it){
   if(iv(it,"hp"))  out.push('<span class="sv">HP+' + iv(it,"hp") + '</span>');
   if(it.af) it.af.forEach(function(a){
     var d = affixDef(a.k); if(!d) return;
-    out.push('<span class="afx">◇' + d.d + " " + (d.minus ? "−" : "+") + a.v + d.u + '</span>');
+    out.push('<span class="afx' + (a.t === 2 ? " t2" : "") + '">◇' + d.d + " " + (d.minus ? "−" : "+") + a.v + d.u + '</span>');
   });
   return out.join("");
 }
@@ -908,7 +935,11 @@ function sellPrice(it){
   return Math.max(2, Math.round(base * 0.35 * (1 + 0.35 * (it.up||0))));
 }
 // 分解すると「塵の粉」になる。粉で接辞を引き直したり格上げしたりできる
-function dustOf(it){ return 2 + it.r * 3 + (it.up || 0) * 2; }
+function dustOf(it){
+  var base = 2 + it.r * 3 + (it.up || 0) * 2;
+  var af = affixTotals();
+  return Math.max(1, Math.round(base * (1 + (af.dustp || 0) / 100)));
+}
 var REROLL_COST = 12, PROMOTE_COST = 25;
 function upgradeCost(it){
   var b = baseOf(it);
@@ -922,10 +953,10 @@ function pickRarity(boss){
   for(i=0;i<w.length;i++){ x -= w[i]; if(x < 0) return i; }
   return 0;
 }
-// 敵のレベルに応じて、落ちうる装備の種類を決める
-function pickBase(slot, lv){
-  var a = SHOP[slot];
-  var maxIdx = Math.min(a.length-1, Math.floor(lv/4));
+// 敵のレベルに応じて、落ちうる装備の種類を決める。深層専用のものは階層で解放する
+function pickBase(slot, lv, floor){
+  var a = SHOP[slot].filter(function(b){ return !b.deep || (floor && floor >= b.deep); });
+  var maxIdx = floor ? (a.length - 1) : Math.min(a.length - 1, Math.floor(lv/4));
   var idx = maxIdx;
   if(maxIdx > 0 && Math.random() < 0.35) idx = maxIdx - 1;
   if(maxIdx > 1 && Math.random() < 0.10) idx = maxIdx - 2;
@@ -945,7 +976,7 @@ function rollDrop(e, picks){
   var slot = SLOTS[Math.floor(Math.random()*SLOTS.length)];
   var r = pickRarity(boss || !!e.deep || !!e.daily);
   if(e.treasure) r = Math.max(1, r);        // 宝を抱えた敵は必ず上質以上
-  return mkItem(slot, pickBase(slot, e.lv), r, false);
+  return mkItem(slot, pickBase(slot, e.lv, e.deep), r, false, e.deep ? 2 : 1);
 }
 // 手に入れる。持ち物がいっぱいなら、弱い方を自動で売る
 function takeItem(it){
@@ -1023,7 +1054,17 @@ var BLESS = [
   { k:"kipick",  v:1,  n:"拾い手の加護",   d:"拾うと気力 +1" },
   { k:"maxhp",   v:20, n:"活力の加護",     d:"最大HP +20%（その分回復）" },
   { k:"kimax",   v:2,  n:"器の加護",       d:"気力の最大値 +2" },
-  { k:"oosouji", v:40, n:"大掃除の加護",   d:"大掃除の威力 +40%" }
+  { k:"oosouji", v:40, n:"大掃除の加護",   d:"大掃除の威力 +40%" },
+  { k:"first",   v:50, n:"先手の加護",     d:"最初の一撃 +50%" },
+  { k:"combo",   v:20, n:"連撃の加護",     d:"二度攻撃する確率 +20%" },
+  { k:"counter", v:30, n:"反撃の加護",     d:"受けたぶんの30%を返す" },
+  { k:"endure",  v:1,  n:"不屈の加護",     d:"一度だけ倒れずに耐える" },
+  { k:"swift",   v:40, n:"速攻の加護",     d:"40%で先手をとる" },
+  { k:"guard",   v:15, n:"守勢の加護",     d:"半分以下で受けるダメージ −15%" },
+  { k:"wrath",   v:20, n:"怒りの加護",     d:"半分以下で与えるダメージ +20%" },
+  { k:"sharp",   v:25, n:"猛りの加護",     d:"与えるダメージ +25%" },
+  { k:"tough",   v:18, n:"堅牢の加護",     d:"受けるダメージ −18%" },
+  { k:"kistart", v:3,  n:"満ちる加護",     d:"開始時の気力 +3" }
 ];
 function blessTotals(run){
   var t = {};
@@ -1450,7 +1491,8 @@ function battle(e, run){
   var P = stats();
   var AF = affixTotals();
   var BL = run ? blessTotals(run) : {};
-  ["crit","kipick","heal","kistart","gold","find","tough","sharp"].forEach(function(k){
+  ["crit","kipick","heal","kistart","gold","find","tough","sharp",
+   "first","combo","counter","endure","swift","guard","wrath"].forEach(function(k){
     if(BL[k]) AF[k] += BL[k];
   });
   var maxHp = Math.round(P.hp * (1 + (BL.maxhp || 0) / 100));
@@ -1469,6 +1511,8 @@ function battle(e, run){
           hp:Math.round(e.hp*1.3), atk:Math.round(e.atk*1.15), def:e.def, g:Math.round(e.g*2) };
   }
   var php = run ? Math.min(run.hp, maxHp) : maxHp, ehp = e.hp, ki = kiStart, charged = false, turn = 0;
+  var enduredUsed = false;
+  var skipFirst = AF.swift > 0 && Math.random() < AF.swift / 100;
   var over = false, auto = false, autoLoop = null, picks = 0, busy = false;
 
   var ov = document.createElement("div");
@@ -1582,19 +1626,27 @@ function battle(e, run){
     busy = true;
     if(k === "hataku"){
       var dmg;
+      var bonus = 1;
+      if(turn === 0 && AF.first) bonus *= (1 + AF.first / 100);
+      if(AF.wrath && php <= maxHp * 0.5) bonus *= (1 + AF.wrath / 100);
       if(charged){
         var cc = Math.random() < critRate;
-        dmg = Math.max(1, Math.round(P.atk * KI.TAMERU * rnd() * (cc ? 1.6 : 1) * dmgMul));
+        dmg = Math.max(1, Math.round(P.atk * KI.TAMERU * rnd() * (cc ? 1.6 : 1) * dmgMul * bonus));
         say((cc ? "会心！ " : "") + "ためた一撃！ " + e.n + " に " + dmg + " のダメージ", cc ? "crit" : "dmg");
         dmgPop(dmg, cc ? "crit" : "");
         charged = false;
       } else {
         var c2 = Math.random() < critRate;
-        dmg = Math.max(1, Math.round((P.atk - e.def*0.85) * rnd() * (c2 ? 1.6 : 1) * dmgMul));
+        dmg = Math.max(1, Math.round((P.atk - e.def*0.85) * rnd() * (c2 ? 1.6 : 1) * dmgMul * bonus));
         say((c2 ? "会心の一撃！ " : "") + e.n + " に " + dmg + " のダメージ", c2 ? "crit" : "dmg");
         dmgPop(dmg, c2 ? "crit" : "");
       }
       ehp -= dmg; shake();
+      if(AF.combo && ehp > 0 && Math.random() < AF.combo / 100){
+        var d2v = Math.max(1, Math.round((P.atk - e.def*0.85) * rnd() * dmgMul * 0.7));
+        ehp -= d2v; dmgPop(d2v);
+        say("連撃！ さらに " + d2v + " のダメージ", "crit");
+      }
     } else if(k === "oosouji"){
       ki -= KI.MAX;
       var big = Math.max(1, Math.round(P.atk * KI.OOSOUJI * rnd() * dmgMul * oosoujiMul));
@@ -1624,14 +1676,33 @@ function battle(e, run){
 
   function enemyTurn(){
     if(over) return;
+    if(skipFirst){
+      skipFirst = false;
+      say("先手をとった。" + e.n + " は動けない。", "sys");
+      turn++; busy = false; paint();
+      if(auto) setTimeout(function(){ if(auto && !over) act(decide()); }, 380);
+      return;
+    }
     var c = Math.random() < 0.06;
-    var dmg = Math.max(1, Math.round((e.atk - P.def*0.60) * rnd() * (c ? 1.5 : 1) * takeMul));
+    var tm = takeMul * ((AF.guard && php <= maxHp * 0.5) ? (1 - AF.guard / 100) : 1);
+    var dmg = Math.max(1, Math.round((e.atk - P.def*0.60) * rnd() * (c ? 1.5 : 1) * tm));
+    if(php - dmg <= 0 && AF.endure && !enduredUsed){
+      enduredUsed = true;
+      dmg = Math.max(0, php - 1);
+      say("粘った！ 倒れずに踏みとどまった。", "pick");
+    }
     php -= dmg;
+    if(AF.counter && dmg > 0){
+      var cd = Math.max(1, Math.round(dmg * AF.counter / 100));
+      ehp -= cd; dmgPop(cd);
+      say("反撃！ " + e.n + " に " + cd + " のダメージ", "dmg");
+    }
     hurtFlash();
     say(e.n + " の攻撃。" + dmg + " のダメージを受けた", "hurt");
     turn++;
     busy = false;
     paint();
+    if(ehp <= 0) return end(true);
     if(php <= 0) return end(false);
     if(turn > 60) return end(false);
     if(auto) setTimeout(function(){ if(auto && !over) act(decide()); }, 380);
@@ -2270,7 +2341,8 @@ function openItem(it, slot){
     mk("接辞を引き直す", REROLL_COST + " 粉", canRe && S.dust >= REROLL_COST, function(){
       if(S.dust < REROLL_COST) return;
       S.dust -= REROLL_COST;
-      it.af = rollAffixes(it.af.length, it.r >= 2, it.s);
+      var tier0 = (it.af[0] && it.af[0].t === 2) ? 2 : 1;
+      it.af = rollAffixes(it.af.length, it.r >= 2, it.s, tier0);
       save(); render(); paint(); say("引き直した。", false); buzz([14,35,14]);
     });
     var canProm = (!it.u && it.r < 3);
@@ -2283,7 +2355,8 @@ function openItem(it, slot){
       ["atk","def","hp"].forEach(function(key){ if(it[key]) it[key] = Math.max(1, Math.round(it[key] * k)); });
       var want = RARITY[it.r].af;
       if(!it.af) it.af = [];
-      if(it.af.length < want) it.af = it.af.concat(rollAffixes(want - it.af.length, it.r >= 2, it.s));
+      var tierP = (it.af[0] && it.af[0].t === 2) ? 2 : 1;
+      if(it.af.length < want) it.af = it.af.concat(rollAffixes(want - it.af.length, it.r >= 2, it.s, tierP));
       save(); render(); paint(); say("格が上がった。", false); buzz([18,40,18]);
     });
     var d = dustOf(it);
@@ -2398,7 +2471,7 @@ function renderGear(st){
       if(it.af) it.af.forEach(function(a){
         var d2 = affixDef(a.k); if(!d2) return;
         var ax = document.createElement("span");
-        ax.className = "afx";
+        ax.className = "afx" + (a.t === 2 ? " t2" : "");
         ax.textContent = "◇" + d2.d + " " + (d2.minus ? "−" : "+") + a.v + d2.u;
         sp.appendChild(ax);
       });
@@ -2436,7 +2509,7 @@ function renderGear(st){
   shop.innerHTML = "";
   slots.forEach(function(pair){
     var slot = pair[0];
-    SHOP[slot].forEach(function(g){
+    SHOP[slot].filter(function(g){ return !g.deep; }).forEach(function(g){
       var row = document.createElement("div");
       row.className = "gi";
       var d = [];
