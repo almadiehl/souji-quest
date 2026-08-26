@@ -1,0 +1,404 @@
+<meta charset="utf-8">
+<title>塵界そうじクエスト 装備大全</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+:root{
+  --ink:#0E1118; --panel:#171C28; --panel2:#1E2434; --line:#2C3446; --line2:#212838;
+  --text:#E6E9F2; --muted:#8E97AE; --dim:#5F6883;
+  --gold:#F0C14B; --gold-dim:#8A6E24; --mint:#57D6A6; --violet:#8C7BFF; --ember:#FF7A59; --blood:#E8574C;
+  --hud:"DotGothic16","Courier New",monospace;
+  --body:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.8;-webkit-text-size-adjust:100%}
+.wrap{max-width:820px;margin:0 auto;padding:0 18px 80px}
+header{border-bottom:1px solid var(--line);margin-bottom:26px;padding:38px 0 22px;text-align:center}
+header .eye{font-family:var(--hud);font-size:11px;letter-spacing:.42em;color:var(--gold);padding-left:.42em}
+header h1{font-size:30px;margin:12px 0 6px;letter-spacing:.04em;text-wrap:balance}
+header p{margin:0;color:var(--muted);font-size:13px}
+header .warn{margin-top:14px;display:inline-block;border:1px solid var(--blood);color:var(--blood);
+  font-family:var(--hud);font-size:11px;letter-spacing:.16em;padding:4px 12px;border-radius:4px}
+nav{position:sticky;top:0;z-index:5;background:rgba(14,17,24,.95);border-bottom:1px solid var(--line);
+  margin:0 -18px 26px;padding:9px 18px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+nav a{flex:none;font-family:var(--hud);font-size:11.5px;letter-spacing:.1em;color:var(--muted);text-decoration:none;
+  border:1px solid var(--line);border-radius:99px;padding:5px 11px;white-space:nowrap}
+nav a:hover{color:var(--gold);border-color:var(--gold-dim)}
+h2{font-size:19px;margin:44px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--line);letter-spacing:.03em}
+h2 .no{font-family:var(--hud);font-size:12px;color:var(--gold);margin-right:10px;letter-spacing:.14em}
+h3{font-size:16px;margin:30px 0 6px;color:var(--gold)}
+h3 .cnt{font-family:var(--hud);font-size:11px;color:var(--dim);margin-left:10px;letter-spacing:.08em}
+p.lead{color:var(--muted);font-size:13px;margin:4px 0 12px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-family:var(--hud);font-size:10px;letter-spacing:.06em;color:var(--dim);font-weight:400;
+  text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 8px;border-bottom:1px solid var(--line2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.n,th.n{text-align:right;font-family:var(--hud);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.g{color:var(--gold)}
+td.nm{font-weight:700;line-height:1.5}
+td.nm em.sub{display:block;font-style:normal;font-size:11px;color:var(--muted);font-weight:400}
+td.st{font-family:var(--hud);font-size:12px;color:var(--mint);white-space:nowrap;letter-spacing:.02em}
+td.st b{color:var(--dim);font-weight:400;margin-right:1px}
+td.n em.t2{display:block;font-style:normal;font-size:11px;color:var(--ember);font-family:var(--hud)}
+td.w{color:var(--muted);font-size:11px;white-space:nowrap}
+td.t2{color:var(--ember)}
+td.afx{color:var(--violet);font-size:12px;line-height:1.6}
+tr.deep td.nm{color:var(--ember)}
+.dtag{font-style:normal;font-family:var(--hud);font-size:9px;border:1px solid var(--ember);color:var(--ember);
+  border-radius:3px;padding:0 4px;margin-left:7px;vertical-align:2px}
+.box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);
+  border-radius:10px;padding:14px 16px;margin:16px 0}
+.box.v{border-left-color:var(--violet)}
+.box.m{border-left-color:var(--mint)}
+.box b{color:var(--gold)}
+.box.v b{color:var(--violet)}
+.box.m b{color:var(--mint)}
+.f{font-family:var(--hud);font-size:12.5px;background:#0B0E16;border:1px solid var(--line);
+  border-radius:8px;padding:12px 14px;margin:12px 0;color:var(--mint);overflow-x:auto;white-space:pre;line-height:1.9}
+.f .c{color:var(--dim)}
+ul{padding-left:1.2em;color:var(--muted);font-size:13.5px}
+li{margin:5px 0}
+li b{color:var(--text)}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:12px;text-align:center}
+@media (max-width:520px){ header h1{font-size:24px} body{font-size:14.5px} }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eye">SOUJI QUEST</div>
+  <h1>装備大全</h1>
+  <p>塵界のそうじクエスト ／ 装備・接辞・合成のすべて</p>
+  <div class="warn">ネタバレあり</div>
+</header>
+
+<nav>
+  <a href="#kihon">基本</a><a href="#rarity">レア度</a><a href="#affix">接辞</a>
+  <a href="#g-weapon">ぶき</a><a href="#g-armor">よろい</a><a href="#g-glove">てぶくろ</a>
+  <a href="#g-boots">はきもの</a><a href="#g-acc">おまもり</a>
+  <a href="#uniq">伝説</a><a href="#drop">出現率</a><a href="#craft">合成</a><a href="#bless">加護</a><a href="#tips">狙い方</a>
+</nav>
+
+<h2 id="kihon"><span class="no">01</span>装備の基本</h2>
+<p>装備は<b>5つのスロット</b>に1点ずつ。すべて<b>1点もの</b>で、同じ名前でも数値が違います。</p>
+<div class="f">装備の数値 ＝ 基準値 × レア度倍率 × 個体差(0.88〜1.12) × 強化(1 + 0.05 × 段数)</div>
+<ul>
+<li><b>個体差</b>は拾った瞬間に決まり、あとから変わりません。±12%の幅があります。</li>
+<li><b>強化（+N）</b>は何段でも積めます。1段ごとに基準の5%ずつ増加。</li>
+<li><b>接辞</b>はレア度で個数が決まり、粉で引き直せます。</li>
+</ul>
+<div class="box m"><b>覚えておくこと。</b>ドロップ率は「その戦闘でゴミを拾った回数」で上がります。0回なら基礎の4割、2回で満額、3回以上で1.3倍。<b>拾わないと落ちません。</b></div>
+
+<h2 id="rarity"><span class="no">02</span>レア度</h2>
+<div class="tw"><table>
+<thead><tr><th>レア度</th><th class="n">倍率</th><th class="n">接辞</th><th class="n">通常</th><th class="n">ボス</th></tr></thead>
+<tbody><tr>
+  <td class="nm" style="color:var(--text)">並</td>
+  <td class="n">×1.00</td><td class="n">0個</td>
+  <td class="n">65.8%</td>
+  <td class="n">48.3%</td></tr><tr>
+  <td class="nm" style="color:var(--mint)">上質な</td>
+  <td class="n">×1.12</td><td class="n">1個</td>
+  <td class="n">25.0%</td>
+  <td class="n">31.0%</td></tr><tr>
+  <td class="nm" style="color:var(--gold)">業物の</td>
+  <td class="n">×1.28</td><td class="n">1個</td>
+  <td class="n">7.2%</td>
+  <td class="n">15.2%</td></tr><tr>
+  <td class="nm" style="color:var(--violet)">銘品・</td>
+  <td class="n">×1.45</td><td class="n">2個</td>
+  <td class="n">2.0%</td>
+  <td class="n">5.5%</td></tr></tbody></table></div>
+<p class="lead">※「宝を抱えた敵」からは必ず上質以上が落ちます。伝説（ユニーク）はボス初回撃破の確定枠で、この抽選とは別です。</p>
+
+<h2 id="affix"><span class="no">03</span>接辞 16種</h2>
+<p>装備に付くランダムな特性。<b class="dtag" style="border-color:var(--ember)">深層</b>で拾ったものは<b style="color:var(--ember)">上位の値幅</b>で出ます。</p>
+<div class="tw"><table>
+<thead><tr><th>名前 ／ 効果</th><th class="n">値幅</th><th>付きやすい</th></tr></thead>
+<tbody><tr><td class="nm">会心<em class="sub">会心率</em></td>
+    <td class="n">+2〜4%<em class="t2">深 +5〜8%</em></td>
+    <td class="w">ぶき・はきもの</td></tr><tr><td class="nm">拾い上手<em class="sub">拾うと気力</em></td>
+    <td class="n">+1〜1<em class="t2">深 +1〜2</em></td>
+    <td class="w">てぶくろ</td></tr><tr><td class="nm">手当て<em class="sub">拾うとHP回復</em></td>
+    <td class="n">+3〜5%<em class="t2">深 +6〜10%</em></td>
+    <td class="w">よろい・てぶくろ</td></tr><tr><td class="nm">はじまり<em class="sub">開始時の気力</em></td>
+    <td class="n">+1〜1<em class="t2">深 +1〜2</em></td>
+    <td class="w">はきもの・おまもり</td></tr><tr><td class="nm">金運<em class="sub">獲得ゴールド</em></td>
+    <td class="n">+8〜15%<em class="t2">深 +18〜30%</em></td>
+    <td class="w">おまもり</td></tr><tr><td class="nm">宝運<em class="sub">戦利品の出やすさ</em></td>
+    <td class="n">+10〜20%<em class="t2">深 +25〜40%</em></td>
+    <td class="w">てぶくろ・おまもり</td></tr><tr><td class="nm">頑丈<em class="sub">受けるダメージ</em></td>
+    <td class="n">−2〜4%<em class="t2">深 −5〜8%</em></td>
+    <td class="w">よろい・はきもの</td></tr><tr><td class="nm">鋭さ<em class="sub">与えるダメージ</em></td>
+    <td class="n">+2〜4%<em class="t2">深 +5〜8%</em></td>
+    <td class="w">ぶき</td></tr><tr><td class="nm">初撃<em class="sub">最初の一撃</em></td>
+    <td class="n">+15〜30%<em class="t2">深 +35〜60%</em></td>
+    <td class="w">ぶき</td></tr><tr><td class="nm">連撃<em class="sub">二度攻撃する確率</em></td>
+    <td class="n">+8〜15%<em class="t2">深 +18〜28%</em></td>
+    <td class="w">ぶき・てぶくろ</td></tr><tr><td class="nm">反撃<em class="sub">受けたぶんを返す</em></td>
+    <td class="n">+10〜20%<em class="t2">深 +25〜40%</em></td>
+    <td class="w">よろい</td></tr><tr><td class="nm">粘り<em class="sub">一度だけ耐える</em></td>
+    <td class="n">+1〜1<em class="t2">深 +1〜1</em></td>
+    <td class="w">よろい</td></tr><tr><td class="nm">速攻<em class="sub">先手をとる確率</em></td>
+    <td class="n">+15〜30%<em class="t2">深 +35〜55%</em></td>
+    <td class="w">はきもの</td></tr><tr><td class="nm">守勢<em class="sub">半分以下で被ダメ</em></td>
+    <td class="n">−5〜10%<em class="t2">深 −12〜20%</em></td>
+    <td class="w">よろい・おまもり</td></tr><tr><td class="nm">怒り<em class="sub">半分以下で与ダメ</em></td>
+    <td class="n">+6〜12%<em class="t2">深 +15〜25%</em></td>
+    <td class="w">ぶき</td></tr><tr><td class="nm">収集<em class="sub">分解で得る粉</em></td>
+    <td class="n">+20〜40%<em class="t2">深 +50〜90%</em></td>
+    <td class="w">てぶくろ・おまもり</td></tr></tbody></table></div>
+<div class="box v">8割はスロット固有の候補から、<b>2割は完全ランダム</b>で選ばれます。てぶくろに「鋭さ」が付くこともあります。</div>
+
+<h2 id="cat"><span class="no">04</span>装備カタログ 41点</h2>
+<p class="lead">数値は<b>基準値</b>（並・個体差なし・強化なし）です。実際に拾うものはこれに倍率がかかります。</p>
+
+  <h3 id="g-weapon">ぶき<span class="cnt">9点</span></h3>
+  <p class="lead">出やすい接辞：<b>会心</b> / <b>鋭さ</b> / <b>初撃</b> / <b>連撃</b> / <b>怒り</b></p>
+  <div class="tw"><table>
+    <thead><tr><th>名前</th><th>数値</th><th class="n">値段</th><th>出る</th></tr></thead>
+    <tbody><tr class="">
+      <td class="nm">ほうきの柄</td>
+      <td class="st"><b>こ</b>2</td>
+      <td class="n g">30</td>
+      <td class="w">最初</td></tr><tr class="">
+      <td class="nm">掃除機の管</td>
+      <td class="st"><b>こ</b>5</td>
+      <td class="n g">90</td>
+      <td class="w">Lv4〜</td></tr><tr class="">
+      <td class="nm">ふきんの剣</td>
+      <td class="st"><b>こ</b>9</td>
+      <td class="n g">200</td>
+      <td class="w">Lv8〜</td></tr><tr class="">
+      <td class="nm">コロコロ・ランス</td>
+      <td class="st"><b>こ</b>14</td>
+      <td class="n g">400</td>
+      <td class="w">Lv12〜</td></tr><tr class="">
+      <td class="nm">高圧洗浄の槍</td>
+      <td class="st"><b>こ</b>22</td>
+      <td class="n g">800</td>
+      <td class="w">Lv16〜</td></tr><tr class="">
+      <td class="nm">断捨離の斧</td>
+      <td class="st"><b>こ</b>34</td>
+      <td class="n g">1,500</td>
+      <td class="w">Lv20〜</td></tr><tr class="deep">
+      <td class="nm">虚無の箒<i class="dtag">深</i></td>
+      <td class="st"><b>こ</b>48</td>
+      <td class="n g">3,000</td>
+      <td class="w">B3F〜</td></tr><tr class="deep">
+      <td class="nm">静寂の柄<i class="dtag">深</i></td>
+      <td class="st"><b>こ</b>66</td>
+      <td class="n g">6,000</td>
+      <td class="w">B8F〜</td></tr><tr class="deep">
+      <td class="nm">塵払いの神器<i class="dtag">深</i></td>
+      <td class="st"><b>こ</b>90</td>
+      <td class="n g">12,000</td>
+      <td class="w">B15F〜</td></tr></tbody></table></div>
+  <h3 id="g-armor">よろい<span class="cnt">8点</span></h3>
+  <p class="lead">出やすい接辞：<b>頑丈</b> / <b>反撃</b> / <b>粘り</b> / <b>守勢</b> / <b>手当て</b></p>
+  <div class="tw"><table>
+    <thead><tr><th>名前</th><th>数値</th><th class="n">値段</th><th>出る</th></tr></thead>
+    <tbody><tr class="">
+      <td class="nm">ぼろ布のエプロン</td>
+      <td class="st"><b>ま</b>2</td>
+      <td class="n g">25</td>
+      <td class="w">最初</td></tr><tr class="">
+      <td class="nm">エプロン</td>
+      <td class="st"><b>ま</b>4 <b>H</b>5</td>
+      <td class="n g">80</td>
+      <td class="w">Lv4〜</td></tr><tr class="">
+      <td class="nm">作業着</td>
+      <td class="st"><b>ま</b>7 <b>H</b>12</td>
+      <td class="n g">180</td>
+      <td class="w">Lv8〜</td></tr><tr class="">
+      <td class="nm">防塵スーツ</td>
+      <td class="st"><b>ま</b>12 <b>H</b>25</td>
+      <td class="n g">380</td>
+      <td class="w">Lv12〜</td></tr><tr class="">
+      <td class="nm">除菌の鎧</td>
+      <td class="st"><b>ま</b>18 <b>H</b>45</td>
+      <td class="n g">760</td>
+      <td class="w">Lv16〜</td></tr><tr class="deep">
+      <td class="nm">無塵の衣<i class="dtag">深</i></td>
+      <td class="st"><b>ま</b>25 <b>H</b>62</td>
+      <td class="n g">1,600</td>
+      <td class="w">B3F〜</td></tr><tr class="deep">
+      <td class="nm">静寂の外套<i class="dtag">深</i></td>
+      <td class="st"><b>ま</b>34 <b>H</b>85</td>
+      <td class="n g">3,200</td>
+      <td class="w">B8F〜</td></tr><tr class="deep">
+      <td class="nm">白亜の鎧<i class="dtag">深</i></td>
+      <td class="st"><b>ま</b>46 <b>H</b>115</td>
+      <td class="n g">6,400</td>
+      <td class="w">B15F〜</td></tr></tbody></table></div>
+  <h3 id="g-glove">てぶくろ<span class="cnt">8点</span></h3>
+  <p class="lead">出やすい接辞：<b>拾い上手</b> / <b>手当て</b> / <b>宝運</b> / <b>収集</b> / <b>連撃</b></p>
+  <div class="tw"><table>
+    <thead><tr><th>名前</th><th>数値</th><th class="n">値段</th><th>出る</th></tr></thead>
+    <tbody><tr class="">
+      <td class="nm">軍手</td>
+      <td class="st"><b>ま</b>1 <b>H</b>2</td>
+      <td class="n g">20</td>
+      <td class="w">最初</td></tr><tr class="">
+      <td class="nm">ゴム手袋</td>
+      <td class="st"><b>ま</b>2 <b>H</b>4</td>
+      <td class="n g">70</td>
+      <td class="w">Lv4〜</td></tr><tr class="">
+      <td class="nm">作業手袋</td>
+      <td class="st"><b>ま</b>4 <b>H</b>8</td>
+      <td class="n g">160</td>
+      <td class="w">Lv8〜</td></tr><tr class="">
+      <td class="nm">防護グローブ</td>
+      <td class="st"><b>ま</b>7 <b>H</b>14</td>
+      <td class="n g">340</td>
+      <td class="w">Lv12〜</td></tr><tr class="">
+      <td class="nm">匠の手袋</td>
+      <td class="st"><b>ま</b>10 <b>H</b>22</td>
+      <td class="n g">700</td>
+      <td class="w">Lv16〜</td></tr><tr class="deep">
+      <td class="nm">塵祓いの手<i class="dtag">深</i></td>
+      <td class="st"><b>ま</b>14 <b>H</b>30</td>
+      <td class="n g">1,500</td>
+      <td class="w">B3F〜</td></tr><tr class="deep">
+      <td class="nm">静寂の指先<i class="dtag">深</i></td>
+      <td class="st"><b>ま</b>19 <b>H</b>41</td>
+      <td class="n g">3,000</td>
+      <td class="w">B8F〜</td></tr><tr class="deep">
+      <td class="nm">白手の秘手<i class="dtag">深</i></td>
+      <td class="st"><b>ま</b>26 <b>H</b>56</td>
+      <td class="n g">6,000</td>
+      <td class="w">B15F〜</td></tr></tbody></table></div>
+  <h3 id="g-boots">はきもの<span class="cnt">8点</span></h3>
+  <p class="lead">出やすい接辞：<b>はじまり</b> / <b>速攻</b> / <b>会心</b> / <b>頑丈</b></p>
+  <div class="tw"><table>
+    <thead><tr><th>名前</th><th>数値</th><th class="n">値段</th><th>出る</th></tr></thead>
+    <tbody><tr class="">
+      <td class="nm">スリッパ</td>
+      <td class="st"><b>ま</b>1 <b>H</b>4</td>
+      <td class="n g">22</td>
+      <td class="w">最初</td></tr><tr class="">
+      <td class="nm">サンダル</td>
+      <td class="st"><b>ま</b>2 <b>H</b>8</td>
+      <td class="n g">75</td>
+      <td class="w">Lv4〜</td></tr><tr class="">
+      <td class="nm">作業靴</td>
+      <td class="st"><b>ま</b>3 <b>H</b>14</td>
+      <td class="n g">170</td>
+      <td class="w">Lv8〜</td></tr><tr class="">
+      <td class="nm">長靴</td>
+      <td class="st"><b>ま</b>5 <b>H</b>24</td>
+      <td class="n g">360</td>
+      <td class="w">Lv12〜</td></tr><tr class="">
+      <td class="nm">無音の靴</td>
+      <td class="st"><b>ま</b>8 <b>H</b>38</td>
+      <td class="n g">720</td>
+      <td class="w">Lv16〜</td></tr><tr class="deep">
+      <td class="nm">風の履<i class="dtag">深</i></td>
+      <td class="st"><b>ま</b>11 <b>H</b>52</td>
+      <td class="n g">1,500</td>
+      <td class="w">B3F〜</td></tr><tr class="deep">
+      <td class="nm">静寂の歩<i class="dtag">深</i></td>
+      <td class="st"><b>ま</b>15 <b>H</b>71</td>
+      <td class="n g">3,000</td>
+      <td class="w">B8F〜</td></tr><tr class="deep">
+      <td class="nm">白路の靴<i class="dtag">深</i></td>
+      <td class="st"><b>ま</b>20 <b>H</b>97</td>
+      <td class="n g">6,000</td>
+      <td class="w">B15F〜</td></tr></tbody></table></div>
+  <h3 id="g-acc">おまもり<span class="cnt">8点</span></h3>
+  <p class="lead">出やすい接辞：<b>金運</b> / <b>宝運</b> / <b>はじまり</b> / <b>収集</b> / <b>守勢</b></p>
+  <div class="tw"><table>
+    <thead><tr><th>名前</th><th>数値</th><th class="n">値段</th><th>出る</th></tr></thead>
+    <tbody><tr class="">
+      <td class="nm">消臭タグ</td>
+      <td class="st"><b>H</b>8</td>
+      <td class="n g">40</td>
+      <td class="w">最初</td></tr><tr class="">
+      <td class="nm">掃除神のお守り</td>
+      <td class="st"><b>こ</b>2 <b>ま</b>2</td>
+      <td class="n g">120</td>
+      <td class="w">Lv4〜</td></tr><tr class="">
+      <td class="nm">タイマーの懐中時計</td>
+      <td class="st"><b>こ</b>4</td>
+      <td class="n g">260</td>
+      <td class="w">Lv8〜</td></tr><tr class="">
+      <td class="nm">洗剤の指輪</td>
+      <td class="st"><b>こ</b>6 <b>ま</b>4</td>
+      <td class="n g">520</td>
+      <td class="w">Lv12〜</td></tr><tr class="">
+      <td class="nm">換気の羽根</td>
+      <td class="st"><b>こ</b>8 <b>ま</b>8 <b>H</b>30</td>
+      <td class="n g">1,000</td>
+      <td class="w">Lv16〜</td></tr><tr class="deep">
+      <td class="nm">澄んだ空気<i class="dtag">深</i></td>
+      <td class="st"><b>こ</b>11 <b>ま</b>11 <b>H</b>41</td>
+      <td class="n g">2,000</td>
+      <td class="w">B3F〜</td></tr><tr class="deep">
+      <td class="nm">静寂の鈴<i class="dtag">深</i></td>
+      <td class="st"><b>こ</b>15 <b>ま</b>15 <b>H</b>56</td>
+      <td class="n g">4,000</td>
+      <td class="w">B8F〜</td></tr><tr class="deep">
+      <td class="nm">白光の護符<i class="dtag">深</i></td>
+      <td class="st"><b>こ</b>20 <b>ま</b>20 <b>H</b>76</td>
+      <td class="n g">8,000</td>
+      <td class="w">B15F〜</td></tr></tbody></table></div>
+
+<h2 id="uniq"><span class="no">05</span>伝説の一点もの</h2>
+<p>各ボスの<b>初回撃破で確定</b>。素の数値では見劣りしますが、特別な接辞を持ちます。</p>
+<div class="tw"><table>
+<thead><tr><th>名前 ／ 出どころ</th><th>数値</th><th>特別な効果</th></tr></thead>
+<tbody><tr><td class="nm">ヌシの靴べら<em class="sub">靴箱のヌシ ／ はきもの</em></td>
+    <td class="st"><b>ま</b>5 <b>H</b>8</td>
+    <td class="afx">◇戦利品の出やすさ +15%</td></tr><tr><td class="nm">万年筆騎士の羽根<em class="sub">万年筆騎士 ／ ぶき</em></td>
+    <td class="st"><b>こ</b>12</td>
+    <td class="afx">◇会心率 +5%</td></tr><tr><td class="nm">乾燥機の番人の手袋<em class="sub">乾燥機の番人 ／ てぶくろ</em></td>
+    <td class="st"><b>ま</b>4 <b>H</b>20</td>
+    <td class="afx">◇拾うと気力 +1<br>◇拾うとHP回復 +4%</td></tr><tr><td class="nm">冷蔵庫竜の鱗<em class="sub">冷蔵庫竜 ／ よろい</em></td>
+    <td class="st"><b>ま</b>16 <b>H</b>30</td>
+    <td class="afx">◇受けるダメージ −5%</td></tr><tr><td class="nm">混沌王の箒<em class="sub">混沌王カオス ／ ぶき</em></td>
+    <td class="st"><b>こ</b>38</td>
+    <td class="afx">◇与えるダメージ +5%<br>◇会心率 +5%</td></tr></tbody></table></div>
+
+<h2 id="drop"><span class="no">06</span>出現率のしくみ</h2>
+<div class="f">ドロップ率 ＝ 基礎率 × min(1.3, 0.4 + 0.3 × 拾った回数) × (1 + 宝運/100)
+<span class="c">※「宝を抱えた敵」は必ず落とす</span>
+
+<span class="c">基礎率</span>  通常の敵 40%  ／  ボス 100%
+       深層 55%      ／  層主・今日の魔物 100%</div>
+<div class="box"><b>宝を抱えた敵</b>は通常12%、深層18%の確率で現れます。HP1.3倍・攻撃1.15倍・報酬2倍。<b>戦利品は必ず上質以上。</b></div>
+<div class="f"><span class="c">深層で落ちる装備の段は、階層で解放される</span>
+B3F〜   7段目（虚無の箒 など）
+B8F〜   8段目（静寂の柄 など）
+B15F〜  9段目（塵払いの神器 など）
+
+<span class="c">本編では深層専用の装備は落ちない。店にも並ばない。</span></div>
+
+<h2 id="craft"><span class="no">07</span>粉と合成</h2>
+<div class="f">分解で得る粉 ＝ (2 + レア度 × 3 + 強化段数 × 2) × (1 + 収集/100)
+
+接辞を引き直す  12 粉   <span class="c">個数はそのまま。深層産は深層産のまま</span>
+格上げする      25 粉   <span class="c">レア度+1・数値も上がる・接辞が増える</span>
+強化 +1         基準値 × 0.45 × 1.5^(現在の段数) ゴールド
+売る            基準値 × レア度 × 0.35 × (1 + 0.35 × 段数) ゴールド</div>
+<div class="box m">持ち物は<b>80点</b>まで。いっぱいのときに拾うと、<b>弱いほうが自動で売却</b>されます。強いものが消えることはありません。</div>
+
+<h2 id="bless"><span class="no">08</span>潜行の加護 20種</h2>
+<p>深層で1階越えるごとに、3つから1つ選びます。<b>その潜行のあいだだけ</b>効きます。</p>
+<div class="tw"><table>
+<thead><tr><th>名前</th><th>効果</th></tr></thead><tbody><tr><td class="nm">鋭さの加護</td><td>与えるダメージ +12%</td></tr><tr><td class="nm">頑丈の加護</td><td>受けるダメージ −10%</td></tr><tr><td class="nm">会心の加護</td><td>会心率 +10%</td></tr><tr><td class="nm">宝運の加護</td><td>戦利品が落ちやすい</td></tr><tr><td class="nm">金運の加護</td><td>獲得ゴールド +30%</td></tr><tr><td class="nm">手当ての加護</td><td>拾うとHP回復 +8%</td></tr><tr><td class="nm">拾い手の加護</td><td>拾うと気力 +1</td></tr><tr><td class="nm">活力の加護</td><td>最大HP +20%（その分回復）</td></tr><tr><td class="nm">器の加護</td><td>気力の最大値 +2</td></tr><tr><td class="nm">大掃除の加護</td><td>大掃除の威力 +40%</td></tr><tr><td class="nm">先手の加護</td><td>最初の一撃 +50%</td></tr><tr><td class="nm">連撃の加護</td><td>二度攻撃する確率 +20%</td></tr><tr><td class="nm">反撃の加護</td><td>受けたぶんの30%を返す</td></tr><tr><td class="nm">不屈の加護</td><td>一度だけ倒れずに耐える</td></tr><tr><td class="nm">速攻の加護</td><td>40%で先手をとる</td></tr><tr><td class="nm">守勢の加護</td><td>半分以下で受けるダメージ −15%</td></tr><tr><td class="nm">怒りの加護</td><td>半分以下で与えるダメージ +20%</td></tr><tr><td class="nm">猛りの加護</td><td>与えるダメージ +25%</td></tr><tr><td class="nm">堅牢の加護</td><td>受けるダメージ −18%</td></tr><tr><td class="nm">満ちる加護</td><td>開始時の気力 +3</td></tr></tbody></table></div>
+
+<h2 id="tips"><span class="no">09</span>狙い方</h2>
+<ul>
+<li><b>戦闘中は必ず2回は拾う。</b>ドロップ率が4割から満額になります。回復と気力も付いてくるので、拾わない理由がありません。</li>
+<li><b>気力型を組むなら「てぶくろ」を集める。</b>「拾い上手（拾うと気力+1）」はてぶくろに出やすく、大掃除の回転が上がります。</li>
+<li><b>深層産の接辞は別物。</b>会心率は通常2〜4%に対し深層産は5〜8%。同じ名前の装備でも拾い直す価値があります。</li>
+<li><b>格上げは「個体差の良いもの」に。</b>格上げは今の数値に倍率をかけ直すので、元が良いほど伸びます。</li>
+<li><b>強化は費用が1.5倍ずつ増える。</b>+5あたりから急に重くなります。長く使うと決めた1点に絞るのが得です。</li>
+<li><b>伝説は数値で選ばない。</b>「ヌシの靴べら」は素の数値では負けますが、宝運+15%は拾う量そのものを増やします。</li>
+<li><b>潜行の加護は「活力」か「不屈」を早めに。</b>HPが階をまたいで戻らないので、生存に関わる加護が最優先です。</li>
+</ul>
+
+<footer>塵界のそうじクエスト ／ 装備大全<br>数値はアプリの実装から自動抽出しています</footer>
+</div>
