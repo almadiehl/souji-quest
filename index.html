@@ -205,6 +205,17 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .badge{font-family:var(--f-hud);font-size:10px;color:var(--gold);border:1px solid var(--gold-dim);border-radius:4px;padding:0 5px;margin-left:6px}
 
 /* ===== そうび ===== */
+.ghosts{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.gh{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 12px;transition:background .12s ease}
+.gh + .gh{border-top:1px solid var(--line-2)}
+.gh:active{background:var(--panel-2)}
+.gh .sig{flex:none;width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);
+  border-radius:7px;background:#0E121C;font-family:var(--f-hud);font-size:15px;color:var(--muted)}
+.gh.won .sig{border-color:var(--mint-dim);color:var(--mint)}
+.gh .tx{flex:1;min-width:0}
+.gh .tx b{display:block;font-size:13.5px;font-weight:700}
+.gh .tx em{display:block;font-style:normal;font-family:var(--f-hud);font-size:10.5px;color:var(--dim)}
+.gh .st{flex:none;font-family:var(--f-hud);font-size:11.5px;color:var(--violet)}
 .tnow{background:var(--panel);border:1px solid var(--gold-dim);border-radius:var(--r);padding:12px 14px;text-align:center}
 .tnow em{display:block;font-style:normal;font-family:var(--f-hud);font-size:10px;letter-spacing:.2em;color:var(--dim)}
 .tnow b{display:block;font-size:17px;margin-top:4px}
@@ -468,6 +479,11 @@ textarea.ta{height:112px;resize:none;font-size:16px}
           <span class="tx"><b id="dm-n">今日の魔物</b><em id="dm-note"></em></span>
           <span class="st" id="dm-s"></span>
         </button>
+        <button class="todo-row" id="debt-card" style="display:none">
+          <span class="mk" style="background:var(--ember)"></span>
+          <span class="tx"><b id="db-n"></b><em id="db-note"></em></span>
+          <span class="st" id="db-s" style="color:var(--ember)">挑む</span>
+        </button>
       </div>
     </section>
     <section class="sec">
@@ -585,6 +601,11 @@ textarea.ta{height:112px;resize:none;font-size:16px}
       <div class="sec-h">称号</div>
       <div class="tnow" id="tnow"></div>
       <div class="titles" id="titles"></div>
+    </section>
+    <section class="sec">
+      <div class="sec-h">過去のあなた</div>
+      <div class="ghosts" id="ghosts"></div>
+      <div class="note">7日ごとに、そのときの自分が記録されます。挑んで勝てば、伸びた証拠です。</div>
     </section>
     <section class="sec">
       <div class="sec-h">これまで</div>
@@ -1024,6 +1045,7 @@ function rollDrop(e, picks){
   if(e.daily) chance = 1;
   else if(e.deep) chance = boss ? 1 : 0.55;
   else chance = boss ? 1 : 0.40;
+  if(e.nodrop) return null;
   chance *= Math.min(1.3, 0.4 + 0.3 * (picks || 0));
   var af = affixTotals();
   chance *= (1 + af.find / 100);
@@ -1032,6 +1054,7 @@ function rollDrop(e, picks){
   var slot = SLOTS[Math.floor(Math.random()*SLOTS.length)];
   var r = pickRarity(boss || !!e.deep || !!e.daily);
   if(e.treasure) r = Math.max(1, r);        // 宝を抱えた敵は必ず上質以上
+  if(e.debt) r = Math.max(e.debt >= 8 ? 2 : 1, r);   // 溜めたぶんだけ良いものが出る
   return mkItem(slot, pickBase(slot, e.lv, e.deep), r, false, e.deep ? 2 : 1);
 }
 // 手に入れる。持ち物がいっぱいなら、弱い方を自動で売る
@@ -1184,6 +1207,59 @@ function pickBless(run, cb){
   document.body.appendChild(ov);
 }
 
+// ===== 空けた日数から生まれる敵 =====
+function daysBetween(a, b){
+  if(!a || !b) return 0;
+  var x = new Date(a + "T00:00:00"), y = new Date(b + "T00:00:00");
+  return Math.round((y - x) / 86400000);
+}
+var DEBT_NAME = [
+  { d:2,  n:"積もった塵",         s:"積" },
+  { d:4,  n:"淀んだ塵のかたまり",  s:"淀" },
+  { d:8,  n:"忘れられた部屋の主",  s:"忘" },
+  { d:14, n:"見ないふりの化身",    s:"闇" }
+];
+function debtEnemy(){
+  var days = Math.min(30, S.dustDebt || 0);
+  if(days < 2) return null;
+  var nm = DEBT_NAME[0];
+  DEBT_NAME.forEach(function(x){ if(days >= x.d) nm = x; });
+  var p = stats();
+  // 難度はゆるやかに、報酬は日数ぶん。戻ってきた人を跳ね返さないようにする
+  var hard = Math.min(days, 8);
+  var k = 1 + 0.04 * (hard - 1);
+  return {
+    id: "debt", debt: days, boss: true,
+    n: days + "日ぶんの" + nm.n, s: nm.s, lv: S.lv,
+    hp:  Math.max(20, Math.round(p.atk * 5.0 * k)),
+    atk: Math.max(2,  Math.round(p.hp / 8 + p.def * 0.6)),
+    def: Math.max(0,  Math.round(p.atk * 0.22)),
+    g:   Math.max(10, Math.round(p.atk * 1.4 * days)),
+    st:  "溜めたぶんだけ、重かった。だが片づけてみれば、ただの塵だった。\n——空いた日は、取り返せる。"
+  };
+}
+
+// ===== 過去のあなた =====
+function pushGhostIfDue(){
+  if(!S.ghosts) S.ghosts = [];
+  var p = stats(), t = today();
+  var last = S.ghosts[S.ghosts.length - 1];
+  if(!last || daysBetween(last.d, t) >= 7){
+    S.ghosts.push({ d:t, lv:S.lv, atk:p.atk, def:p.def, hp:p.hp, won:false });
+    while(S.ghosts.length > 8) S.ghosts.shift();
+    save();
+  }
+}
+function ghostEnemy(g, idx){
+  return {
+    id: "ghost" + g.d, ghost: idx, nodrop: true, boss: true,
+    n: g.d.slice(5).replace("-", "/") + " のあなた", s: "己", lv: g.lv,
+    hp: g.hp, atk: g.atk, def: g.def,
+    g: Math.max(10, g.lv * 8),
+    st: "かつての自分を、追い越した。\n——その差が、続けたということ。"
+  };
+}
+
 var INTRO = "気づいたときには、部屋は塵界（じんかい）に飲まれていた。\nものが積もり、床が消え、時間だけが進む。\n——だが、この世界の魔物は、ゴミを1個すてるたびに弱っていく。";
 
 /* ============ 保存 ============ */
@@ -1219,7 +1295,8 @@ function fresh(){
     streak:0, lastDay:"", claimed:"", tasks:DEFAULT_TASKS.map(function(t){ return {id:t.id,n:t.n,v:t.v,sec:t.sec}; }),
     items:[], equip:newEquip(), cleared:{}, log:[], last:null, seen:false,
     depth:1, maxDepth:0, train:{ atk:0, def:0, hp:0 }, dailyDone:"", dailyCount:0,
-    maxStreak:0, kills:0, timerSec:0, titles:{}, dust:0, dayStart:4 };
+    maxStreak:0, kills:0, timerSec:0, titles:{}, dust:0, dayStart:4,
+    dustDebt:0, ghosts:[] };
 }
 var S = load() || fresh();
 // v3: タスクを2つに整理する（以前の10個は削除）
@@ -1268,6 +1345,8 @@ function migrate(st){
   if(typeof st.timerSec !== "number") st.timerSec = 0;
   if(!st.titles) st.titles = {};
   if(typeof st.dust !== "number") st.dust = 0;
+  if(typeof st.dustDebt !== "number") st.dustDebt = 0;
+  if(!st.ghosts) st.ghosts = [];
   if(typeof st.dayStart !== "number"){
     st.dayStart = 4;
     // 区切りを変えた瞬間に連続日数が切れないよう、記録が未来日付になっていたら合わせる
@@ -1330,6 +1409,8 @@ function nextTarget(){
 function touchStreak(){
   var t = today();
   if(S.lastDay === t) return;
+  var gap = S.lastDay ? daysBetween(S.lastDay, t) : 0;
+  if(gap >= 2) S.dustDebt = Math.max(S.dustDebt || 0, Math.min(30, gap));
   S.streak = (S.lastDay === yesterday()) ? S.streak + 1 : 1;
   S.maxStreak = Math.max(S.maxStreak || 0, S.streak);
   S.lastDay = t;
@@ -1906,12 +1987,22 @@ function battle(e, run){
     over = true; auto = false;
     var dropInfo = null, uniqueInfo = null;
     if(autoLoop){ clearTimeout(autoLoop); autoLoop = null; }
-    var first = win && (e.daily ? (S.dailyDone !== today())
+    var first = win && (e.debt ? true
+                       : e.ghost !== undefined ? !(S.ghosts[e.ghost] && S.ghosts[e.ghost].won)
+                       : e.daily ? (S.dailyDone !== today())
                        : e.deep ? (e.deep >= S.depth)
                        : !S.cleared[e.id]);
     if(win){
       var gg = Math.round(e.g * (1 + AF.gold / 100));
-      if(run){
+      if(e.debt){
+        S.gold += gg; S.dustDebt = 0;
+        pushLog("撃破：" + e.n, "+" + gg, false); S.last = null; save();
+      } else if(e.ghost !== undefined){
+        if(S.ghosts[e.ghost] && !S.ghosts[e.ghost].won){
+          S.ghosts[e.ghost].won = true; S.gold += gg;
+          pushLog("過去の自分に勝った", "+" + gg, false); S.last = null; save();
+        }
+      } else if(run){
         run.hp = Math.max(1, php);
         run.gold += gg;
         run.deepest = Math.max(run.deepest, e.deep);
@@ -1965,14 +2056,20 @@ function battle(e, run){
     box.className = "result " + (win ? "win" : "lose");
     box.innerHTML = '<div class="big">' + (win ? "VICTORY" : "DEFEAT") + '</div><div class="sub"></div>';
     box.querySelector(".sub").textContent = win
-      ? (e.daily
+      ? (e.debt
+          ? "溜まっていた " + e.debt + " 日ぶんを片づけた！  +" + Math.round(e.g * (1 + AF.gold/100)) + " G"
+          : e.ghost !== undefined
+          ? "かつての自分を超えた。  +" + Math.round(e.g * (1 + AF.gold/100)) + " G"
+          : e.daily
           ? (first ? "今日の魔物を倒した！  +" + e.g + " G　（通算 " + S.dailyCount + " 体）" : "今日はもう倒しています")
           : run
           ? "B" + e.deep + "F を抜けた。まだ下がある。"
           : e.deep
           ? (first ? "B" + e.deep + "F 突破！  +" + e.g + " G　次は B" + (e.deep+1) + "F へ" : "すでに越えた階層です（報酬は初回のみ）")
           : (first ? e.n + " を倒した！  +" + e.g + " G" : e.n + " をもう一度倒した（報酬は初回のみ）"))
-      : (run ? "ここで力尽きた。持ち帰り待ちのものは、すべて塵に還った。"
+      : (e.debt ? "溜まったものは、まだそこにある。少し片づけてから、もう一度。"
+         : e.ghost !== undefined ? "かつての自分に、まだ届かない。"
+         : run ? "ここで力尽きた。持ち帰り待ちのものは、すべて塵に還った。"
          : e.daily ? "今日の魔物には届かなかった。何度でも挑めます。"
          : e.deep ? "ここが今の限界。鍛えるか、部屋を片づけてレベルを上げてから戻ってきてください。"
          : "力が足りなかった。部屋をすこし片づければ、それがそのまま強さになる。");
@@ -1988,7 +2085,7 @@ function battle(e, run){
         fin.textContent = "——塵界、踏破。すべての魔物を倒した。だが塵はまた積もる。この先は、終わりのない深層。";
         ov.querySelector(".ov-in").insertBefore(fin, subBtns);
       }
-    } else if(win && first && (e.deep || e.daily)){
+    } else if(win && first && (e.deep || e.daily || e.debt || e.ghost !== undefined)){
       var st2 = document.createElement("div");
       st2.className = "story"; st2.textContent = e.st;
       ov.querySelector(".ov-in").insertBefore(st2, subBtns);
@@ -2223,6 +2320,16 @@ function render(){
     dcard.style.opacity = "1";
   }
 
+  // 積もった塵
+  var dcd = $("debt-card"), de = (S.dayCount >= 1) ? debtEnemy() : null;
+  if(de){
+    dcd.style.display = "flex";
+    $("db-n").textContent = de.n;
+    $("db-note").textContent = "HP" + de.hp + " ／ 撃破 +" + de.g + " G　空けた日数ぶん、強くて実入りが大きい";
+  } else {
+    dcd.style.display = "none";
+  }
+
   var dsChips = $("dstart").children;
   for(var di = 0; di < dsChips.length; di++){
     dsChips[di].classList.toggle("on", [0,3,4,5,6][di] === dayStart());
@@ -2337,6 +2444,25 @@ function fmtDur(sec){
 }
 function renderRecord(){
   checkTitles();
+  pushGhostIfDue();
+  var gb = $("ghosts"); gb.innerHTML = "";
+  var gs = (S.ghosts || []).slice().reverse();
+  if(!gs.length){
+    gb.innerHTML = '<div class="empty">まだ記録がありません。</div>';
+  } else {
+    gs.forEach(function(g){
+      var idx = S.ghosts.indexOf(g);
+      var row = document.createElement("button");
+      row.className = "gh" + (g.won ? " won" : "");
+      row.innerHTML = '<span class="sig">己</span><span class="tx"><b></b><em></em></span><span class="st"></span>';
+      row.querySelector("b").textContent = g.d.slice(5).replace("-", "/") + " のあなた";
+      row.querySelector("em").textContent = "Lv" + g.lv + " ／ こう" + g.atk + " まも" + g.def + " HP" + g.hp;
+      row.querySelector(".st").textContent = g.won ? "勝った" : "挑む";
+      if(g.won) row.querySelector(".st").style.color = "var(--mint)";
+      row.addEventListener("click", function(){ battle(ghostEnemy(g, idx)); });
+      gb.appendChild(row);
+    });
+  }
   var cur = currentTitle();
   var tn = $("tnow");
   tn.innerHTML = '<em>いまの称号</em><b></b>';
@@ -2666,6 +2792,11 @@ $("form-toggle").addEventListener("click", function(){
   $("guide-box").classList.toggle("hide");
   $("form-toggle").textContent = open ? "＋ 自分のタスクを作る" : "− とじる";
   if(!open) $("form-box").scrollIntoView({ block:"nearest" });
+});
+$("debt-card").addEventListener("click", function(){
+  var de = debtEnemy();
+  if(!de){ toast("いまは溜まっていません。"); return; }
+  battle(de);
 });
 $("daily-card").addEventListener("click", function(){
   if(S.dayCount < 1){ toast("まず1つだけ動いてください。そこから現れます。"); return; }
