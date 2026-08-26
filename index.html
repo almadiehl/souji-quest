@@ -256,6 +256,19 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .afx{font-family:var(--f-body);font-size:11px;color:var(--violet);letter-spacing:.02em}
 .loot span{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 10px;margin-top:3px}
 .loot.uniq{box-shadow:0 0 26px rgba(255,122,89,.28)}
+.isheet{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.isheet .inm{display:block;font-size:18px}
+.isheet .ist{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-top:8px}
+.iacts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.iact{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:11px 8px 9px;text-align:center;
+  transition:transform .1s ease,border-color .12s ease}
+.iact b{display:block;font-size:14px;font-weight:700}
+.iact span{display:block;font-family:var(--f-hud);font-size:10px;color:var(--dim);margin-top:2px}
+.iact:active{transform:scale(.96)}
+.iact[disabled]{opacity:.32;cursor:default}
+.iact.q{border-color:var(--line-2);background:var(--panel)}
+.iact.q b{color:var(--muted);font-weight:500}
+.tag.go{color:var(--dim);font-size:14px}
 .btn.upg{display:flex;flex-direction:column;align-items:center;gap:0;padding:5px 8px;line-height:1.15}
 .btn.upg b{font-size:12px;font-weight:400}
 .btn.upg i{font-style:normal;font-size:9.5px;color:var(--dim)}
@@ -377,6 +390,15 @@ textarea.ta{height:112px;resize:none;font-size:16px}
 .ov-btns .btn{flex:1;text-align:center;padding:13px}
 
 /* タイマー */
+.bless{display:flex;flex-direction:column;gap:8px}
+.bl{background:var(--panel);border:1px solid var(--violet);border-radius:10px;padding:13px 12px;text-align:left;
+  transition:transform .1s ease,background .12s ease}
+.bl:active{transform:scale(.98);background:var(--panel-2)}
+.bl b{display:block;font-size:15px;color:var(--violet)}
+.bl span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.runbox{background:#141828;border:1px solid var(--line);border-left:3px solid var(--violet);border-radius:var(--r);padding:10px 13px}
+.rw{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--muted);padding:2px 0}
+.rw b{font-family:var(--f-hud);font-size:15px;color:var(--text);font-weight:400;font-variant-numeric:tabular-nums}
 .pick-h{font-size:17px;font-weight:700;text-align:center}
 .picks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pick{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 8px 11px;text-align:center;
@@ -885,6 +907,9 @@ function sellPrice(it){
   var base = (b ? b.cost : 20) * (it.u ? 1 : RARITY[it.r].mul);
   return Math.max(2, Math.round(base * 0.35 * (1 + 0.35 * (it.up||0))));
 }
+// 分解すると「塵の粉」になる。粉で接辞を引き直したり格上げしたりできる
+function dustOf(it){ return 2 + it.r * 3 + (it.up || 0) * 2; }
+var REROLL_COST = 12, PROMOTE_COST = 25;
 function upgradeCost(it){
   var b = baseOf(it);
   var base = (b ? b.cost : 40) * (it.u ? 1.3 : RARITY[it.r].mul);
@@ -987,6 +1012,81 @@ function currentTitle(){
   return last;
 }
 
+// ===== 潜行（深層をひと続きで潜る）=====
+var BLESS = [
+  { k:"sharp",   v:12, n:"鋭さの加護",     d:"与えるダメージ +12%" },
+  { k:"tough",   v:10, n:"頑丈の加護",     d:"受けるダメージ −10%" },
+  { k:"crit",    v:10, n:"会心の加護",     d:"会心率 +10%" },
+  { k:"find",    v:40, n:"宝運の加護",     d:"戦利品が落ちやすい" },
+  { k:"gold",    v:30, n:"金運の加護",     d:"獲得ゴールド +30%" },
+  { k:"heal",    v:8,  n:"手当ての加護",   d:"拾うとHP回復 +8%" },
+  { k:"kipick",  v:1,  n:"拾い手の加護",   d:"拾うと気力 +1" },
+  { k:"maxhp",   v:20, n:"活力の加護",     d:"最大HP +20%（その分回復）" },
+  { k:"kimax",   v:2,  n:"器の加護",       d:"気力の最大値 +2" },
+  { k:"oosouji", v:40, n:"大掃除の加護",   d:"大掃除の威力 +40%" }
+];
+function blessTotals(run){
+  var t = {};
+  (run.bless || []).forEach(function(b){ t[b.k] = (t[b.k] || 0) + b.v; });
+  return t;
+}
+function startDelve(){
+  if(document.querySelector(".ov-main")) return;
+  var P0 = stats();
+  var run = { floor:S.depth, start:S.depth, hp:P0.hp, gold:0, items:[], bless:[], deepest:S.depth - 1 };
+  delveNext(run);
+}
+function delveNext(run){ battle(deepEnemy(run.floor), run); }
+
+function bankRun(run){
+  var got = 0;
+  S.gold += run.gold;
+  run.items.forEach(function(it){ var r = takeItem(it); if(r.full) S.gold += r.gold; else got++; });
+  if(run.deepest >= run.start){
+    S.depth = run.deepest + 1;
+    S.maxDepth = Math.max(S.maxDepth || 0, run.deepest);
+  }
+  pushLog("潜行：B" + run.deepest + "F まで", "+" + run.gold, false);
+  S.last = null; save(); render();
+  toast("引き上げた。B" + run.deepest + "F ／ " + run.gold + " G ／ 戦利品 " + got + " 点");
+}
+function loseRun(run){
+  pushLog("潜行：B" + run.floor + "F で倒れた", "±0", false);
+  S.last = null; save(); render();
+  toast("倒れた。持ち帰れなかった。");
+}
+// 加護をえらぶ
+function pickBless(run, cb){
+  var pool = BLESS.slice(), three = [];
+  for(var i=0;i<3 && pool.length;i++) three.push(pool.splice(Math.floor(Math.random()*pool.length), 1)[0]);
+  var ov = document.createElement("div");
+  ov.className = "ov ov-main";
+  ov.innerHTML =
+    '<div class="ov-in" style="justify-content:center">' +
+      '<div class="pick-h">加護をえらぶ</div>' +
+      '<div class="note" style="text-align:center">この潜行のあいだ、ずっと効きます。</div>' +
+      '<div class="bless" id="bless"></div>' +
+    '</div>';
+  var box = ov.querySelector("#bless");
+  three.forEach(function(b){
+    var el = document.createElement("button");
+    el.className = "bl";
+    el.innerHTML = '<b></b><span></span>';
+    el.querySelector("b").textContent = b.n;
+    el.querySelector("span").textContent = b.d;
+    el.addEventListener("click", function(){
+      run.bless.push({ k:b.k, v:b.v });
+      if(b.k === "maxhp"){
+        var P1 = stats();
+        run.hp += Math.round(P1.hp * b.v / 100);
+      }
+      ov.remove(); cb();
+    });
+    box.appendChild(el);
+  });
+  document.body.appendChild(ov);
+}
+
 var INTRO = "気づいたときには、部屋は塵界（じんかい）に飲まれていた。\nものが積もり、床が消え、時間だけが進む。\n——だが、この世界の魔物は、ゴミを1個すてるたびに弱っていく。";
 
 /* ============ 保存 ============ */
@@ -1014,7 +1114,7 @@ function fresh(){
     streak:0, lastDay:"", claimed:"", tasks:DEFAULT_TASKS.map(function(t){ return {id:t.id,n:t.n,v:t.v,sec:t.sec}; }),
     items:[], equip:newEquip(), cleared:{}, log:[], last:null, seen:false,
     depth:1, maxDepth:0, train:{ atk:0, def:0, hp:0 }, dailyDone:"", dailyCount:0,
-    maxStreak:0, kills:0, timerSec:0, titles:{} };
+    maxStreak:0, kills:0, timerSec:0, titles:{}, dust:0 };
 }
 var S = load() || fresh();
 // v3: タスクを2つに整理する（以前の10個は削除）
@@ -1062,6 +1162,7 @@ function migrate(st){
   if(typeof st.kills !== "number") st.kills = 0;
   if(typeof st.timerSec !== "number") st.timerSec = 0;
   if(!st.titles) st.titles = {};
+  if(typeof st.dust !== "number") st.dust = 0;
   return changed;
 }
 var migrated = migrate(S);
@@ -1344,11 +1445,17 @@ var CMDS = [
   { k:"oosouji", n:"大掃除",     ki:5, d:"特大の一撃・まもり無視" }
 ];
 
-function battle(e){
+function battle(e, run){
   if(document.querySelector(".ov-main")) return;   // 画面の二重起動を防ぐ
   var P = stats();
   var AF = affixTotals();
-  var kiMax = KI.MAX;
+  var BL = run ? blessTotals(run) : {};
+  ["crit","kipick","heal","kistart","gold","find","tough","sharp"].forEach(function(k){
+    if(BL[k]) AF[k] += BL[k];
+  });
+  var maxHp = Math.round(P.hp * (1 + (BL.maxhp || 0) / 100));
+  var oosoujiMul = 1 + (BL.oosouji || 0) / 100;
+  var kiMax = KI.MAX + (BL.kimax || 0);
   var kiStart = Math.min(kiMax, KI.START + AF.kistart);
   var kiPick = KI.PICK + AF.kipick;
   var healPct = KI.HEAL + AF.heal / 100;
@@ -1361,7 +1468,7 @@ function battle(e){
           n:"宝を抱えた" + e.n, s:e.s, lv:e.lv, st:e.st,
           hp:Math.round(e.hp*1.3), atk:Math.round(e.atk*1.15), def:e.def, g:Math.round(e.g*2) };
   }
-  var php = P.hp, ehp = e.hp, ki = kiStart, charged = false, turn = 0;
+  var php = run ? Math.min(run.hp, maxHp) : maxHp, ehp = e.hp, ki = kiStart, charged = false, turn = 0;
   var over = false, auto = false, autoLoop = null, picks = 0, busy = false;
 
   var ov = document.createElement("div");
@@ -1404,12 +1511,12 @@ function battle(e){
   if(e.treasure) sig.classList.add("treasure");
 
   function paint(){
-    var ep = Math.max(0, ehp/e.hp*100), pp = Math.max(0, php/P.hp*100);
+    var ep = Math.max(0, ehp/e.hp*100), pp = Math.max(0, php/maxHp*100);
     eFill.style.width = ep + "%";
     pFill.style.width = pp + "%";
     requestAnimationFrame(function(){ eGh.style.width = ep + "%"; pGh.style.width = pp + "%"; });
     eNum.textContent = Math.max(0, ehp) + " / " + e.hp;
-    pNum.textContent = Math.max(0, php) + " / " + P.hp;
+    pNum.textContent = Math.max(0, php) + " / " + maxHp;
     kiNum.textContent = ki + " / " + kiMax;
     var pips = kiBox.children, gained = ki > lastKi;
     for(var i = 0; i < pips.length; i++){
@@ -1490,7 +1597,7 @@ function battle(e){
       ehp -= dmg; shake();
     } else if(k === "oosouji"){
       ki -= KI.MAX;
-      var big = Math.max(1, Math.round(P.atk * KI.OOSOUJI * rnd() * dmgMul));
+      var big = Math.max(1, Math.round(P.atk * KI.OOSOUJI * rnd() * dmgMul * oosoujiMul));
       ehp -= big; shake(); dmgPop(big, "crit");
       say("大掃除！ " + e.n + " に " + big + " のダメージ", "crit");
     } else if(k === "tameru"){
@@ -1498,8 +1605,8 @@ function battle(e){
       say("力をためた。次の一撃が重くなる。", "sys");
     } else if(k === "pick"){
       ki = Math.min(kiMax, ki + kiPick);
-      var heal = Math.round(P.hp * healPct);
-      php = Math.min(P.hp, php + heal);
+      var heal = Math.round(maxHp * healPct);
+      php = Math.min(maxHp, php + heal);
       dmgPop("+" + heal, "heal");
       picks++;
       if(picks <= PICK_REWARD_LIMIT){
@@ -1535,13 +1642,13 @@ function battle(e){
     if(charged) return "hataku";
     var normal   = Math.max(1, (P.atk - e.def*0.85) * dmgMul);
     var charge   = P.atk * KI.TAMERU * dmgMul;
-    var big      = P.atk * KI.OOSOUJI * dmgMul;
+    var big      = P.atk * KI.OOSOUJI * dmgMul * oosoujiMul;
     var incoming = Math.max(1, (e.atk - P.def*0.60) * takeMul);
-    var heal     = Math.round(P.hp * healPct);
+    var heal     = Math.round(maxHp * healPct);
     if(normal >= ehp) return "hataku";                                  // 今すぐ倒せる
     if(ki >= kiMax && big >= ehp) return "oosouji";
     if(ki >= 1 && charge >= ehp) return "tameru";
-    if(php <= P.hp*0.45 && heal > incoming*1.15 && ehp > normal*3) return "pick";
+    if(php <= maxHp*0.45 && heal > incoming*1.15 && ehp > normal*3) return "pick";
     if(normal < P.atk*0.45){                                            // 硬い相手
       if(ki >= kiMax && ehp > big) return "oosouji";
       if(ki >= 1) return "tameru";
@@ -1625,16 +1732,14 @@ function battle(e){
                        : !S.cleared[e.id]);
     if(win){
       var gg = Math.round(e.g * (1 + AF.gold / 100));
-      if(e.daily){
+      if(run){
+        run.hp = Math.max(1, php);
+        run.gold += gg;
+        run.deepest = Math.max(run.deepest, e.deep);
+      } else if(e.daily){
         if(first){
           S.gold += gg; S.dailyDone = today(); S.dailyCount = (S.dailyCount || 0) + 1;
           pushLog("今日の魔物：" + e.n, "+" + gg, false); S.last = null; save();
-        }
-      } else if(e.deep){
-        if(first){
-          S.gold += gg; S.depth = e.deep + 1;
-          S.maxDepth = Math.max(S.maxDepth || 0, e.deep);
-          pushLog("深層 B" + e.deep + "F 突破", "+" + gg, false); S.last = null; save();
         }
       } else if(first){
         S.cleared[e.id] = true; S.gold += gg;
@@ -1654,9 +1759,12 @@ function battle(e){
       var drop = rollDrop(e, picks);
       var _gg = 0;
       if(drop){
-        var got = takeItem(drop);
+        var got = run ? { full:false } : takeItem(drop);
         var nm = itemName(drop), dd = [itemStatsHtml(drop)];
-        if(got.full){
+        if(run){
+          run.items.push(drop);
+          dropInfo = { name:nm, desc:dd.join(""), r:drop.r, hold:true };
+        } else if(got.full){
           pushLog("持ち物がいっぱい：" + nm + " を売却", "+" + got.gold, false);
           dropInfo = { name:nm, desc:dd.join(""), r:drop.r, sold:got.gold };
         } else if(got.swapped){
@@ -1680,10 +1788,13 @@ function battle(e){
     box.querySelector(".sub").textContent = win
       ? (e.daily
           ? (first ? "今日の魔物を倒した！  +" + e.g + " G　（通算 " + S.dailyCount + " 体）" : "今日はもう倒しています")
+          : run
+          ? "B" + e.deep + "F を抜けた。まだ下がある。"
           : e.deep
           ? (first ? "B" + e.deep + "F 突破！  +" + e.g + " G　次は B" + (e.deep+1) + "F へ" : "すでに越えた階層です（報酬は初回のみ）")
           : (first ? e.n + " を倒した！  +" + e.g + " G" : e.n + " をもう一度倒した（報酬は初回のみ）"))
-      : (e.daily ? "今日の魔物には届かなかった。何度でも挑めます。"
+      : (run ? "ここで力尽きた。持ち帰り待ちのものは、すべて塵に還った。"
+         : e.daily ? "今日の魔物には届かなかった。何度でも挑めます。"
          : e.deep ? "ここが今の限界。鍛えるか、部屋を片づけてレベルを上げてから戻ってきてください。"
          : "力が足りなかった。部屋をすこし片づければ、それがそのまま強さになる。");
     ov.querySelector(".ov-in").insertBefore(box, logEl);
@@ -1721,9 +1832,41 @@ function battle(e){
       dv.querySelector("b").style.color = RARITY[dropInfo.r].col;
       dv.querySelector("span").innerHTML = dropInfo.desc;
       dv.style.borderLeftColor = RARITY[dropInfo.r].col;
+      if(dropInfo.hold) dv.querySelector("em") && (dv.querySelector("em").textContent = "");
       if(dropInfo.sold) dv.querySelector("em").textContent = "持ち物がいっぱいで、こちらの方が弱かったので売却しました（+" + dropInfo.sold + " G）";
       else if(dropInfo.swapped) dv.querySelector("em").textContent = "持ち物がいっぱいなので「" + dropInfo.swapped + "」を売って入れ替えました（+" + dropInfo.gold + " G）";
       ov.querySelector(".ov-in").insertBefore(dv, subBtns);
+    }
+    if(run){
+      var info = document.createElement("div");
+      info.className = "runbox";
+      info.innerHTML = '<div class="rw"><span>到達</span><b></b></div>' +
+                       '<div class="rw"><span>持ち帰り待ち</span><b class="g"></b></div>' +
+                       '<div class="rw"><span>戦利品</span><b class="i"></b></div>' +
+                       '<div class="rw"><span>HP</span><b class="h"></b></div>';
+      info.querySelector(".rw b").textContent = "B" + (win ? e.deep : run.deepest) + "F";
+      info.querySelector(".g").textContent = run.gold + " G";
+      info.querySelector(".i").textContent = run.items.length + " 点";
+      info.querySelector(".h").textContent = Math.max(0, php) + " / " + maxHp;
+      ov.querySelector(".ov-in").insertBefore(info, subBtns);
+      if(win){
+        subBtns.innerHTML = '<button class="btn" data-a="deeper">さらに潜る</button>' +
+                            '<button class="btn btn-q" data-a="pullout">引き上げる</button>';
+        subBtns.querySelector('[data-a="deeper"]').addEventListener("click", function(){
+          ov.remove();
+          pickBless(run, function(){ run.floor = e.deep + 1; delveNext(run); });
+        });
+        subBtns.querySelector('[data-a="pullout"]').addEventListener("click", function(){
+          ov.remove(); bankRun(run);
+        });
+      } else {
+        subBtns.innerHTML = '<button class="btn" data-a="giveup">とじる</button>';
+        subBtns.querySelector('[data-a="giveup"]').addEventListener("click", function(){
+          ov.remove(); loseRun(run);
+        });
+      }
+      render();
+      return;
     }
     subBtns.innerHTML = '<button class="btn" data-a="close">とじる</button>';
     render();
@@ -1984,20 +2127,20 @@ function renderDungeon(){
     d.innerHTML =
       '<div class="area-h" style="background:linear-gradient(180deg,#1D1B33,#171C28)">' +
         '<div class="t"><b>塵界の深層</b><span>ENDLESS</span></div>' +
-        '<p>踏破しても、塵はまた積もる。ここに終わりはない。<br>最高到達：<b class="rec"></b></p>' +
+        '<p>ひと続きに潜ります。HPは階をまたいでも戻りません。<br>引き上げれば持ち帰れる。倒れれば、すべて失います。<br>最高到達：<b class="rec"></b></p>' +
       '</div>' +
       '<div class="enemies"></div>';
     d.querySelector(".rec").textContent = S.maxDepth ? "B" + S.maxDepth + "F" : "まだ潜っていない";
     d.querySelector(".rec").style.color = "var(--violet)";
     var btn = document.createElement("button");
     btn.className = "en" + (en.boss ? " boss" : "");
-    btn.innerHTML = '<div class="sig"></div><div class="info"><b></b><span class="meta"></span></div><div class="st">潜る</div>';
+    btn.innerHTML = '<div class="sig"></div><div class="info"><b></b><span class="meta"></span></div><div class="st">潜行</div>';
     btn.querySelector(".sig").textContent = en.s;
-    btn.querySelector(".info .meta").textContent = "B" + f + "F ／ HP" + en.hp + " ／ 突破 +" + en.g + "G";
+    btn.querySelector(".info .meta").textContent = "B" + f + "F から ／ HP" + en.hp + " ／ 突破 +" + en.g + "G";
     var dn = btn.querySelector(".info b");
     dn.textContent = en.n;
     if(en.boss){ var db = document.createElement("span"); db.className = "badge"; db.textContent = "層主"; dn.appendChild(db); }
-    btn.addEventListener("click", function(){ battle(deepEnemy(S.depth)); });
+    btn.addEventListener("click", startDelve);
     d.querySelector(".enemies").appendChild(btn);
     wrap.appendChild(d);
   }
@@ -2074,6 +2217,96 @@ function renderRecord(){
   var sum = vals.reduce(function(a, v){ return a + v.n; }, 0);
   var days = vals.filter(function(v){ return v.n > 0; }).length;
   $("chart-note").textContent = "30日で " + sum + " 回、動いた日は " + days + " 日。いちばん多い日は " + max + " 回。";
+}
+
+// 装備をひとつ選んだときの操作画面
+function openItem(it, slot){
+  if(document.querySelector(".ov-main")) return;
+  var ov = document.createElement("div");
+  ov.className = "ov ov-main";
+  ov.innerHTML =
+    '<div class="ov-in">' +
+      '<div class="isheet">' +
+        '<b class="inm"></b>' +
+        '<div class="ist"></div>' +
+      '</div>' +
+      '<div class="note" id="i-msg" style="min-height:1.4em"></div>' +
+      '<div class="iacts" id="iacts"></div>' +
+      '<div class="ov-btns"><button class="btn btn-q" data-a="close">とじる</button></div>' +
+    '</div>';
+  document.body.appendChild(ov);
+  var msg = ov.querySelector("#i-msg");
+  function say(t, bad){ msg.textContent = t; msg.style.color = bad ? "var(--ember)" : "var(--mint)"; }
+  function paint(){
+    var nb = ov.querySelector(".inm");
+    nb.textContent = itemName(it);
+    nb.style.color = RARITY[it.r].col;
+    ov.querySelector(".ist").innerHTML = itemStatsHtml(it);
+    var box = ov.querySelector("#iacts");
+    box.innerHTML = "";
+    var eq = S.equip[slot] === it.i;
+    function mk(label, sub, enabled, fn, quiet){
+      var b = document.createElement("button");
+      b.className = "iact" + (quiet ? " q" : "");
+      b.innerHTML = '<b></b><span></span>';
+      b.querySelector("b").textContent = label;
+      b.querySelector("span").textContent = sub;
+      b.disabled = !enabled;
+      if(enabled) b.addEventListener("click", fn);
+      box.appendChild(b);
+    }
+    mk(eq ? "装備中" : "装備する", eq ? "" : "いま持ちかえる", !eq, function(){
+      S.equip[slot] = it.i; save(); render(); paint(); say("装備した。", false);
+    });
+    var uc = upgradeCost(it);
+    mk("強化 +1", uc + " G", S.gold >= uc, function(){
+      var c = upgradeCost(it);
+      if(S.gold < c) return;
+      S.gold -= c; it.up = (it.up || 0) + 1;
+      pushLog("強化：" + itemName(it), "-" + c, true); S.last = null;
+      save(); render(); paint(); say("鍛え上げた。", false); buzz([14,35,14]);
+    });
+    var canRe = (it.af && it.af.length);
+    mk("接辞を引き直す", REROLL_COST + " 粉", canRe && S.dust >= REROLL_COST, function(){
+      if(S.dust < REROLL_COST) return;
+      S.dust -= REROLL_COST;
+      it.af = rollAffixes(it.af.length, it.r >= 2, it.s);
+      save(); render(); paint(); say("引き直した。", false); buzz([14,35,14]);
+    });
+    var canProm = (!it.u && it.r < 3);
+    mk("格上げする", PROMOTE_COST + " 粉", canProm && S.dust >= PROMOTE_COST, function(){
+      if(S.dust < PROMOTE_COST || !canProm) return;
+      S.dust -= PROMOTE_COST;
+      var oldMul = RARITY[it.r].mul;
+      it.r += 1;
+      var k = RARITY[it.r].mul / oldMul;
+      ["atk","def","hp"].forEach(function(key){ if(it[key]) it[key] = Math.max(1, Math.round(it[key] * k)); });
+      var want = RARITY[it.r].af;
+      if(!it.af) it.af = [];
+      if(it.af.length < want) it.af = it.af.concat(rollAffixes(want - it.af.length, it.r >= 2, it.s));
+      save(); render(); paint(); say("格が上がった。", false); buzz([18,40,18]);
+    });
+    var d = dustOf(it);
+    mk("分解する", "+" + d + " 粉", !eq, function(){
+      ask(itemName(it) + " を分解します。塵の粉が " + d + " 手に入ります。", "分解する", function(){
+        S.dust += d;
+        S.items = S.items.filter(function(x){ return x.i !== it.i; });
+        pushLog("分解：" + itemName(it), "+" + d + "粉", false); S.last = null;
+        save(); render(); ov.remove(); toast("分解した（塵の粉 +" + d + "）");
+      });
+    }, true);
+    var sp = sellPrice(it);
+    mk("売る", sp + " G", !eq, function(){
+      ask(itemName(it) + " を " + sp + " G で売ります。", "売る", function(){
+        S.gold += sp;
+        S.items = S.items.filter(function(x){ return x.i !== it.i; });
+        pushLog("売却：" + itemName(it), "+" + sp, false); S.last = null;
+        save(); render(); ov.remove(); toast("売った（+" + sp + " G）");
+      });
+    }, true);
+  }
+  paint();
+  ov.querySelector('[data-a="close"]').addEventListener("click", function(){ ov.remove(); });
 }
 
 var gearOpen = { weapon:false, armor:false, glove:false, boots:false, acc:false };
@@ -2170,41 +2403,17 @@ function renderGear(st){
         sp.appendChild(ax);
       });
       var acts = row.querySelector(".acts");
-      var upc = upgradeCost(it);
-      var ub = document.createElement("button");
-      ub.className = "btn act upg";
-      ub.innerHTML = '<b>+1</b><i></i>';
-      ub.querySelector("i").textContent = upc + "G";
-      ub.disabled = S.gold < upc;
-      ub.setAttribute("aria-label", itemName(it) + " を強化する");
-      ub.addEventListener("click", function(){
-        var c = upgradeCost(it);
-        if(S.gold < c) return;
-        S.gold -= c; it.up = (it.up || 0) + 1;
-        pushLog("強化：" + itemName(it), "-" + c, true); S.last = null;
-        save(); render(); toast(itemName(it) + " に鍛え上げた"); buzz([14,35,14]);
-      });
       if(eq){
         var tag = document.createElement("div");
         tag.className = "tag"; tag.textContent = "装備中";
-        acts.appendChild(ub); acts.appendChild(tag);
+        acts.appendChild(tag);
       } else {
-        var eb = document.createElement("button");
-        eb.className = "btn btn-q act"; eb.textContent = "装備";
-        eb.addEventListener("click", function(){
-          S.equip[slot] = it.i; save(); render(); toast(itemName(it) + " を装備した");
-        });
-        var sb = document.createElement("button");
-        sb.className = "btn btn-q act sell"; sb.textContent = sellPrice(it) + "G";
-        sb.addEventListener("click", function(){
-          var g = sellPrice(it);
-          S.items = S.items.filter(function(x){ return x.i !== it.i; });
-          S.gold += g;
-          pushLog("売却：" + itemName(it), "+" + g, false); S.last = null;
-          save(); render(); toast(itemName(it) + " を売った（+" + g + " G）");
-        });
-        acts.appendChild(ub); acts.appendChild(eb); acts.appendChild(sb);
+        var go = document.createElement("div");
+        go.className = "tag go"; go.textContent = "▸";
+        acts.appendChild(go);
       }
+      row.style.cursor = "pointer";
+      row.addEventListener("click", function(){ openItem(it, slot); });
       box.appendChild(row);
     });
     if(all.length > LIMIT){
@@ -2218,8 +2427,9 @@ function renderGear(st){
   });
 
   // 持ち物の残り
-  $("bag-note").textContent = "持ち物 " + S.items.length + " / " + BAG_MAX +
-    "。いっぱいのときは、弱い方が自動で売却されます。";
+  $("bag-note").innerHTML = "持ち物 " + S.items.length + " / " + BAG_MAX +
+    "　／　塵の粉 <b style='color:var(--violet);font-family:var(--f-hud)'>" + (S.dust || 0) + "</b>" +
+    "<br>装備をタップすると、強化・引き直し・格上げ・分解ができます。";
 
   // 店（畳んである）
   var shop = $("g-shop");
