@@ -147,8 +147,8 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
       この文書は、新しいセッションへの引き継ぎと、外部レビューに渡すための資料。</p>
     <div class="meta">
       <span>最終更新 2026-08-26</span>
-      <span>対象コミット 19174d7</span>
-      <span>単一HTML / 3,627行</span>
+      <span>対象コミット 51b88ca</span>
+      <span>単一HTML / 3,660行</span>
     </div>
   </header>
   <nav class="toc">
@@ -181,7 +181,7 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
 <div class="warn"><p><strong>GitHub Pages でなければならない理由</strong>（過去に事故った）<br>iOS Safari はクロスサイト iframe 内の localStorage を一時的なものとして扱うため、Artifact に埋め込んだ状態ではタスクキルで保存データが消える。<br>第一者オリジンで配信する必要がある。Artifact 版も並行して公開しているが、あれは閲覧用のミラーであって保存先ではない。</p></div>
 <p>デプロイ: <code>main</code> に push すると数十秒〜2分で反映。反映確認はハッシュ比較で行う（§9）。</p>
 </section><section id="s3"><h2><span class="no">3</span><span>ファイル構成</span></h2>
-<pre class="code"><code>index.html            アプリ全体（約3626行・175KB）HTML/CSS/JSすべて。外部ライブラリなし
+<pre class="code"><code>index.html            アプリ全体（約3659行・175KB）HTML/CSS/JSすべて。外部ライブラリなし
 sw.js                 Service Worker（オフライン対応・stale-while-revalidate）
 manifest.json         PWA マニフェスト
 icon-180.png / icon-512.png
@@ -236,6 +236,11 @@ docs/SPEC.md          この文書</code></pre>
 <h3>タスク（常設2つ）</h3>
 <div class="tw"><table><thead><tr><th></th><th>名前</th><th>報酬</th></tr></thead><tbody><tr><td><code>t1</code></td><td>ゴミを1個すてる</td><td>+1</td></tr><tr><td><code>t7</code></td><td>タイマー</td><td>時間に応じて +1〜22</td></tr></tbody></table></div>
 <p>原則4により常設はこの2つだけ。ユーザーは作成フォームから自由に追加できる（時間 × 重さで報酬を自動計算）。<br>タイマーは 30秒/1分/3分/5分/10分/15分+ から選べ、報酬は 1/2/5/8/15/22。重さ係数は 軽い1.0 / ふつう1.2 / 重い1.5。</p>
+<div class="warn"><p><strong>「すぐできる」報酬は1日 <code>FREE_TAPS</code>(=3) 回まで。</strong><br>タップだけで無限に稼げると「いつでも押せる」という甘えが出る、という本人の判断で導入。<br>ただし<strong>完全に閉じない</strong>——この回数だけで今日のノルマ(<code>GOAL</code>=3)は達成できるので、<br>「1日1回でも片づける」受け皿は残る（原則1）。使い切ったあとはタイマーだけが報酬になる。</p></div>
+<p>&gt;</p>
+<div class="warn"><p><strong>枠は画面のボタンと戦闘中の「ゴミを拾う」で共有する。</strong> 片方だけ絞ると<br>「戦闘を開いて3回拾って逃げる」に抜け道が移るだけ（<code>PICK_REWARD_LIMIT</code> は1戦闘あたりで、<br>戦闘回数に上限が無い）。</p></div>
+<p>&gt;</p>
+<div class="warn"><p>使い切ってもボタンは死なせない。押すとタイマーの時間選択が開く。<br><strong>できなかったことを責めず、次にできることを出す</strong>（原則3）。<br>戦闘中の「拾う」も、報酬は止まるが<strong>気力とHPの回復は効き続ける</strong>（戦術としては殺さない）。<br>枠は1日の区切り（既定4時）でリセット。取り消し(<code>undo</code>)すると枠も戻る。</p></div>
 <p>タップ時の当たり判定: 3% で「塵の中から何かを見つけた」+20G、12% で「会心」報酬3倍。<br>1日3回で<strong>デイリー達成</strong>（<code>GOAL = 3</code>）→ ボーナス <code>5 + (連続日数-1) * 2</code> G。</p>
 <h3>成長</h3>
 <pre class="code"><code>必要経験値  need(lv) = 8 + (lv-1) * 5
@@ -368,7 +373,7 @@ shasum -a256 index.html</code></pre>
 <div class="warn"><p><strong>確認は実機の iPhone Safari で、ホーム画面に追加した状態で行う。</strong><br>Mac の Chrome で確認しても iOS の挙動は分からない。過去にこれで誤判定して、保存が消えるバグを見逃した。</p></div>
 </section><section id="s11"><h2><span class="no">10</span><span>既知の弱いところ・未解決</span></h2>
 <p>レビューを受けるならこのあたりを見てほしい。</p>
-<ul><li><strong><code>index.html</code> が3626行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストは3本だけ。</strong> 予定の判定 <code>tools/test-slots.js</code>（24件）と 物語データ <code>tools/test-story.js</code>（123件）、それに <code>tools/sim.js</code>（数値）。 UIの動線には自動テストが無く、ブラウザでの手動操作頼み。 <strong>実際に遊ばないと出ない不具合を2回出している</strong>（物語のタスク動線）ので、 機能を足したら「途中でアプリを離れて戻る」経路を必ず手で通すこと。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong>物語モードは試作段階（§6.10）。</strong> 12章1本のみで、本文は静的データ。 ランタイム生成（無限に増える版）は未着手で、やる場合は先読み生成とオフライン退避が必須になる。 深層を闘技場として切り出す案も保留中——物語が進行の背骨になるなら深層は役割を失うが、 いまは唯一の終盤コンテンツなので、物語が育つ前に作り変えると遊ぶ場所が無くなる。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
+<ul><li><strong><code>index.html</code> が3659行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストは3本だけ。</strong> 予定の判定 <code>tools/test-slots.js</code>（24件）と 物語データ <code>tools/test-story.js</code>（123件）、それに <code>tools/sim.js</code>（数値）。 UIの動線には自動テストが無く、ブラウザでの手動操作頼み。 <strong>実際に遊ばないと出ない不具合を2回出している</strong>（物語のタスク動線）ので、 機能を足したら「途中でアプリを離れて戻る」経路を必ず手で通すこと。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong>物語モードは試作段階（§6.10）。</strong> 12章1本のみで、本文は静的データ。 ランタイム生成（無限に増える版）は未着手で、やる場合は先読み生成とオフライン退避が必須になる。 深層を闘技場として切り出す案も保留中——物語が進行の背骨になるなら深層は役割を失うが、 いまは唯一の終盤コンテンツなので、物語が育つ前に作り変えると遊ぶ場所が無くなる。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
 </section><section id="s12"><h2><span class="no">11</span><span>用語</span></h2>
 <div class="tw"><table><thead><tr><th>語</th><th>意味</th></tr></thead><tbody><tr><td>塵界（じんかい）</td><td>世界の名前。部屋そのもの</td></tr><tr><td>気力</td><td>2本目のゲージ。「ゴミを拾う」でのみ増える</td></tr><tr><td>潜行</td><td>深層に潜ること。ローグライク式の1回の遠征</td></tr><tr><td>加護</td><td>潜行のあいだだけ効く一時的な強化。20種</td></tr><tr><td>接辞</td><td>装備の追加効果。22種</td></tr><tr><td>塵の粉</td><td>装備を分解して得る素材。引き直しと格上げに使う</td></tr><tr><td>積もった塵</td><td>空けた日数から生まれる敵</td></tr><tr><td>層主</td><td>深層5階ごとのボス</td></tr><tr><td>いま欄</td><td>予定が合っているタスクを出す、そうじタブ最上部の枠</td></tr><tr><td>のこす／てばなす</td><td>物語モードの選択に付く重み。結末を決める</td></tr></tbody></table></div></section>
   </main>
