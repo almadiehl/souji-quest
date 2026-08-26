@@ -147,7 +147,7 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
       この文書は、新しいセッションへの引き継ぎと、外部レビューに渡すための資料。</p>
     <div class="meta">
       <span>最終更新 2026-08-26</span>
-      <span>対象コミット c720a95</span>
+      <span>対象コミット 158a58e</span>
       <span>単一HTML / 3,581行</span>
     </div>
   </header>
@@ -292,7 +292,7 @@ g   = こう × 1.4 × days           // 報酬だけは日数ぶん伸びる</c
 <p>全12章・選択のある章5つ・戦闘3つ・結末3つ。選択には <code>keep</code>（のこす）と <code>go</code>（てばなす）の<br>重みがあり、最大値は6対6で対称。どちらかが有利になる設計にはしていない。</p>
 <div class="warn"><p><strong>敵の数値を物語データに書かない。</strong><br>章データが持つのは <code>tier</code>（1〜3）だけで、HP・攻撃・報酬は <code>storyEnemy()</code> が<br>「いまの自分」から逆算する。今日の魔物（§6.4）と同じ考え方なので、いつ読んでも手応えが変わらない。<br>将来この物語をAIに書かせる場合も、<strong>AIが触れてよいのは文章と <code>tier</code> の選択までで、数値は式が決める</strong>。<br>バランスを3回壊した経験（§8）から、ここは構造として分離してある。</p></div>
 <p>tier別の勝率（雑に殴るだけ・シミュレータで確認）：tier1 = 100% / tier2 = 94% / tier3 = 83%。<br><strong>物語は読み進めるものなので、難度で行き止まりにしない。</strong> 章ボスでも8割は勝てる。</p>
-<ul><li><strong>戦闘に負けても章は戻らない。</strong> 何度でも挑める（<code>onDone</code> は勝ったときだけ進める）</li><li><strong>報酬は初回のみ。</strong> 敵IDを <code>sty_&lt;章&gt;</code> にして既存の <code>S.cleared</code> に乗せてあるので、読み直しで稼げない</li><li><strong>選択に紐づく「現実の片づけ」。</strong> 選択肢を選ぶと、それに対応する現実の行動が 次の章に「さっき決めたこと」として持ち越される。押すとタイマーが走り、<strong>終わると読みかけの章に戻る</strong>。 「いまはやらない」で消せる（責めない）。報酬は通常タスクと同じ <code>MINS</code> 表から引く</li></ul>
+<ul><li><strong>戦闘に負けても章は戻らない。</strong> 何度でも挑める（<code>onDone</code> は勝ったときだけ進める）</li><li><strong>報酬は初回のみ。</strong> 敵IDを <code>sty_&lt;章&gt;</code> にして既存の <code>S.cleared</code> に乗せてあるので、読み直しで稼げない</li><li><strong>選択に紐づく「現実の片づけ」。</strong> 選択肢を選ぶと、それに対応する現実の行動が 「この物語で決めたこと」として持ち越される。押すとタイマーが走り、<strong>終わると読みかけの章に戻る</strong>。 「いまはやらない」で消せる（責めない）。報酬は通常タスクと同じ <code>MINS</code> 表から引く</li><li><strong>持ち越しは、やるか消すかするまで残る。</strong> 章をまたいでも消えない。 上書きされるのは、<strong>タスクを持つ別の選択肢を選んだときだけ</strong>。 タスクの無い選択肢（「先へ進む」など）を通っても消さない</li><li><strong>画面の並びは 本文 → 行動 → 持ち越し。</strong> 持ち越しを本文と行動の間に置くと、 片づけの話のすぐ下に「たたかう」が来て唐突になる。主役はその章の行動なので、下に置く</li></ul>
 <div class="warn"><p><strong>タスクは章ではなく選択肢に付ける。</strong><br>最初は章に付けていたが、章のタスク（「手前の箱をひとつ開ける」）と選択肢（「ふたを開ける」）が<br>ほぼ同じことを言ってしまい、現実で片づけて戻ってきた利用者が同じ問いを二度受ける形になった。<br>さらにタイマー終了後に物語へ戻らず、ホーム画面に放り出されていた。<br><strong>決める → 実際にやる</strong> の順に直し、タイマーには <code>after</code> を持たせて章へ復帰させている。</p></div>
 <p>状態は <code>S.story = { at, keep, go, clears, end, pending }</code>。<code>pending</code> が持ち越し中のタスク。<br>結末に到達すると <code>clears</code> が増え、読み直せる。</p>
 </section><section id="s7"><h2><span class="no">7</span><span>画面構成</span></h2>
