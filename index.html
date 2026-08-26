@@ -1005,7 +1005,15 @@ function baseOf(it){ return it.u ? UNIQUES[it.u] : shopBase(it.s, it.b); }
 function findItem(iid){ if(!iid) return null; for(var i=0;i<S.items.length;i++) if(S.items[i].i === iid) return S.items[i]; return null; }
 
 // 強化（+N）を反映した実効値
-function iv(it, key){ if(!it) return 0; return Math.round((it[key] || 0) * (1 + 0.05 * (it.up || 0))); }
+function iv(it, key){
+  if(!it) return 0;
+  var base = it[key] || 0, up = it.up || 0;
+  if(!base || !up) return base;
+  // 5%刻みだけだと、素の値が10未満のとき四捨五入で元に戻ってしまい、
+  // ゴールドを払ったのに数値が1つも変わらない（店の41点中14点がこれだった）。
+  // 1段につき最低でも+1は上がるようにする。大きい値では従来どおり5%刻み。
+  return base + Math.max(up, Math.round(base * 0.05 * up));
+}
 
 function mkItem(slot, baseId, r, exact, tier){
   var b = shopBase(slot, baseId); if(!b) return null;
