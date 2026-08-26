@@ -147,8 +147,8 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
       この文書は、新しいセッションへの引き継ぎと、外部レビューに渡すための資料。</p>
     <div class="meta">
       <span>最終更新 2026-08-26</span>
-      <span>対象コミット fb18d34</span>
-      <span>単一HTML / 3,610行</span>
+      <span>対象コミット 60eb326</span>
+      <span>単一HTML / 3,618行</span>
     </div>
   </header>
   <nav class="toc">
@@ -181,7 +181,7 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
 <div class="warn"><p><strong>GitHub Pages でなければならない理由</strong>（過去に事故った）<br>iOS Safari はクロスサイト iframe 内の localStorage を一時的なものとして扱うため、Artifact に埋め込んだ状態ではタスクキルで保存データが消える。<br>第一者オリジンで配信する必要がある。Artifact 版も並行して公開しているが、あれは閲覧用のミラーであって保存先ではない。</p></div>
 <p>デプロイ: <code>main</code> に push すると数十秒〜2分で反映。反映確認はハッシュ比較で行う（§9）。</p>
 </section><section id="s3"><h2><span class="no">3</span><span>ファイル構成</span></h2>
-<pre class="code"><code>index.html            アプリ全体（約3609行・175KB）HTML/CSS/JSすべて。外部ライブラリなし
+<pre class="code"><code>index.html            アプリ全体（約3617行・175KB）HTML/CSS/JSすべて。外部ライブラリなし
 sw.js                 Service Worker（オフライン対応・stale-while-revalidate）
 manifest.json         PWA マニフェスト
 icon-180.png / icon-512.png
@@ -323,6 +323,7 @@ g   = こう × 1.4 × days           // 報酬だけは日数ぶん伸びる</c
 <p>4タブ。ドックの2ボタンはユーザーが選べる。</p>
 <div class="tw"><table><thead><tr><th>タブ</th><th>中身</th></tr></thead><tbody><tr><td>そうじ</td><td>いま欄・タスク・今日の回数・積もった塵・タスク作成</td></tr><tr><td>ダンジョン</td><td>物語モード・エリア進行・今日の魔物・深層</td></tr><tr><td>そうび</td><td>装備の着脱・持ち物・店・鍛錬</td></tr><tr><td>きろく</td><td>通算・掃除した時間・撃破数・最長連続・30日グラフ・称号16種・過去のあなた</td></tr></tbody></table></div>
 <p>ドックの高さは <code>fitDock()</code> で実測して <code>--dock-h</code> に入れている。固定値で余白を取ると機種によって本文が隠れる（過去に発生）。</p>
+<div class="warn"><p><strong>測定値には上限を設けること。</strong><br>起動直後や背面から戻った直後は画面の高さが確定しておらず、でたらめな高さを掴むことがある。<br>一度おかしな値が入ると <code>.view</code> の下余白（<code>--dock-h</code> + 20px）が巨大になり、<br><strong>全タブの下に数百pxの死んだ余白が残り続ける</strong>。実際に実寸210pxに対し747pxが固まっていた。<br>現在は「画面が測れないとき」「画面の半分を超える値」は採用せず、既定の200pxのままにする。<br><code>resize</code> / <code>orientationchange</code> / <code>load</code> / <code>visibilitychange</code> で測り直す。</p></div>
 </section><section id="s9"><h2><span class="no">8</span><span>バランスを変えるときの手順（必須）</span></h2>
 <div class="warn"><p><strong>戦闘の数値・気力の定数・装備の数値・敵のステータスを触るときは、必ず <code>tools/sim.js</code> を通す。例外なし。</strong></p></div>
 <pre class="code" data-lang="bash"><code>node tools/sim.js</code></pre>
@@ -365,7 +366,7 @@ shasum -a256 index.html</code></pre>
 <div class="warn"><p><strong>確認は実機の iPhone Safari で、ホーム画面に追加した状態で行う。</strong><br>Mac の Chrome で確認しても iOS の挙動は分からない。過去にこれで誤判定して、保存が消えるバグを見逃した。</p></div>
 </section><section id="s11"><h2><span class="no">10</span><span>既知の弱いところ・未解決</span></h2>
 <p>レビューを受けるならこのあたりを見てほしい。</p>
-<ul><li><strong><code>index.html</code> が3609行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストは3本だけ。</strong> 予定の判定 <code>tools/test-slots.js</code>（24件）と 物語データ <code>tools/test-story.js</code>（123件）、それに <code>tools/sim.js</code>（数値）。 UIの動線には自動テストが無く、ブラウザでの手動操作頼み。 <strong>実際に遊ばないと出ない不具合を2回出している</strong>（物語のタスク動線）ので、 機能を足したら「途中でアプリを離れて戻る」経路を必ず手で通すこと。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong>物語モードは試作段階（§6.10）。</strong> 12章1本のみで、本文は静的データ。 ランタイム生成（無限に増える版）は未着手で、やる場合は先読み生成とオフライン退避が必須になる。 深層を闘技場として切り出す案も保留中——物語が進行の背骨になるなら深層は役割を失うが、 いまは唯一の終盤コンテンツなので、物語が育つ前に作り変えると遊ぶ場所が無くなる。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
+<ul><li><strong><code>index.html</code> が3617行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストは3本だけ。</strong> 予定の判定 <code>tools/test-slots.js</code>（24件）と 物語データ <code>tools/test-story.js</code>（123件）、それに <code>tools/sim.js</code>（数値）。 UIの動線には自動テストが無く、ブラウザでの手動操作頼み。 <strong>実際に遊ばないと出ない不具合を2回出している</strong>（物語のタスク動線）ので、 機能を足したら「途中でアプリを離れて戻る」経路を必ず手で通すこと。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong>物語モードは試作段階（§6.10）。</strong> 12章1本のみで、本文は静的データ。 ランタイム生成（無限に増える版）は未着手で、やる場合は先読み生成とオフライン退避が必須になる。 深層を闘技場として切り出す案も保留中——物語が進行の背骨になるなら深層は役割を失うが、 いまは唯一の終盤コンテンツなので、物語が育つ前に作り変えると遊ぶ場所が無くなる。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
 </section><section id="s12"><h2><span class="no">11</span><span>用語</span></h2>
 <div class="tw"><table><thead><tr><th>語</th><th>意味</th></tr></thead><tbody><tr><td>塵界（じんかい）</td><td>世界の名前。部屋そのもの</td></tr><tr><td>気力</td><td>2本目のゲージ。「ゴミを拾う」でのみ増える</td></tr><tr><td>潜行</td><td>深層に潜ること。ローグライク式の1回の遠征</td></tr><tr><td>加護</td><td>潜行のあいだだけ効く一時的な強化。20種</td></tr><tr><td>接辞</td><td>装備の追加効果。22種</td></tr><tr><td>塵の粉</td><td>装備を分解して得る素材。引き直しと格上げに使う</td></tr><tr><td>積もった塵</td><td>空けた日数から生まれる敵</td></tr><tr><td>層主</td><td>深層5階ごとのボス</td></tr><tr><td>いま欄</td><td>予定が合っているタスクを出す、そうじタブ最上部の枠</td></tr><tr><td>のこす／てばなす</td><td>物語モードの選択に付く重み。結末を決める</td></tr></tbody></table></div></section>
   </main>
