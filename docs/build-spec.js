@@ -3,6 +3,8 @@
 // 出典は SPEC.md ただ1つ。生成される spec.html を直接編集しないこと。
 const fs = require('fs');
 const md = fs.readFileSync(__dirname + '/SPEC.md', 'utf8');
+// 行数は実物から数える（手で書くと必ず古くなる）
+const APP_LINES = fs.readFileSync(__dirname + '/../index.html', 'utf8').split('\n').length;
 
 const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -281,7 +283,7 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
     <div class="meta">
       <span>最終更新 ${UPDATED}</span>
       <span>対象コミット ${COMMIT}</span>
-      <span>単一HTML / 約3,080行</span>
+      <span>単一HTML / ${APP_LINES.toLocaleString()}行</span>
     </div>
   </header>
   <nav class="toc">

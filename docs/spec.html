@@ -147,8 +147,8 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
       この文書は、新しいセッションへの引き継ぎと、外部レビューに渡すための資料。</p>
     <div class="meta">
       <span>最終更新 2026-08-26</span>
-      <span>対象コミット e002913</span>
-      <span>単一HTML / 約3,080行</span>
+      <span>対象コミット c4cdb06</span>
+      <span>単一HTML / 3,290行</span>
     </div>
   </header>
   <nav class="toc">
@@ -174,23 +174,26 @@ a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
 <ol><li><strong>最小の労力から始められること。</strong> 「ゴミを1個すてる」がゲームとして成立する最小単位。これより小さい単位を作らない代わりに、これより大きい単位を必須にしない。</li><li><strong>習慣の継続そのものが目的。</strong> ゲームが面白いかどうかは二の次で、明日も開くかどうかが評価軸。</li><li><strong>サボった人を罰しない。</strong> 復帰した日にペナルティを与える設計は禁止。詳しくは §6.5。</li><li><strong>画面を縦に伸ばさない。</strong> スマホでスクロールが増えると、それだけで開かなくなる。常設タスクを2つに絞っているのはこの理由（§6.1）。</li><li><strong>現実の報酬を混ぜない。</strong> ゴールドの使い道はゲーム内の装備と鍛錬のみ。「10回掃除したらケーキ」のような外的報酬は意図的に排除している。</li></ol>
 <h3>意図的にやっていないこと</h3>
 <p>レビュー時に「なぜ無いのか」と聞かれる前に列挙しておく。すべて検討した上で外している。</p>
-<div class="tw"><table><thead><tr><th>無いもの</th><th>理由</th></tr></thead><tbody><tr><td>サーバー・アカウント・同期</td><td>端末内で完結させる。個人利用で、他人と比べる要素を入れたくない</td></tr><tr><td>通知・リマインダー</td><td>「催促されるアプリ」は消される。開きたくなる側で勝負する</td></tr><tr><td>連続日数が途切れたときのペナルティ</td><td>原則3。途切れたことを責めない</td></tr><tr><td>課金・広告</td><td>自分用</td></tr><tr><td>難易度設定</td><td>選ばせる時点で1手増える。敵の側を自分の強さから逆算する方式で代替（§6.4）</td></tr><tr><td>ソーシャル・ランキング</td><td>比較対象は過去の自分だけ（§6.6）</td></tr><tr><td>ビルドツール・フレームワーク</td><td>単一HTMLで完結させることで、5年後も動く可能性を上げる</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>無いもの</th><th>理由</th></tr></thead><tbody><tr><td>サーバー・アカウント・同期</td><td>端末内で完結させる。個人利用で、他人と比べる要素を入れたくない</td></tr><tr><td>通知・リマインダー</td><td>「催促されるアプリ」は消される。開きたくなる側で勝負する</td></tr><tr><td>カレンダーの直接読み取り</td><td>Webに該当APIが存在しない。iOSショートカット経由で代替（§6.9）</td></tr><tr><td>連続日数が途切れたときのペナルティ</td><td>原則3。途切れたことを責めない</td></tr><tr><td>課金・広告</td><td>自分用</td></tr><tr><td>難易度設定</td><td>選ばせる時点で1手増える。敵の側を自分の強さから逆算する方式で代替（§6.4）</td></tr><tr><td>ソーシャル・ランキング</td><td>比較対象は過去の自分だけ（§6.6）</td></tr><tr><td>ビルドツール・フレームワーク</td><td>単一HTMLで完結させることで、5年後も動く可能性を上げる</td></tr></tbody></table></div>
 </section><section id="s2"><h2><span class="no">2</span><span>動いている場所</span></h2>
 <div class="tw"><table><tbody><tr><td>本番</td><td><a href="https://almadiehl.github.io/souji-quest/">https://almadiehl.github.io/souji-quest/</a></td></tr><tr><td>リポジトリ</td><td><code>almadiehl/souji-quest</code>（GitHub Pages・<code>main</code> ブランチ直下）</td></tr><tr><td>手元</td><td><code>/Users/alma/Chaos/souji-quest</code></td></tr><tr><td>使い方</td><td>iPhone の Safari で開き、共有 →「ホーム画面に追加」</td></tr></tbody></table></div>
 <div class="warn"><p><strong>GitHub Pages でなければならない理由</strong>（過去に事故った）<br>iOS Safari はクロスサイト iframe 内の localStorage を一時的なものとして扱うため、Artifact に埋め込んだ状態ではタスクキルで保存データが消える。<br>第一者オリジンで配信する必要がある。Artifact 版も並行して公開しているが、あれは閲覧用のミラーであって保存先ではない。</p></div>
 <p>デプロイ: <code>main</code> に push すると数十秒〜2分で反映。反映確認はハッシュ比較で行う（§9）。</p>
 </section><section id="s3"><h2><span class="no">3</span><span>ファイル構成</span></h2>
-<pre class="code"><code>index.html            アプリ全体（約3,080行・157KB）HTML/CSS/JSすべて。外部ライブラリなし
+<pre class="code"><code>index.html            アプリ全体（約3289行・163KB）HTML/CSS/JSすべて。外部ライブラリなし
 sw.js                 Service Worker（オフライン対応・stale-while-revalidate）
 manifest.json         PWA マニフェスト
 icon-180.png / icon-512.png
 README.md
 tools/sim.js          戦闘バランスのシミュレータ ★変更前に必ず通す（§8）
+tools/test-slots.js   タスクの予定（曜日・時間帯）の判定テスト
 docs/build-guide.js   攻略カタログの生成スクリプト
 docs/equipment-guide.html  生成物（ネタバレあり装備カタログ・9章）
+docs/build-spec.js    この文書を読み物のページに組む（出典は SPEC.md ひとつ）
+docs/spec.html        生成物（直接編集しないこと）
 docs/SPEC.md          この文書</code></pre>
 <p><code>index.html</code> の中の並び順（おおよその行番号）:</p>
-<div class="tw"><table><thead><tr><th>行</th><th>内容</th></tr></thead><tbody><tr><td>〜620</td><td>CSS</td></tr><tr><td>620〜640</td><td>DOM の骨格・4タブ</td></tr><tr><td>640〜830</td><td>定数とデータ（タスク・エリア・敵19体・装備41点・深層・鍛錬・今日の魔物）</td></tr><tr><td>830〜1100</td><td>ハクスラ（レア度・接辞22種・ユニーク5点・ドロップ・売却/分解/合成）</td></tr><tr><td>1100〜1260</td><td>称号16種・加護20種・潜行・積もった塵・過去の自分</td></tr><tr><td>1260〜1370</td><td>保存/読み込み/マイグレーション/日付の区切り</td></tr><tr><td>1370〜1550</td><td>成長式・報酬・ログ・演出</td></tr><tr><td>1550〜1660</td><td>タイマー</td></tr><tr><td>1660〜2170</td><td><strong>戦闘</strong>（最大の塊。コマンド・敵ターン・おまかせAI・戦闘中タイマー・決着）</td></tr><tr><td>2170〜3080</td><td>画面描画（4タブ・装備画面・バックアップ）</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>行</th><th>内容</th></tr></thead><tbody><tr><td>〜459</td><td>CSS</td></tr><tr><td>459〜657</td><td>DOM の骨格・4タブ</td></tr><tr><td>657〜852</td><td>定数とデータ（タスク・エリア・敵19体・装備41点・深層・鍛錬・今日の魔物）</td></tr><tr><td>852〜1101</td><td>ハクスラ（レア度・接辞22種・ユニーク5点・ドロップ・売却/分解/合成）</td></tr><tr><td>1101〜1285</td><td>称号16種・加護20種・潜行・積もった塵・過去の自分</td></tr><tr><td>1285〜1468</td><td>保存/読み込み/マイグレーション/日付の区切り/<strong>タスクの予定</strong>（1310〜）</td></tr><tr><td>1468〜1640</td><td>成長式・報酬・ログ・演出</td></tr><tr><td>1640〜1760</td><td>タイマー</td></tr><tr><td>1760〜2288</td><td><strong>戦闘</strong>（最大の塊。コマンド・敵ターン・おまかせAI・戦闘中タイマー・決着）</td></tr><tr><td>2288〜3289</td><td>画面描画（4タブ・装備画面・バックアップ）・URL連携</td></tr></tbody></table></div>
 </section><section id="s4"><h2><span class="no">4</span><span>実行環境の制約</span></h2>
 <p>ここを知らずに書くと必ず踏む。</p>
 <h3>iOS Safari</h3>
@@ -207,7 +210,8 @@ docs/SPEC.md          この文書</code></pre>
   day, dayCount, total,         // 今日の回数・通算回数
   streak, maxStreak, lastDay,   // 連続日数
   claimed,                      // デイリーボーナスを受け取った日
-  tasks: [{ id, n, v, sec }],   // 常設タスク（既定2つ・ユーザー追加可）
+  tasks: [{ id, n, v, sec, w, h }],   // 常設タスク（既定2つ・ユーザー追加可）
+                                // w:曜日[0=日..6=土] h:[開始時,終了時] どちらも任意（§6.8）
   items: [ …所持装備… ],         // 1点もの。最大80
   equip: { weapon, armor, glove, boots, acc },   // 装備中のアイテムid
   cleared: { e1: true, … },     // 撃破済みの敵
@@ -258,9 +262,21 @@ g   = こう × 1.4 × days           // 報酬だけは日数ぶん伸びる</c
 <p>装備は全部<strong>1点もの</strong>。同じ名前でも数値が違う。</p>
 <ul><li><strong>5スロット</strong>: ぶき / よろい / てぶくろ / はきもの / おまもり</li><li><strong>レア度4段+伝説</strong>: 並(×1.00) / 上質な(×1.12) / 業物の(×1.28) / 銘品・(×1.45) / 伝説（ユニーク5点・ボス専用）</li><li><strong>接辞22種</strong>: 通常16種＋<strong>代償つき6種</strong>（捨て身・重装・軽装・一点集中・前のめり・燃焼）。代償つきは「与ダメ+25%／被ダメ+18%」のように良い面と悪い面がセット。ビルドの分岐点はここ。</li><li><strong>スロット別の偏り</strong>（<code>SLOT_AFFIX</code>）: ぶきには会心・鋭さ・連撃、よろいには頑丈・守勢…と出やすい接辞が違うので、狙って集められる。</li><li><strong>ドロップ率</strong>: 通常40% / ボス100% / 深層55%。<strong>「ゴミを拾う」を押すほど上がる</strong>（<code>0.4 + 0.3 × 拾った回数</code>、上限1.3倍）。ここでも現実の掃除がゲームに効く。</li><li><strong>後処理</strong>: 売却 / 分解して塵の粉 / 引き直し（12粉）/ 格上げ（25粉）/ 強化 +N（1段ごとに数値+5%）</li><li>持ち物は80点まで。あふれたら弱い方を自動で売る。</li></ul>
 <p>装備の全数値はネタバレありのカタログ <code>docs/equipment-guide.html</code> に出してある（<code>node docs/build-guide.js</code> で実装から自動生成）。</p>
+<h3>タスクの予定（曜日・時間帯）</h3>
+<p>タスクに任意で<strong>曜日</strong>（<code>w</code>）と<strong>時間帯</strong>（<code>h</code>）を持たせられる。該当する時間になると、そうじタブの<br>いちばん上に「いま」欄が出てそのタスクが並ぶ。該当が無ければ<strong>欄ごと出ない</strong>ので、画面は伸びない（原則4）。</p>
+<p>時間帯は6つのプリセット。いつでも / 朝 5-11 / 昼 11-16 / 夕方 16-19 / 夜 19-24 / 深夜 0-5。<br>曜日を選ばなければ毎日。両方とも未設定なら「予定なし」で、「いま」欄には出ない。</p>
+<p>判定の注意点が2つある。</p>
+<ul><li><strong>曜日は4時区切りで見る</strong>（<code>shifted(0).getDay()</code>）。水曜の深夜2時は「火曜」として判定される。連続日数など他の日付処理と揃えるため。</li><li><strong>時刻は実際の時計で見る</strong>（<code>new Date().getHours()</code>）。深夜帯 <code>[0,5]</code> のように開始 &gt; 終了の帯は日をまたぐものとして扱う。</li></ul>
+<p><strong>過ぎても何も言わない。</strong> 時間を逃したことを責める表示は入れない（原則3）。<br><code>setInterval</code> で1分ごと、および <code>visibilitychange</code>/<code>focus</code> で該当集合が変わったかだけ見て描き直す。</p>
+<p>判定は <code>node tools/test-slots.js</code> で検証する（24件）。時刻に依存するので、実装を <code>index.html</code> から<br>抜き出したうえで「その時刻だったら」を差し込んで確かめている。</p>
+<h3>外から開く（iOSショートカット連携）</h3>
+<p>Webから端末のカレンダーを読むAPIは存在しないので、カレンダー連携はiOS側にやらせる。<br>アプリはURLパラメータで叩かれるだけ。サーバーもカレンダー権限も要らない。</p>
+<div class="tw"><table><thead><tr><th>パラメータ</th><th>動き</th></tr></thead><tbody><tr><td><code>?t=名前</code></td><td>そのタスクを「いま」欄に出す（ID・完全一致・部分一致の順で探す）</td></tr><tr><td><code>?timer=10</code></td><td>10分のタイマーを始める（30秒〜15分に丸める）</td></tr><tr><td><code>?v=dungeon</code></td><td>そのタブを開く（<code>clean</code> / <code>dungeon</code> / <code>gear</code> / <code>rec</code>）</td></tr></tbody></table></div>
+<div class="warn"><p><strong>URLでは経験値もゴールドも入れない。</strong><br>自動化で強くなれてしまうと「掃除しないと強くなれない」という前提が崩れる。<br>URLができるのは「開く」「出す」「タイマーを始める」までで、報酬が入るのは必ず本人がタップしたときだけ。<br>タイマーだけは走らせてよい——完走しなければ報酬にならないので、実際に手を動かす必要が残るため。</p></div>
+<p>処理後は <code>history.replaceState</code> でパラメータを消す。開き直しで二重に走らせないため。</p>
 </section><section id="s7"><h2><span class="no">7</span><span>画面構成</span></h2>
 <p>4タブ。ドックの2ボタンはユーザーが選べる。</p>
-<div class="tw"><table><thead><tr><th>タブ</th><th>中身</th></tr></thead><tbody><tr><td>そうじ</td><td>タスク・今日の回数・積もった塵・タスク作成</td></tr><tr><td>ダンジョン</td><td>エリア進行・今日の魔物・深層</td></tr><tr><td>そうび</td><td>装備の着脱・持ち物・店・鍛錬</td></tr><tr><td>きろく</td><td>通算・掃除した時間・撃破数・最長連続・30日グラフ・称号16種・過去のあなた</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>タブ</th><th>中身</th></tr></thead><tbody><tr><td>そうじ</td><td>いま欄・タスク・今日の回数・積もった塵・タスク作成</td></tr><tr><td>ダンジョン</td><td>エリア進行・今日の魔物・深層</td></tr><tr><td>そうび</td><td>装備の着脱・持ち物・店・鍛錬</td></tr><tr><td>きろく</td><td>通算・掃除した時間・撃破数・最長連続・30日グラフ・称号16種・過去のあなた</td></tr></tbody></table></div>
 <p>ドックの高さは <code>fitDock()</code> で実測して <code>--dock-h</code> に入れている。固定値で余白を取ると機種によって本文が隠れる（過去に発生）。</p>
 </section><section id="s8"><h2><span class="no">8</span><span>バランスを変えるときの手順（必須）</span></h2>
 <div class="warn"><p><strong>戦闘の数値・気力の定数・装備の数値・敵のステータスを触るときは、必ず <code>tools/sim.js</code> を通す。例外なし。</strong></p></div>
@@ -281,6 +297,9 @@ node -e "const s=require('fs').readFileSync('index.html','utf8');new Function(s.
 # 2. バランスに触ったなら必ず
 node tools/sim.js
 
+# 2b. タスクの予定の判定に触ったなら
+node tools/test-slots.js
+
 # 3. 装備の数値に触ったなら
 node docs/build-guide.js
 
@@ -295,8 +314,8 @@ shasum -a256 index.html</code></pre>
 <div class="warn"><p><strong>確認は実機の iPhone Safari で、ホーム画面に追加した状態で行う。</strong><br>Mac の Chrome で確認しても iOS の挙動は分からない。過去にこれで誤判定して、保存が消えるバグを見逃した。</p></div>
 </section><section id="s10"><h2><span class="no">10</span><span>既知の弱いところ・未解決</span></h2>
 <p>レビューを受けるならこのあたりを見てほしい。</p>
-<ul><li><strong><code>index.html</code> が3,080行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1660〜2170行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストが無い。</strong> 検証はシミュレータ（数値）とブラウザでの手動操作（挙動）の2本立て。回帰テストは無い。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
+<ul><li><strong><code>index.html</code> が3289行の単一ファイル。</strong> 分割していないのは、単一ファイルであること自体が「5年後も動く」ための保険だから。ただし戦闘（1760〜2288行）は明らかに大きく、<code>battle()</code> の中に描画・AI・タイマー・決着が同居している。ここだけは切り出す余地がある。</li><li><strong>自動テストがほぼ無い。</strong> 予定の判定だけ <code>tools/test-slots.js</code> がある（24件）。それ以外は シミュレータ（数値）とブラウザでの手動操作（挙動）頼みで、回帰テストは無い。</li><li><strong>接辞22種の組み合わせを検証しきれていない。</strong> 代償つき接辞を複数積んだときの極端なビルド（例: 一点集中×3で通常攻撃が死ぬ）は、シミュレータでは見ていない。</li><li><strong>深層の経済バランス。</strong> 鍛錬費が <code>1.06^n</code> なので、ある時点から装備を買う方が常に効率的になる。切り替わり点を計算していない。</li><li><strong>タスクの汎用性。</strong> 掃除以外（仕事・私用）のタスクも追加できるが、UIの語彙（「ゴミを拾う」「塵界」）が掃除に寄っているので、他用途では世界観が浮く。急ぎではないと判断して保留中。</li><li><strong><code>hist</code> が70日で切り捨てられる。</strong> 長期の記録は残らない。意図的だが、年単位で使うなら要検討。</li></ul>
 </section><section id="s11"><h2><span class="no">11</span><span>用語</span></h2>
-<div class="tw"><table><thead><tr><th>語</th><th>意味</th></tr></thead><tbody><tr><td>塵界（じんかい）</td><td>世界の名前。部屋そのもの</td></tr><tr><td>気力</td><td>2本目のゲージ。「ゴミを拾う」でのみ増える</td></tr><tr><td>潜行</td><td>深層に潜ること。ローグライク式の1回の遠征</td></tr><tr><td>加護</td><td>潜行のあいだだけ効く一時的な強化。20種</td></tr><tr><td>接辞</td><td>装備の追加効果。22種</td></tr><tr><td>塵の粉</td><td>装備を分解して得る素材。引き直しと格上げに使う</td></tr><tr><td>積もった塵</td><td>空けた日数から生まれる敵</td></tr><tr><td>層主</td><td>深層5階ごとのボス</td></tr></tbody></table></div></section>
+<div class="tw"><table><thead><tr><th>語</th><th>意味</th></tr></thead><tbody><tr><td>塵界（じんかい）</td><td>世界の名前。部屋そのもの</td></tr><tr><td>気力</td><td>2本目のゲージ。「ゴミを拾う」でのみ増える</td></tr><tr><td>潜行</td><td>深層に潜ること。ローグライク式の1回の遠征</td></tr><tr><td>加護</td><td>潜行のあいだだけ効く一時的な強化。20種</td></tr><tr><td>接辞</td><td>装備の追加効果。22種</td></tr><tr><td>塵の粉</td><td>装備を分解して得る素材。引き直しと格上げに使う</td></tr><tr><td>積もった塵</td><td>空けた日数から生まれる敵</td></tr><tr><td>層主</td><td>深層5階ごとのボス</td></tr><tr><td>いま欄</td><td>予定が合っているタスクを出す、そうじタブ最上部の枠</td></tr></tbody></table></div></section>
   </main>
 </div>
